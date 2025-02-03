@@ -27,6 +27,7 @@ import { PrimusAdapter } from "@elizaos/plugin-primus";
 import { lightningPlugin } from "@elizaos/plugin-lightning";
 import { elizaCodeinPlugin, onchainJson } from "@elizaos/plugin-iq6900";
 import { dcapPlugin } from "@elizaos/plugin-dcap";
+
 import {
     AgentRuntime,
     CacheManager,
@@ -155,6 +156,7 @@ import { ankrPlugin } from "@elizaos/plugin-ankr";
 import { formPlugin } from "@elizaos/plugin-form";
 import { MongoClient } from "mongodb";
 import { quickIntelPlugin } from "@elizaos/plugin-quick-intel";
+import { vsaPlugin } from "@elizaos/plugin-vsa";
 
 import { trikonPlugin } from "@elizaos/plugin-trikon";
 import arbitragePlugin from "@elizaos/plugin-arbitrage";
