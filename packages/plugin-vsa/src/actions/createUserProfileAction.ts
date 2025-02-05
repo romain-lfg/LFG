@@ -1,3 +1,4 @@
+//pnpm start --"character=characters/vsa.character.json";
 import {
     Action,
     ActionExample,
@@ -10,9 +11,12 @@ import {
     generateObjectDeprecated,
 } from "@elizaos/core";
 
+import { storeUserData, retrieveUserData } from "../../../../nillion/storage.js";
+//pnpm start --"charachters=charachters/vsa.character.json"
+
 const Handlebars = require('handlebars');
 
-interface UserData {
+interface UserData { //Placeholder for the user data TODO: replace with the actual user data
     name: string;
     sex: string;
     age: number;
@@ -73,6 +77,7 @@ function isUserData(
 
 async function processUserProfile(userData: UserData) {
     console.log("Processing user profile:", userData);
+    await storeUserData(userData);
 }
 
 
