@@ -1,8 +1,9 @@
 {
-  "name": "",
+  "name": "@elizaos/nillion-core",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "license": "AGPL-version-3.0",
   "private": false,
@@ -24,10 +25,16 @@
   },
   "contributors": [],
   "scripts": {
-    "dev": "",
-    "test": ""
+    "build": "mkdir -p dist && cp src/index.js dist/ && cp src/storage.js dist/ && cp src/index.d.ts dist/"
   },
   "dependencies": {
-    "nillion-sv-wrappers": "^1.0.4"
+    "nillion-sv-wrappers": "^1.0.4",
+    "uuid": "^9.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
   }
 }

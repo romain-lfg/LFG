@@ -343,6 +343,7 @@ async function jsonToCharacter(
         };
     }
     // Handle plugins
+    console.log("Plugins are: ", character.plugins);
     character.plugins = await handlePluginImporting(character.plugins);
     if (character.extends) {
         elizaLogger.info(
@@ -1018,6 +1019,7 @@ export async function createAgent(
         character,
         // character.plugins are handled when clients are added
         plugins: [
+            vsaPlugin,
             parseBooleanFromText(getSecret(character, "BITMIND")) &&
             getSecret(character, "BITMIND_API_TOKEN")
                 ? bittensorPlugin

@@ -67,6 +67,9 @@
         "dev": {
             "persistent": true,
             "cache": false
+        },
+        "@elizaos/nillion-core#build": {
+            "outputs": ["dist/**"]
         }
     }
 }
