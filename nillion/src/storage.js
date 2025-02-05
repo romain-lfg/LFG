@@ -1,6 +1,6 @@
 import { SecretVaultWrapper } from 'nillion-sv-wrappers';
 import { v4 as uuidv4 } from 'uuid';
-import { orgConfig } from './nillionOrgConfig.js';
+import { orgConfig } from '../nillionOrgConfig.js';
 
 const SCHEMA_ID = '50375cef-636e-4505-b7ab-39d76b7f124d';
 
@@ -68,6 +68,9 @@ export const getCollection = async () => {
     return collection;
 };
 
+export const testFn = () => {
+    console.log('test');
+};
 
 if (isMainModule) {
     // Call the async function and handle the promise

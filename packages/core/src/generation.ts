@@ -523,6 +523,7 @@ export async function generateText({
         elizaLogger.debug(
             `Using provider: ${provider}, model: ${model}, temperature: ${temperature}, max response length: ${max_response_length}`
         );
+        console.log("Provider is: ", provider);
 
         switch (provider) {
             // OPENAI & LLAMACLOUD shared same structure.
@@ -708,19 +709,20 @@ export async function generateText({
             }
 
             case ModelProviderName.ANTHROPIC: {
-                elizaLogger.debug(
+                console.log(
                     "Initializing Anthropic model with Cloudflare check"
                 );
                 const baseURL =
                     getCloudflareGatewayBaseURL(runtime, "anthropic") ||
                     "https://api.anthropic.com/v1";
-                elizaLogger.debug("Anthropic baseURL result:", { baseURL });
+                console.log("Anthropic baseURL result:", { baseURL });
 
                 const anthropic = createAnthropic({
                     apiKey,
                     baseURL,
                     fetch: runtime.fetch,
                 });
+                console.log("Anthropic model:", anthropic);
                 const { text: anthropicResponse } = await aiGenerateText({
                     model: anthropic.languageModel(model),
                     prompt: context,
@@ -739,7 +741,7 @@ export async function generateText({
                 });
 
                 response = anthropicResponse;
-                elizaLogger.debug("Received response from Anthropic model.");
+                console.log("Received response from Anthropic model.");
                 break;
             }
 

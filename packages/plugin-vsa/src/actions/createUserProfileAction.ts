@@ -1,4 +1,4 @@
-//pnpm start --"character=characters/vsa.character.json";
+//pnpm start --"character=characters/vsa.character.json"
 import {
     Action,
     ActionExample,
@@ -11,7 +11,7 @@ import {
     generateObjectDeprecated,
 } from "@elizaos/core";
 
-import { storeUserData, retrieveUserData } from "../../../../nillion/storage.js";
+import { storeUserData, retrieveUserData, testFn } from "@elizaos/nillion-core";
 //pnpm start --"charachters=charachters/vsa.character.json"
 
 const Handlebars = require('handlebars');
@@ -77,7 +77,8 @@ function isUserData(
 
 async function processUserProfile(userData: UserData) {
     console.log("Processing user profile:", userData);
-    await storeUserData(userData);
+    testFn();
+    //await storeUserData(userData);
 }
 
 
