@@ -1,14 +1,19 @@
 import type { Metadata } from 'next'
 import { Space_Grotesk } from 'next/font/google'
 import './globals.css'
+import Navbar from '@/components/Navbar'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
   display: 'swap',
+  variable: '--font-space-grotesk',
 })
 
 export const metadata: Metadata = {
-  title: 'LFG - Looking For Bounties',
+  title: {
+    template: '%s | LFG',
+    default: 'LFG - Looking For Bounties',
+  },
   description: 'Autonomous agent-driven bounty matching platform powered by blockchain technology',
   keywords: ['blockchain', 'ethereum', 'bounty', 'virtual synergy agents', 'VSA', 'web3', 'smart contracts'],
   authors: [{ name: 'LFG Team' }],
@@ -25,8 +30,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={spaceGrotesk.className}>{children}</body>
+    <html lang="en" className={spaceGrotesk.variable}>
+      <body className={`${spaceGrotesk.className} antialiased`}>
+        <Navbar />
+        {children}
+      </body>
     </html>
   )
 }
