@@ -1,0 +1,68 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Bounty Collection", 
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "_id": {
+                "type": "string",
+                "format": "uuid",
+                "coerce": true
+            },
+            "bounties": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "title": {
+                            "type": "object",
+                            "properties": {
+                                "$share": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["$share"]
+                        },
+                        "description": {
+                            "type": "object", 
+                            "properties": {
+                                "$share": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["$share"]
+                        },
+                        "reward": {
+                            "type": "object",
+                            "items": {
+                                "type": "object",
+                            "properties": {
+                                "amount": {
+                                  "type": "string",
+                                  "minimum": 1,
+                                  "maximum": 50
+                                },
+                                "token": {
+                                  "type": "string",
+                                  "minimum": 1,
+                                  "maximum": 50
+                                },
+                                "chainId": {
+                                  "type": "string",
+                                  "minimum": 1,
+                                  "maximum": 50
+                                }
+                            },
+                            "required": ["amount", "token", "chainId"]
+                        },
+                        "minItems": 1
+                    }
+                  },
+                    "required": ["title", "description", "reward"]
+                }
+            }
+        },
+        "required": ["_id", "bounties"]
+    }
+}
