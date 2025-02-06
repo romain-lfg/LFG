@@ -3,25 +3,44 @@
 @tailwind utilities;
 
 :root {
-  --primary: 79, 70, 229;    /* indigo-600 */
-  --primary-light: 129, 140, 248;  /* indigo-400 */
-  --primary-dark: 67, 56, 202;    /* indigo-700 */
-  --secondary: 168, 85, 247;    /* purple-500 */
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 17, 24, 39;
+  --background-end-rgb: 0, 0, 0;
 }
 
 @layer base {
   body {
-    @apply antialiased;
-    background-color: black;
-    overflow-x: hidden;
+    @apply antialiased bg-gradient-to-b from-gray-900 to-black text-white min-h-screen;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold tracking-tight;
   }
+
+  ::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-indigo-900 rounded-full hover:bg-indigo-800;
+  }
 }
 
 @layer components {
+  .navbar-link {
+    @apply text-gray-300 hover:text-white transition-colors font-medium;
+  }
+
+  .navbar-button {
+    @apply bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 
+           text-white px-4 py-2 rounded-lg font-semibold transition-all 
+           shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30;
+  }
+
   .container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
@@ -32,35 +51,18 @@
 
   .btn-primary {
     @apply bg-gradient-to-r from-indigo-600 to-purple-600 text-white
-    hover:from-indigo-700 hover:to-purple-700;
+           hover:from-indigo-700 hover:to-purple-700;
   }
 
   .btn-secondary {
-    @apply border border-indigo-400 text-white
-    hover:bg-indigo-900/50;
+    @apply border border-indigo-400 text-white hover:bg-indigo-900/50;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-indigo-400 to-purple-500 text-transparent bg-clip-text;
+  }
+
+  .glass {
+    @apply bg-white/10 backdrop-blur-sm border border-white/20;
   }
 }
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  @apply w-1.5;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-gray-900;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-indigo-900 rounded-full hover:bg-indigo-800;
-}
-
-/* Gradient Text */
-.gradient-text {
-  @apply bg-gradient-to-r from-indigo-400 to-purple-500 text-transparent bg-clip-text;
-}
-
-/* Glass Effect */
-.glass {
-  @apply bg-white/10 backdrop-blur-sm border border-white/20;
-}
-
