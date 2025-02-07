@@ -8,7 +8,8 @@ import {
   IconChevronDown,
   IconWallet,
   IconClock,
-  IconCheck
+  IconCheck,
+  IconBrandGithub
 } from '@tabler/icons-react';
 
 interface CreateBountyModalProps {
@@ -37,9 +38,18 @@ export default function CreateBountyModal({ isOpen, onClose }: CreateBountyModal
   const [form, setForm] = useState({
     title: '',
     description: '',
-    reward: '',
-    deadline: '',
-    estimatedHours: '',
+    reward: {
+      amount: '',
+      token: 'ETH',
+      chainId: 1, // Ethereum Mainnet
+    },
+    requirements: {
+      skills: [] as string[],
+      estimatedTimeInHours: '',
+      deadline: '',
+    },
+    completionCriteria: '',
+    repositoryUrl: '',
   });
   
   // Mock wallet connection - replace with actual wallet integration
@@ -50,11 +60,22 @@ export default function CreateBountyModal({ isOpen, onClose }: CreateBountyModal
   if (!isOpen) return null;
 
   const handleSkillToggle = (skill: string) => {
-    setSelectedSkills(prev =>
-      prev.includes(skill)
+    setSelectedSkills(prev => {
+      const newSkills = prev.includes(skill)
         ? prev.filter(s => s !== skill)
-        : [...prev, skill]
-    );
+        : [...prev, skill];
+      
+      // Update form requirements.skills
+      setForm(prevForm => ({
+        ...prevForm,
+        requirements: {
+          ...prevForm.requirements,
+          skills: newSkills
+        }
+      }));
+      
+      return newSkills;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -225,6 +246,40 @@ export default function CreateBountyModal({ isOpen, onClose }: CreateBountyModal
               </div>
             </div>
 
+            {/* Completion Criteria */}
+            <div>
+              <label htmlFor="completionCriteria" className="block text-sm font-medium text-gray-300">
+                Completion Criteria
+              </label>
+              <textarea
+                id="completionCriteria"
+                value={form.completionCriteria}
+                onChange={e => setForm(prev => ({ ...prev, completionCriteria: e.target.value }))}
+                rows={2}
+                className="mt-1 block w-full rounded-lg bg-white/[0.06] border border-white/[0.05] px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="e.g., PR merged to main branch, all tests passing"
+                required
+              />
+            </div>
+
+            {/* Repository URL */}
+            <div>
+              <label htmlFor="repositoryUrl" className="block text-sm font-medium text-gray-300">
+                Repository URL
+              </label>
+              <div className="mt-1 flex items-center space-x-2">
+                <IconBrandGithub className="h-5 w-5 text-gray-400" />
+                <input
+                  type="url"
+                  id="repositoryUrl"
+                  value={form.repositoryUrl}
+                  onChange={e => setForm(prev => ({ ...prev, repositoryUrl: e.target.value }))}
+                  className="flex-1 rounded-lg bg-white/[0.06] border border-white/[0.05] px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="https://github.com/username/repo"
+                />
+              </div>
+            </div>
+
             {/* Estimated Hours */}
             <div>
               <label htmlFor="estimatedHours" className="block text-sm font-medium text-gray-300">
@@ -234,8 +289,14 @@ export default function CreateBountyModal({ isOpen, onClose }: CreateBountyModal
                 <input
                   type="number"
                   id="estimatedHours"
-                  value={form.estimatedHours}
-                  onChange={e => setForm(prev => ({ ...prev, estimatedHours: e.target.value }))}
+                  value={form.requirements.estimatedTimeInHours}
+                  onChange={e => setForm(prev => ({
+                    ...prev,
+                    requirements: {
+                      ...prev.requirements,
+                      estimatedTimeInHours: e.target.value
+                    }
+                  }))}
                   className="block w-full rounded-lg bg-white/[0.06] border border-white/[0.05] px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="40"
                   min="1"
