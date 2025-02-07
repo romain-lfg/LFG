@@ -1,7 +1,12 @@
+'use client';
+
+import { useState } from 'react';
 import { Bounty } from '@/types/bounty';
 import { mockBounties } from '@/mocks/bounties';
+import CreateBountyModal from '@/components/bounties/CreateBountyModal';
 
 export default function BountyBoard() {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
       {/* Header Section */}
@@ -18,7 +23,10 @@ export default function BountyBoard() {
               Find the perfect bounty for your skills and earn rewards through our VSA platform
             </p>
             <div className="flex gap-4 justify-center">
-              <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+              <button 
+                onClick={() => setIsCreateModalOpen(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+              >
                 Post a Bounty
               </button>
               <button className="border border-indigo-400 hover:bg-indigo-900/50 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
@@ -90,6 +98,11 @@ export default function BountyBoard() {
           </div>
         </div>
       </section>
+      {/* Create Bounty Modal */}
+      <CreateBountyModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
     </main>
   );
 }
