@@ -24,16 +24,18 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex">
       {/* Side Navigation */}
-      <nav className="fixed inset-y-0 left-0 w-64 bg-gray-900/50 backdrop-blur-xl border-r border-white/[0.05]">
-        <div className="flex h-16 items-center px-6 border-b border-white/[0.05]">
-          <Link 
-            href="/"
-            className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text hover:from-indigo-500 hover:to-purple-500"
-          >
-            LFG
-          </Link>
+      <nav className="fixed inset-y-0 left-0 w-64 z-50 bg-gray-900/50 backdrop-blur-xl border-r border-white/[0.05] flex flex-col">
+        <div className="flex h-16 shrink-0 items-center px-4 border-b border-white/[0.05]">
+          <div className="container">
+            <Link 
+              href="/"
+              className="flex items-center text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-500 text-transparent bg-clip-text hover:from-indigo-300 hover:to-purple-400 transition-all"
+            >
+              LFG
+            </Link>
+          </div>
         </div>
         <div className="px-2 py-4">
           {navigation.map((item) => {
@@ -69,7 +71,7 @@ export default function DashboardLayout({
       </nav>
 
       {/* Main Content */}
-      <main className="pl-64">
+      <main className="flex-1 pl-64">
         <div className="sticky top-0 z-40 h-16 bg-gray-900/50 backdrop-blur-xl border-b border-white/[0.05]">
           <div className="flex h-16 items-center justify-between px-6">
             <h1 className="text-lg font-semibold text-white">
