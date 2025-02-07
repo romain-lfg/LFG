@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -9,6 +10,7 @@ import {
   IconPlus,
   IconChartBar
 } from '@tabler/icons-react';
+import CreateBountyModal from '@/components/bounties/CreateBountyModal';
 
 const navigation = [
   { name: 'Overview', href: '/dashboard', icon: IconHome },
@@ -22,6 +24,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex">
@@ -63,7 +66,10 @@ export default function DashboardLayout({
           })}
         </div>
         <div className="absolute bottom-4 left-0 right-0 px-4">
-          <button className="navbar-button w-full flex items-center justify-center gap-x-2">
+          <button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="navbar-button w-full flex items-center justify-center gap-x-2"
+          >
             <IconPlus className="h-5 w-5" />
             Create Bounty
           </button>
@@ -92,6 +98,12 @@ export default function DashboardLayout({
           {children}
         </div>
       </main>
+
+      {/* Create Bounty Modal */}
+      <CreateBountyModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
     </div>
   );
 }

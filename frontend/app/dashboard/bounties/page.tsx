@@ -158,6 +158,7 @@ export default function BountiesPage() {
           </div>
         ))}
       </div>
+
     </div>
   );
 }
