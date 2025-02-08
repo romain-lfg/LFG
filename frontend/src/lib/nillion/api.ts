@@ -1,4 +1,4 @@
-import { nillionClient } from './client';
+import { nillionClient, Bounty } from './client';
 import { SCHEMA_IDS, RECORD_IDS } from './constants';
 import { NillionError } from './errors';
 import { BountyListParams } from '@/types/nillion';
@@ -24,10 +24,29 @@ export async function getBountyList(params?: BountyListParams) {
     const bounties = bountiesData[0]?.bounties || [];
     console.log('[NillionAPI] Found bounties:', bounties.length);
 
+    // Transform bounties to match the expected format
+    const transformedBounties: Bounty[] = bounties.map((bounty: any) => ({
+      title: bounty.title || '',
+      owner: bounty.owner || '',
+      requiredSkills: bounty.requiredSkills || '',
+      datePosted: bounty.datePosted || '',
+      dueDate: bounty.dueDate || '',
+      state: bounty.state || 'Open',
+      estimatedTime: bounty.estimatedTime || '',
+      description: bounty.description || '',
+      longDescription: bounty.longDescription || '',
+      bountyId: bounty.bountyId || '',
+      reward: {
+        amount: bounty.reward?.amount || '0',
+        token: bounty.reward?.token || 'ETH',
+        chainId: bounty.reward?.chainId || '1'
+      }
+    }));
+
     // Filter by owner if specified
     const filteredBounties = params?.owner 
-      ? bounties.filter(bounty => bounty.owner === params.owner)
-      : bounties;
+      ? transformedBounties.filter(bounty => bounty.owner === params.owner)
+      : transformedBounties;
 
     return {
       items: filteredBounties,

@@ -2,6 +2,24 @@ import { SecretVaultWrapper, Collection } from 'nillion-sv-wrappers';
 import { orgConfig } from './config';
 import { SCHEMA_IDS } from './constants';
 
+export interface Bounty {
+  title: string;
+  owner: string;
+  requiredSkills: string;
+  datePosted: string;
+  dueDate: string;
+  state: string;
+  estimatedTime: string;
+  description: string;
+  longDescription: string;
+  bountyId: string;
+  reward: {
+    amount: string;
+    token: string;
+    chainId: string;
+  };
+}
+
 class NillionClient {
   private static instance: NillionClient;
   private client: SecretVaultWrapper | null = null;
@@ -10,7 +28,7 @@ class NillionClient {
 
   private constructor() {}
 
-  private async getCollection(schemaId: string): Promise<SecretVaultWrapper> {
+  async getCollection(schemaId: string): Promise<SecretVaultWrapper> {
     const client = await this.getClient();
     const collection = new SecretVaultWrapper(
       orgConfig.nodes,
