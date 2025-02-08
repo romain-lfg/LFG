@@ -43,13 +43,10 @@ Example response:
     "longDescription": "Create a dashboard to track DeFi positions",
     "amount": "1000000000",
     "token": "USDC",
-    "chainId": "1",
     "requiredSkills": ["React", "Web3.js", "TypeScript"],
     "datePosted": "2024-01-15",
     "dueDate": "2024-02-15", 
-    "state": "OPEN",
     "estimatedTime": "80",
-    "owner": "0x1234567890123456789012345678901234567890"
 }
 \`\`\`
 
@@ -62,13 +59,10 @@ Given the recent messages, extract the following information about the bounty: >
 - longDescription
 - amount
 - token
-- chainId
 - requiredSkills
 - datePosted
 - dueDate
-- state
 - estimatedTime
-- owner
 
 Respond with a JSON markdown block containing only the extracted values.`;
 
@@ -82,14 +76,11 @@ function isBountyData(
         typeof content.longDescription === "string" &&
         typeof content.amount === "string" &&
         typeof content.token === "string" &&
-        typeof content.chainId === "string" &&
         Array.isArray(content.requiredSkills) &&
         content.requiredSkills.every(skill => typeof skill === "string") &&
         typeof content.datePosted === "string" &&
         typeof content.dueDate === "string" &&
-        typeof content.state === "string" &&
-        typeof content.estimatedTime === "string" &&
-        typeof content.owner === "string"
+        typeof content.estimatedTime === "string"
     );
 }
 
@@ -97,11 +88,11 @@ async function processBounty(bountyData: BountyData) {
     console.log("Processing new Bounty creation:", bountyData);
     const bountyDataFormat = {
         title: { $allot: bountyData.title },
-        owner: { $allot: bountyData.owner },
+        owner: { $allot: "0x1234567890123456789012345678901234567890" },
         requiredSkills: { $allot: bountyData.requiredSkills },
         datePosted: { $allot: bountyData.datePosted },
         dueDate: { $allot: bountyData.dueDate },
-        state: { $allot: bountyData.state },
+        state: { $allot: "Open" },
         estimatedTime: { $allot: bountyData.estimatedTime },
         description: { $allot: bountyData.description },
         longDescription: { $allot: bountyData.longDescription },
@@ -109,7 +100,7 @@ async function processBounty(bountyData: BountyData) {
         reward: {
           amount: { $allot: bountyData.amount },
           token: { $allot: bountyData.token },
-          chainId: { $allot: bountyData.chainId },
+          chainId: { $allot: "11192" },
         },
     };
     await createBounty(bountyDataFormat);
@@ -190,7 +181,7 @@ export const createBountyAction: Action = {
     
                     if (callback) {
                         callback({
-                            text: missingUserDataTemplate, //promptMessage,
+                            text: missingParamsList, //promptMessage,
                             content: {
                                 success: false,
                                 error: "Missing required token parameters",

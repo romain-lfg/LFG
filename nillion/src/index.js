@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { orgConfig } from '../nillionOrgConfig.js';
 
 const SCHEMA_ID_USER = '50375cef-636e-4505-b7ab-39d76b7f124d';
-const SCHEMA_ID_BOUNTY = 'c81a0c9d-eaff-4fa6-8d89-f19a3e00f306';
+const SCHEMA_ID_BOUNTY = '5b85e1d1-3b6b-4e5a-aa00-45e6b8f8b1ec';
 
 const BOUNTY_ID = '1163837d-318e-46f2-8c2b-86e0fb00b1e7';
 
@@ -208,6 +208,13 @@ export const createBounty = async (bounty) => {
 export const getBountyList = async () => {
   const bountiesRetrieved = await retrieveBountyData(bountyFormat._id, SCHEMA_ID_BOUNTY)
   return bountiesRetrieved[0].bounties;
+}
+
+export const clearBounties = async () => {
+  const collection = await getCollection(SCHEMA_ID);
+  console.log("Clearing bounties");
+  const updateContent = {_id: data._id, bounties: []};  
+  const updatedData = await collection.updateDataToNodes(data, {_id: BOUNTY_ID});
 }
 
 export const testFn = () => {
