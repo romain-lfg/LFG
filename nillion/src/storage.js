@@ -206,13 +206,17 @@ export const createBounty = async (bounty) => {
   updateDataBounties({bounties: newBounties}, SCHEMA_ID_BOUNTY);
 }
 
+export const getBountyList = async () => {
+  const bountiesRetrieved = await retrieveBountyData(bountyFormat._id, SCHEMA_ID_BOUNTY)
+  return bountiesRetrieved[0].bounties;
+}
+
 if (isMainModule) {
     // Call the async function and handle the promise
-    if (false) {
-        const bountiesRetrieved = await retrieveBountyData(bountyFormat._id, SCHEMA_ID_BOUNTY)
-        console.log("Bounties retrieved:", bountiesRetrieved);
-        console.log("Total bounties:", bountiesRetrieved[0].bounties.length);
-        bountiesRetrieved[0].bounties.map(bounty => {
+    if (true) {
+        const bountiesRetrieved = await getBountyList();
+        console.log("Total bounties:", bountiesRetrieved.length);
+        bountiesRetrieved.map(bounty => {
             //console.log("Bounty:", bounty);
             //console.log("Bounty title:", bounty.title);
             //console.log("Bounty description:", bounty.description);

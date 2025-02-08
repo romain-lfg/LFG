@@ -5,4 +5,7 @@ export function getBountyList(owner: any): Promise<any>;
 export function matchBounties(userId: string): Promise<any>;
 export function deleteBounty(id: string): Promise<void>; //Bounties need an id to be deleted, completion criteria
 
-export function testFn(): void; 
+export function testFn(): void;
+
+export function createBounty(data: any): Promise<void>;
+export function getBountyList(): Promise<any>;

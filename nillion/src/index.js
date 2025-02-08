@@ -205,6 +205,11 @@ export const createBounty = async (bounty) => {
   updateDataBounties({bounties: newBounties}, SCHEMA_ID_BOUNTY);
 }
 
+export const getBountyList = async () => {
+  const bountiesRetrieved = await retrieveBountyData(bountyFormat._id, SCHEMA_ID_BOUNTY)
+  return bountiesRetrieved[0].bounties;
+}
+
 export const testFn = () => {
   console.log('test complete');
 };
