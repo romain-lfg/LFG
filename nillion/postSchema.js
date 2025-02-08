@@ -11,7 +11,7 @@ async function main() {
     await org.init();
 
     // Create a new collection schema for all nodes in the org
-    const collectionName = 'Web3 Experience Survey';
+    const collectionName = 'Bounty Schema';
     const schema = JSON.parse(await readFile(new URL('./schemaBounty.json', import.meta.url)));
     const newSchema = await org.createSchema(schema, collectionName);
     console.log('✅ New Collection Schema created for all nodes:', newSchema);

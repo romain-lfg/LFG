@@ -40,7 +40,7 @@ Example response:
 
 {{recentMessages}}
 
-Given the recent messages, extract the following information about the user:
+Given the recent messages, extract the following information about the user: >>>(DO NOT RENAME THE KEYS)<<<
 - Name 
 - Sex
 - Age
@@ -77,8 +77,7 @@ function isUserData(
 
 async function processUserProfile(userData: UserData) {
     console.log("Processing user profile:", userData);
-    testFn();
-    //await storeUserData(userData);
+    await storeUserData(userData);
 }
 
 
