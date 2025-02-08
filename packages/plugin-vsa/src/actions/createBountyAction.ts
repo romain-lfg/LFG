@@ -183,7 +183,7 @@ export const createBountyAction: Action = {
                 Please provide values for the missing parameters to proceed with the user profile creation.`;
 
                 //TODO add a correct context composition for the missing user data
-                // If there are missing parameters, ask the user for them
+                // If there are missing parameters, ask the user for them a
                 if (missing.length > 0) {
                     const missingParamsList = missing.join(", ");
                     const promptMessage = `Please provide the following missing information: ${missingParamsList}.`;
