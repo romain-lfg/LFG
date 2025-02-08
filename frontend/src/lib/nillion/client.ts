@@ -1,5 +1,6 @@
 import { SecretVaultWrapper, Collection } from 'nillion-sv-wrappers';
 import { orgConfig } from './config';
+import { SCHEMA_IDS } from './constants';
 
 class NillionClient {
   private static instance: NillionClient;
