@@ -5,12 +5,12 @@ import { BountyListParams } from '@/types/nillion';
 export async function getBountyList(params?: BountyListParams) {
   try {
     console.log('[NillionAPI] Fetching bounties with params:', params);
-    const bounties = await nillionGetBountyList(params?.owner);
+    const bounties = await nillionGetBountyList();
     console.log('[NillionAPI] Bounties:', bounties);
 
     return {
-      items: bounties,
-      total: bounties.length,
+      items: bounties || [],
+      total: bounties?.length || 0,
       hasMore: false
     };
   } catch (error) {
