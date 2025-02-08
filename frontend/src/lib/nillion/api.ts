@@ -32,17 +32,21 @@ export async function getBountyList(params?: BountyListParams) {
     if (!decryptedCollectionData || !Array.isArray(decryptedCollectionData) || decryptedCollectionData.length === 0) {
       console.log('[NillionAPI] No data found, initializing with test bounty...');
       const testBounty = {
-        title: 'Test Bounty',
-        owner: '0x1234567890123456789012345678901234567890',
-        requiredSkills: 'TypeScript,C#',
-        datePosted: new Date().toISOString(),
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        state: 'Open',
-        estimatedTime: '10 hrs',
-        description: 'Test bounty for initialization',
-        longDescription: 'This is a test bounty to initialize the collection',
-        bountyId: '00000000-0000-0000-0000-000000000000',
-        reward: { amount: '1992', token: 'ETH', chainId: '11192' }
+        title: { $allot: 'Test Bounty' },
+        owner: { $allot: '0x1234567890123456789012345678901234567890' },
+        requiredSkills: { $allot: 'TypeScript,C#' },
+        datePosted: { $allot: new Date().toISOString() },
+        dueDate: { $allot: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() },
+        state: { $allot: 'Open' },
+        estimatedTime: { $allot: '10 hrs' },
+        description: { $allot: 'Test bounty for initialization' },
+        longDescription: { $allot: 'This is a test bounty to initialize the collection' },
+        bountyId: { $allot: '00000000-0000-0000-0000-000000000000' },
+        reward: {
+          amount: { $allot: '1992' },
+          token: { $allot: 'ETH' },
+          chainId: { $allot: '11192' }
+        }
       };
 
       await collection.updateDataToNodes(
@@ -76,20 +80,20 @@ export async function getBountyList(params?: BountyListParams) {
     const transformedBounties: Bounty[] = records.flatMap(record => {
       const bounties = record?.bounties || [];
       return bounties.map((bounty: any) => ({
-        title: bounty.title || '',
-        owner: bounty.owner || '',
-        requiredSkills: bounty.requiredSkills || '',
-        datePosted: bounty.datePosted || '',
-        dueDate: bounty.dueDate || '',
-        state: bounty.state || 'Open',
-        estimatedTime: bounty.estimatedTime || '',
-        description: bounty.description || '',
-        longDescription: bounty.longDescription || '',
-        bountyId: bounty.bountyId || '',
+        title: bounty.title?.$allot || '',
+        owner: bounty.owner?.$allot || '',
+        requiredSkills: bounty.requiredSkills?.$allot || '',
+        datePosted: bounty.datePosted?.$allot || '',
+        dueDate: bounty.dueDate?.$allot || '',
+        state: bounty.state?.$allot || 'Open',
+        estimatedTime: bounty.estimatedTime?.$allot || '',
+        description: bounty.description?.$allot || '',
+        longDescription: bounty.longDescription?.$allot || '',
+        bountyId: bounty.bountyId?.$allot || '',
         reward: {
-          amount: bounty.reward?.amount || '0',
-          token: bounty.reward?.token || 'ETH',
-          chainId: bounty.reward?.chainId || '1'
+          amount: bounty.reward?.amount?.$allot || '0',
+          token: bounty.reward?.token?.$allot || 'ETH',
+          chainId: bounty.reward?.chainId?.$allot || '1'
         }
       }));
     });

@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Bounty Collection", 
+    "title": "Bounty Collection",
     "type": "array",
     "items": {
         "type": "object",
@@ -18,125 +18,125 @@
                         "title": {
                             "type": "object",
                             "properties": {
-                                "$share": {
+                                "$allot": {
                                     "type": "string"
                                 }
                             },
-                            "required": ["$share"]
+                            "required": ["$allot"]
                         },
                         "owner": {
-                          "type": "object",
-                          "properties": {
-                              "$share": {
-                                  "type": "string"
-                              }
-                          },
-                          "required": ["$share"]
+                            "type": "object",
+                            "properties": {
+                                "$allot": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["$allot"]
                         },
                         "requiredSkills": {
-                          "type": "object",
-                          "properties": {
-                              "$share": {
-                                  "type": "string"
-                              }
-                          },
-                          "required": ["$share"]
+                            "type": "object",
+                            "properties": {
+                                "$allot": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["$allot"]
                         },
                         "datePosted": {
-                          "type": "object",
-                          "properties": {
-                              "$share": {
-                                  "type": "string"
-                              }
-                          },
-                          "required": ["$share"]
+                            "type": "object",
+                            "properties": {
+                                "$allot": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["$allot"]
                         },
                         "dueDate": {
-                          "type": "object",
-                          "properties": {
-                              "$share": {
-                                  "type": "string"
-                              }
-                          },
-                          "required": ["$share"]
+                            "type": "object",
+                            "properties": {
+                                "$allot": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["$allot"]
                         },
                         "state": {
-                          "type": "object",
-                          "properties": {
-                              "$share": {
-                                  "type": "string"
-                              }
-                          },
-                          "required": ["$share"]
+                            "type": "object",
+                            "properties": {
+                                "$allot": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["$allot"]
                         },
                         "estimatedTime": {
-                          "type": "object",
-                          "properties": {
-                              "$share": {
-                                  "type": "string"
-                              }
-                          },
-                          "required": ["$share"]
+                            "type": "object",
+                            "properties": {
+                                "$allot": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["$allot"]
                         },
                         "description": {
-                          "type": "object",
-                          "properties": {
-                              "$share": {
-                                  "type": "string"
-                              }
-                          },
-                          "required": ["$share"]
+                            "type": "object",
+                            "properties": {
+                                "$allot": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["$allot"]
                         },
                         "longDescription": {
-                          "type": "object",
-                          "properties": {
-                              "$share": {
-                                  "type": "string"
-                              }
-                          },
-                          "required": ["$share"]
+                            "type": "object",
+                            "properties": {
+                                "$allot": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["$allot"]
                         },
                         "bountyId": {
-                          "type": "object",
-                          "properties": {
-                              "$share": {
-                                  "type": "string"
-                              }
-                          },
-                          "required": ["$share"]
+                            "type": "object",
+                            "properties": {
+                                "$allot": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["$allot"]
                         },
                         "reward": {
-                          "type": "object",
-                          "properties": {
-                              "amount": {
-                                "type": "object",
-                                "properties": {
-                                    "$share": {
-                                        "type": "string"
-                                    }
+                            "type": "object",
+                            "properties": {
+                                "amount": {
+                                    "type": "object",
+                                    "properties": {
+                                        "$allot": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": ["$allot"]
                                 },
-                                "required": ["$share"]
-                              },
-                              "token": {
-                                "type": "object",
-                                "properties": {
-                                    "$share": {
-                                        "type": "string"
-                                    }
+                                "token": {
+                                    "type": "object",
+                                    "properties": {
+                                        "$allot": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": ["$allot"]
                                 },
-                                "required": ["$share"]
-                              },
-                              "chainId": {
-                                "type": "object",
-                                "properties": {
-                                    "$share": {
-                                        "type": "string"
-                                    }
-                                },
-                                "required": ["$share"]
-                              }
-                          },
-                          "required": ["amount", "token", "chainId"]
+                                "chainId": {
+                                    "type": "object",
+                                    "properties": {
+                                        "$allot": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": ["$allot"]
+                                }
+                            },
+                            "required": ["amount", "token", "chainId"]
                         }
                     },
                     "required": ["title", "owner", "requiredSkills", "datePosted", "dueDate", "state", "estimatedTime", "description", "longDescription", "bountyId", "reward"]
