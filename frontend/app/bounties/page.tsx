@@ -2,12 +2,26 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Bounty } from '@/types/bounty';
+import { useBounties } from '@/hooks/useBounties';
+import { useFeature } from '@/hooks/useFeature';
 import { mockBounties } from '@/mocks/bounties';
 import CreateBountyModal from '@/components/bounties/CreateBountyModal';
+import BountySkeleton from '@/components/bounties/BountySkeleton';
+import BountyError from '@/components/bounties/BountyError';
 
 export default function BountyBoard() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const isNillionEnabled = useFeature('nillion.enabled');
+  
+  const {
+    data: bountyData,
+    isLoading,
+    error,
+    refetch
+  } = useBounties();
+
+  // Use Nillion data if enabled, otherwise fall back to mock data
+  const bounties = isNillionEnabled ? bountyData?.items : mockBounties;
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
       {/* Header Section */}
@@ -42,7 +56,24 @@ export default function BountyBoard() {
       <section className="py-12">
         <div className="container mx-auto px-4">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {mockBounties.map((bounty) => (
+            {/* Loading State */}
+            {isLoading && (
+              <>
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <BountySkeleton key={i} />
+                ))}
+              </>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="col-span-full">
+                <BountyError onRetry={() => refetch()} />
+              </div>
+            )}
+
+            {/* Data State */}
+            {!isLoading && !error && bounties?.map((bounty) => (
               <Link
                 key={bounty.id}
                 href={`/bounties/${bounty.id}`}
