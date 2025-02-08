@@ -352,7 +352,6 @@ if (isMainModule) {
         bountiesRetrieved.map(bounty => {
             console.log("Bounty:", bounty);
             //console.log("Bounty title:", bounty.title);
-            //console.log("Bounty description:", bounty.description);
             //console.log("Bounty reward token:", bounty.reward.token);
             console.log("Bounty owner:", bounty.owner);
             //console.log("Bounty required skills:", bounty.requiredSkills);
