@@ -12,11 +12,43 @@ export async function getBountyList(params?: BountyListParams) {
     const collection = await nillionClient.getCollection(SCHEMA_IDS.BOUNTY);
     console.log('[NillionAPI] Collection initialized');
 
-    // Retrieve data
+    // Try to read data first
     console.log('[NillionAPI] Reading from nodes...');
     const decryptedCollectionData = await collection.readFromNodes({});
     console.log('[NillionAPI] Raw data:', JSON.stringify(decryptedCollectionData, null, 2));
     console.log('[NillionAPI] Raw data type:', typeof decryptedCollectionData);
+
+    // If no data exists, initialize with a test bounty
+    if (!decryptedCollectionData || !Array.isArray(decryptedCollectionData) || decryptedCollectionData.length === 0) {
+      console.log('[NillionAPI] No data found, initializing with test bounty...');
+      const testBounty = {
+        title: 'Test Bounty',
+        owner: '0x1234567890123456789012345678901234567890',
+        requiredSkills: 'TypeScript,C#',
+        datePosted: new Date().toISOString(),
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        state: 'Open',
+        estimatedTime: '10 hrs',
+        description: 'Test bounty for initialization',
+        longDescription: 'This is a test bounty to initialize the collection',
+        bountyId: '00000000-0000-0000-0000-000000000000',
+        reward: { amount: '1992', token: 'ETH', chainId: '11192' }
+      };
+
+      await collection.updateDataToNodes(
+        { _id: RECORD_IDS.BOUNTY, bounties: [testBounty] },
+        { _id: RECORD_IDS.BOUNTY }
+      );
+
+      // Read the data again after initialization
+      const initializedData = await collection.readFromNodes({});
+      console.log('[NillionAPI] Initialized data:', JSON.stringify(initializedData, null, 2));
+      return {
+        items: [testBounty],
+        total: 1,
+        hasMore: false
+      };
+    }
 
     // Find all records (userId === "0") or filter by owner
     const records = params?.owner
