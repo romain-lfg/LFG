@@ -6,7 +6,7 @@ import { LfgMarketService } from "./services/LfgMarketService";
 
 const lfgMarketService = new LfgMarketService();
 
-const lfgMarketPlugin: Plugin = {
+export const lfgMarketPlugin: Plugin = {
     name: "lfg-market-plugin",
     description: "Marketplace for job bounties plugin",
     actions: [friendAction],

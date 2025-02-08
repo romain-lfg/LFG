@@ -1,15 +1,10 @@
-import * as _ from "lodash";
 import { BigNumber } from "@ethersproject/bignumber";
 import { Contract } from "@ethersproject/contracts";
-import { JsonRpcProvider, StaticJsonRpcProvider } from "@ethersproject/providers";
-import { Interface } from "@ethersproject/abi";
-import { formatEther, parseEther } from "@ethersproject/units";
-import { isAddress } from "@ethersproject/address";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import { ethers } from "ethers";
 import { LFG_MARKET_ABI } from "./abi";
 import { LFG_MARKET_ADDRESS } from "./addresses";
 import { JobDetails } from "../type";
-require('dotenv').config();
 
 export class LfgMarketCalls {
   provider: StaticJsonRpcProvider;
