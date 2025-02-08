@@ -9,11 +9,10 @@ export async function getBountyList(params?: BountyListParams) {
     console.log('[NillionAPI] Fetching bounties with params:', params);
 
     // Get collection
-    const collection = await client.createCollection(SCHEMA_IDS.BOUNTY);
     console.log('[NillionAPI] Collection initialized');
 
     // Retrieve data
-    const bountiesData = await collection.retrieveData(RECORD_IDS.BOUNTY);
+    const bountiesData = await client.readFromNodes({});
     console.log('[NillionAPI] Raw bounties data:', bountiesData);
 
     if (!bountiesData || !Array.isArray(bountiesData) || bountiesData.length === 0) {
@@ -46,11 +45,10 @@ export async function createBounty(bountyData: any) {
     console.log('[NillionAPI] Creating bounty:', bountyData);
 
     // Get collection
-    const collection = await client.createCollection(SCHEMA_IDS.BOUNTY);
     console.log('[NillionAPI] Collection initialized');
 
     // Retrieve current bounties
-    const bountiesData = await collection.retrieveData(RECORD_IDS.BOUNTY);
+    const bountiesData = await client.readFromNodes({});
     console.log('[NillionAPI] Current bounties data:', bountiesData);
 
     if (!bountiesData || !Array.isArray(bountiesData) || bountiesData.length === 0) {
@@ -61,7 +59,7 @@ export async function createBounty(bountyData: any) {
     const newBounties = [...currentBounties, bountyData];
 
     // Update data
-    await collection.updateData(
+    await client.updateDataToNodes(
       { bounties: newBounties },
       { _id: RECORD_IDS.BOUNTY }
     );
