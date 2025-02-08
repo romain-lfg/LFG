@@ -7,15 +7,14 @@ const SCHEMA_ID_BOUNTY = '023c30b6-3ba0-495b-a235-cb853263ca1e';
 
 const BOUNTY_ID = '1163837d-318e-46f2-8c2b-86e0fb00b1e7';
 const USER_ID = '1163837d-318e-46f2-8c2b-42069b00b1e7';
+//open -n -a "Google Chrome" --args --disable-web-security --user-data-dir="/tmp/chrome_dev_session"
+
 
 //const RECORD_ID = '1163837d-318e-46f2-8c2b-86e0fb00b1e7';
 // Check if this is the main module
 const isMainModule = import.meta.url === `file://${process.argv[1]}`;
 
 
-export const matchBounties = async (userId) => {
-  console.log("Matching bounties for:", userId);
-}
 
 export const resetSchema = async (SCHEMA_ID) => {
     const org = new SecretVaultWrapper(
@@ -62,10 +61,14 @@ export const getCollection = async (SCHEMA_ID) => {
     return collection;
 };
 
+export const testFn = () => {
+    console.log('test');
+};
+
 const bountyDataFormat = {
   title: { $allot: "title2" },
   owner: { $allot: "owner1" },
-  requiredSkills: { $allot: "requiredSkills" },
+  requiredSkills: [ { $allot: "c++" }, { $allot: "typescript" }],
   datePosted: { $allot: "hostTime" },
   dueDate: { $allot: "dueDate" },
   state: { $allot: "state" },
@@ -83,7 +86,7 @@ const bountyDataFormat = {
 const bountyDataFormat2 = {
   title: { $allot: "title2" },
   owner: { $allot: "owner2" },
-  requiredSkills: { $allot: "requiredSkills" },
+  requiredSkills: [ { $allot: "c++" }, { $allot: "typescript" }],
   datePosted: { $allot: "hostTime" },
   dueDate: { $allot: "dueDate" },
   state: { $allot: "state" },
@@ -225,6 +228,7 @@ export const createUser = async (user) => {
 }
 
   export const getBountyList = async () => {
+    console.log("Getting bounty list TTTTTESSSST");
     const bountiesRetrieved = await retrieveBountyData(bountyFormat._id, SCHEMA_ID_BOUNTY)
     console.log("bountiesRetrieved:", bountiesRetrieved[0].bounties);
     return bountiesRetrieved[0].bounties;
@@ -248,9 +252,97 @@ export const clearUsers = async () => {
   console.log("Updated data:", updatedData);
 }
 
-export const testFn = () => {
-  console.log('test complete');
-};
+export const matchBountiesOwner = async (userId) => {
+  const bounties = await getBountyList();
+  const users = await getUserList();
+  
+  const matches = [];
+  for (const bounty of bounties) {
+    if (bounty.owner === userId) {
+      for (const user of users) {
+        // Compare bounty and user here
+        //console.log(`Comparing bounty ${bounty.title} with user ${user.name}`);
+        const userSkills = user.skills;
+        const bountySkills = bounty.requiredSkills;
+        //console.log("userSkills:", userSkills);
+        //console.log("bountySkills:", bountySkills);
+        const skillsMatch = userSkills.reduce((count, skill) => {
+            return bountySkills.includes(skill) ? count + 1 : count;
+        }, 0);
+        //console.log("skillsMatch:", skillsMatch, "out of", bountySkills.length);
+        const match = {
+          bounty: bounty,
+          user: user,
+          skillsMatch: skillsMatch
+        };
+        if(skillsMatch >= 1){
+          matches.push(match);
+        }
+      }
+
+    }
+  }
+
+  matches.sort((a, b) => b.skillsMatch - a.skillsMatch);
+  console.log("matches:", matches);
+  // Log details for each match
+  matches.forEach(match => {
+    //console.log("Match Details:");
+    //console.log("User Skills:", match.user.skills);
+    //console.log("Required Bounty Skills:", match.bounty.requiredSkills); 
+    //console.log("Match Score:", match.skillsMatch);
+    //console.log("---");
+  });
+  return matches;
+
+}
+
+export const matchBountiesUser = async (userId) => {
+  const bounties = await getBountyList();
+  const users = await getUserList();
+  
+  const matches = [];
+  for (const bounty of bounties) {
+      for (const user of users) {
+        // Compare bounty and user here
+        //console.log("user:", user.address);
+        if (user.address === userId) {
+
+          //console.log(`Comparing bounty ${bounty.title} with user ${user.name}`);
+          const userSkills = user.skills;
+          const bountySkills = bounty.requiredSkills;
+          //console.log("userSkills:", userSkills);
+          //console.log("bountySkills:", bountySkills);
+          const skillsMatch = userSkills.reduce((count, skill) => {
+              return bountySkills.includes(skill) ? count + 1 : count;
+          }, 0);
+          //console.log("skillsMatch:", skillsMatch, "out of", bountySkills.length);
+          const match = {
+            bounty: bounty,
+            user: user,
+            skillsMatch: skillsMatch
+          };
+          if(skillsMatch >= 1){
+            matches.push(match);
+          }
+        }
+
+      }
+  }
+
+  matches.sort((a, b) => b.skillsMatch - a.skillsMatch);
+  //console.log("matches:", matches);
+  // Log details for each match
+  matches.forEach(match => {
+    //console.log("Match Details:");
+    //console.log("User Skills:", match.user.skills);
+    //console.log("Required Bounty Skills:", match.bounty.requiredSkills); 
+    //console.log("Match Score:", match.skillsMatch);
+    //console.log("---");
+  });
+  return matches;
+
+}
 
 //export { storeUserData, retrieveUserData, getCollection, testFn } from './storage.js';
 

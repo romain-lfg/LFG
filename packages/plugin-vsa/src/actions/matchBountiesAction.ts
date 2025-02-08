@@ -11,16 +11,11 @@ import {
     generateObjectDeprecated,
 } from "@elizaos/core";
 
-import {matchBounties } from "@elizaos/nillion-core";
+import {matchBountiesUser } from "@elizaos/nillion-core";
 
 const Handlebars = require('handlebars');
 
-
-async function processMatchBounties() {
-    console.log("Matching bounties");
-    matchBounties("0");
-}
-
+const userAdress = "0xi29299100";
 
 export const matchBountiesAction: Action = {
     name: "MATCH_BOUNTIES",
@@ -41,11 +36,34 @@ export const matchBountiesAction: Action = {
         } else {
             state = await runtime.updateRecentMessageState(state);
         }
-    
+
         console.log("Match bounties action handler called");
     
         try {
-            processMatchBounties();
+            const matches = await matchBountiesUser(userAdress);
+            console.log("Found matches:", matches);
+            let matchText = "Here are the bounties that match your skills:\n\n";
+            
+            for (const match of await matches) {
+                matchText += `Title: ${match.bounty.title}\n`;
+                matchText += `Bounty ID: ${match.bounty.bountyId}\n`;
+                matchText += `Description: ${match.bounty.longDescription}\n`;
+                matchText += `Skills Match: ${match.skillsMatch} out of ${match.bounty.requiredSkills.length} required skills\n`;
+                matchText += `Required Skills: ${match.bounty.requiredSkills.join(", ")}\n`;
+                matchText += `Reward: ${match.bounty.reward.amount} ${match.bounty.reward.token}\n`;
+                matchText += "-------------------\n";
+            }
+
+            if ((matches).length === 0) {
+                matchText = "No bounties match your skills. Please try again with different skills or wait for new bounties to be posted.";
+            }
+
+            if (callback) {
+                callback({
+                    text: matchText,
+                    content: { matches: await matches }
+                });
+            }
         } 
         catch (error) {
             console.error("Error matching bounties:", error);

@@ -251,6 +251,99 @@ export const clearUsers = async () => {
   const updatedData = await collection.updateDataToNodes({users: []}, {_id: USER_ID});
   console.log("Updated data:", updatedData);
 }
+
+export const matchBountiesOwner = async (userId) => {
+  const bounties = await getBountyList();
+  const users = await getUserList();
+  
+  const matches = [];
+  for (const bounty of bounties) {
+    if (bounty.owner === userId) {
+      for (const user of users) {
+        // Compare bounty and user here
+        //console.log(`Comparing bounty ${bounty.title} with user ${user.name}`);
+        const userSkills = user.skills;
+        const bountySkills = bounty.requiredSkills;
+        //console.log("userSkills:", userSkills);
+        //console.log("bountySkills:", bountySkills);
+        const skillsMatch = userSkills.reduce((count, skill) => {
+            return bountySkills.includes(skill) ? count + 1 : count;
+        }, 0);
+        //console.log("skillsMatch:", skillsMatch, "out of", bountySkills.length);
+        const match = {
+          bounty: bounty,
+          user: user,
+          skillsMatch: skillsMatch
+        };
+        if(skillsMatch >= 1){
+          matches.push(match);
+        }
+      }
+
+    }
+  }
+
+  matches.sort((a, b) => b.skillsMatch - a.skillsMatch);
+  console.log("matches:", matches);
+  // Log details for each match
+  matches.forEach(match => {
+    //console.log("Match Details:");
+    //console.log("User Skills:", match.user.skills);
+    //console.log("Required Bounty Skills:", match.bounty.requiredSkills); 
+    //console.log("Match Score:", match.skillsMatch);
+    //console.log("---");
+  });
+  return matches;
+
+}
+
+export const matchBountiesUser = async (userId) => {
+  const bounties = await getBountyList();
+  const users = await getUserList();
+  
+  const matches = [];
+  for (const bounty of bounties) {
+      for (const user of users) {
+        // Compare bounty and user here
+        //console.log("user:", user.address);
+        if (user.address === userId) {
+
+          //console.log(`Comparing bounty ${bounty.title} with user ${user.name}`);
+          const userSkills = user.skills;
+          const bountySkills = bounty.requiredSkills;
+          //console.log("userSkills:", userSkills);
+          //console.log("bountySkills:", bountySkills);
+          const skillsMatch = userSkills.reduce((count, skill) => {
+              return bountySkills.includes(skill) ? count + 1 : count;
+          }, 0);
+          //console.log("skillsMatch:", skillsMatch, "out of", bountySkills.length);
+          const match = {
+            bounty: bounty,
+            user: user,
+            skillsMatch: skillsMatch
+          };
+          if(skillsMatch >= 1){
+            matches.push(match);
+          }
+        }
+
+      }
+  }
+
+  matches.sort((a, b) => b.skillsMatch - a.skillsMatch);
+  //console.log("matches:", matches);
+  // Log details for each match
+  matches.forEach(match => {
+    //console.log("Match Details:");
+    //console.log("User Skills:", match.user.skills);
+    //console.log("Required Bounty Skills:", match.bounty.requiredSkills); 
+    //console.log("Match Score:", match.skillsMatch);
+    //console.log("---");
+  });
+  return matches;
+
+}
+
 if (isMainModule) {
     // Call the async function and handle the promise
     if (false) {
@@ -259,7 +352,6 @@ if (isMainModule) {
         bountiesRetrieved.map(bounty => {
             console.log("Bounty:", bounty);
             //console.log("Bounty title:", bounty.title);
-            //console.log("Bounty description:", bounty.description);
             //console.log("Bounty reward token:", bounty.reward.token);
             console.log("Bounty owner:", bounty.owner);
             //console.log("Bounty required skills:", bounty.requiredSkills);
@@ -273,7 +365,9 @@ if (isMainModule) {
       //createUser(userDataFormat);
       //storeUserData(userFormat, SCHEMA_ID_USER);
       //getUserList();
-      getBountyList();
+      //getBountyList();
+      //matchBountiesOwner("owner2");
+      matchBountiesUser("0xi29299100");
       //storeUserData({users: [userDataFormat]}, SCHEMA_ID_USER);
       //storeUserData(bountyFormat, SCHEMA_ID_BOUNTY);
       //clearBounties();
