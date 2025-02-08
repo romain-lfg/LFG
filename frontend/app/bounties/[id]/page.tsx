@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { IconBrandGithub, IconClock, IconCalendar, IconTrophy, IconArrowLeft } from '@tabler/icons-react';
 import Link from 'next/link';
+import { FeatureGate } from '@/hooks/useFeature';
 import { mockBounties } from '@/mocks/bounties';
 import { Bounty } from '@/types/bounty';
 
@@ -131,14 +132,40 @@ export default function BountyDetail() {
 
           {/* Action Buttons */}
           <div className="flex gap-4">
-            {bounty.status === 'open' && (
-              <button className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all">
-                Apply for Bounty
+            <FeatureGate 
+              featurePath="bounties.apply"
+              fallback={
+                <button 
+                  className="flex-1 bg-gray-600 text-gray-300 px-6 py-3 rounded-lg font-semibold cursor-not-allowed"
+                  disabled
+                  title="Coming soon"
+                >
+                  Apply for Bounty (Coming Soon)
+                </button>
+              }
+            >
+              {bounty.status === 'open' && (
+                <button className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all">
+                  Apply for Bounty
+                </button>
+              )}
+            </FeatureGate>
+            <FeatureGate
+              featurePath="bounties.contact"
+              fallback={
+                <button 
+                  className="flex-1 border border-gray-600 text-gray-300 px-6 py-3 rounded-lg font-semibold cursor-not-allowed"
+                  disabled
+                  title="Coming soon"
+                >
+                  Contact Creator (Coming Soon)
+                </button>
+              }
+            >
+              <button className="flex-1 border border-indigo-400 hover:bg-indigo-900/50 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                Contact Creator
               </button>
-            )}
-            <button className="flex-1 border border-indigo-400 hover:bg-indigo-900/50 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-              Contact Creator
-            </button>
+            </FeatureGate>
           </div>
         </div>
       </div>

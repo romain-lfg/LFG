@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { FeatureGate } from '@/hooks/useFeature';
 import { 
   IconX, 
   IconCurrencyEthereum, 
@@ -170,19 +171,38 @@ export default function CreateBountyModal({ isOpen, onClose }: CreateBountyModal
             </div>
 
             {/* Connected Wallet */}
-            <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-              <div className="flex items-center space-x-3">
-                <IconWallet className="h-5 w-5 text-gray-400" />
-                <div>
-                  <div className="text-sm font-medium text-white">Connected Wallet</div>
-                  <div className="text-sm text-gray-400">{walletAddress}</div>
+            <FeatureGate
+              featurePath="contracts.enabled"
+              fallback={
+                <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                  <div className="flex items-center space-x-3">
+                    <IconWallet className="h-5 w-5 text-gray-400" />
+                    <div>
+                      <div className="text-sm font-medium text-white">Wallet Connection</div>
+                      <div className="text-sm text-gray-400">Coming Soon</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 rounded-full bg-gray-400"></div>
+                    <span className="text-sm text-gray-300">Not Connected</span>
+                  </div>
+                </div>
+              }
+            >
+              <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                <div className="flex items-center space-x-3">
+                  <IconWallet className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <div className="text-sm font-medium text-white">Connected Wallet</div>
+                    <div className="text-sm text-gray-400">{walletAddress}</div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="h-2 w-2 rounded-full bg-emerald-400"></div>
+                  <span className="text-sm text-gray-300">Connected</span>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 rounded-full bg-emerald-400"></div>
-                <span className="text-sm text-gray-300">Connected</span>
-              </div>
-            </div>
+            </FeatureGate>
 
             {/* Required Skills */}
             <div>
