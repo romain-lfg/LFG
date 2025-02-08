@@ -25,16 +25,14 @@ class NillionClient {
       this.initializing = true;
       console.log('[NillionClient] Initializing...');
       
-      // Create a new instance
-      this.client = new SecretVaultWrapper();
+      // Create a new instance with nodes and credentials
+      this.client = new SecretVaultWrapper(
+        orgConfig.nodes,
+        orgConfig.orgCredentials
+      );
       
-      // Set up organization credentials
-      await this.client.setOrgCredentials(orgConfig.orgCredentials);
-      
-      // Add nodes
-      for (const node of orgConfig.nodes) {
-        await this.client.addNode(node);
-      }
+      // Initialize the client
+      await this.client.init();
       
       this.initialized = true;
       console.log('[NillionClient] Initialized successfully');
