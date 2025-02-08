@@ -4,13 +4,46 @@ import { useParams, useRouter } from 'next/navigation';
 import { IconBrandGithub, IconClock, IconCalendar, IconTrophy, IconArrowLeft } from '@tabler/icons-react';
 import Link from 'next/link';
 import { FeatureGate } from '@/hooks/useFeature';
-import { mockBounties } from '@/mocks/bounties';
-import { Bounty } from '@/types/bounty';
+import { useBounty } from '@/hooks/useBounty';
+import BountySkeleton from '@/components/bounties/BountySkeleton';
+import BountyError from '@/components/bounties/BountyError';
 
 export default function BountyDetail() {
   const { id } = useParams();
-  const bounty = mockBounties.find(b => b.id === id) as Bounty;
+  const {
+    data: bounty,
+    isLoading,
+    error,
+    refetch
+  } = useBounty(id as string);
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white pt-24">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <BountySkeleton />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white pt-24">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <BountyError onRetry={() => refetch()} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show not found state
   if (!bounty) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center pt-24">

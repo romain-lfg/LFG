@@ -4,6 +4,9 @@
  */
 
 export const features = {
+  nillion: {
+    enabled: process.env.NEXT_PUBLIC_ENABLE_NILLION === 'true',
+  },
   // Authentication features
   auth: {
     enabled: false,
