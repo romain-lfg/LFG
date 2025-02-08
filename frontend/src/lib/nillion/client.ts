@@ -10,6 +10,17 @@ class NillionClient {
 
   private constructor() {}
 
+  private async getCollection(schemaId: string): Promise<SecretVaultWrapper> {
+    const client = await this.getClient();
+    const collection = new SecretVaultWrapper(
+      orgConfig.nodes,
+      orgConfig.orgCredentials,
+      schemaId
+    );
+    await collection.init();
+    return collection;
+  }
+
   static getInstance(): NillionClient {
     if (!NillionClient.instance) {
       NillionClient.instance = new NillionClient();
@@ -26,13 +37,9 @@ class NillionClient {
       this.initializing = true;
       console.log('[NillionClient] Initializing...');
       
-      // Log the nodes array
-      console.log('[NillionClient] Nodes:', JSON.stringify(orgConfig.nodes));
-      console.log('[NillionClient] Nodes type:', typeof orgConfig.nodes);
-      
       // Create a new instance with nodes and credentials
       this.client = new SecretVaultWrapper(
-        Array.isArray(orgConfig.nodes) ? orgConfig.nodes : [orgConfig.nodes],
+        orgConfig.nodes,
         orgConfig.orgCredentials
       );
       
