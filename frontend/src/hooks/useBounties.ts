@@ -6,7 +6,10 @@ import { useFeature } from './useFeature';
 export const BOUNTIES_QUERY_KEY = 'bounties';
 
 export function useBounties(params: BountyListParams = {}) {
+  console.log('[useBounties] Hook called with params:', params);
   const isNillionEnabled = useFeature('nillion.enabled');
+
+  console.log('[useBounties] Nillion enabled:', isNillionEnabled);
 
   return useQuery<PaginatedBountyResponse>({
     queryKey: [BOUNTIES_QUERY_KEY, params],

@@ -8,15 +8,20 @@ export async function getBountyList(params?: BountyListParams) {
     const client = await nillionClient.getClient();
     console.log('[NillionAPI] Fetching bounties with params:', params);
 
-    const collection = await client.getCollection(SCHEMA_IDS.BOUNTY);
-    const bountiesData = await collection.retrieveDataFromNodes(RECORD_IDS.BOUNTY);
+    // Get collection
+    const collection = await client.collection(SCHEMA_IDS.BOUNTY);
+    console.log('[NillionAPI] Collection initialized');
+
+    // Retrieve data
+    const bountiesData = await collection.get(RECORD_IDS.BOUNTY);
+    console.log('[NillionAPI] Raw bounties data:', bountiesData);
 
     if (!bountiesData || !Array.isArray(bountiesData) || bountiesData.length === 0) {
       console.log('[NillionAPI] No bounties found');
       return { items: [], total: 0, hasMore: false };
     }
 
-    const bounties = bountiesData[0].bounties || [];
+    const bounties = bountiesData[0]?.bounties || [];
     console.log('[NillionAPI] Found bounties:', bounties.length);
 
     // Filter by owner if specified
@@ -40,19 +45,25 @@ export async function createBounty(bountyData: any) {
     const client = await nillionClient.getClient();
     console.log('[NillionAPI] Creating bounty:', bountyData);
 
-    const collection = await client.getCollection(SCHEMA_IDS.BOUNTY);
-    const bountiesData = await collection.retrieveDataFromNodes(RECORD_IDS.BOUNTY);
+    // Get collection
+    const collection = await client.collection(SCHEMA_IDS.BOUNTY);
+    console.log('[NillionAPI] Collection initialized');
+
+    // Retrieve current bounties
+    const bountiesData = await collection.get(RECORD_IDS.BOUNTY);
+    console.log('[NillionAPI] Current bounties data:', bountiesData);
 
     if (!bountiesData || !Array.isArray(bountiesData) || bountiesData.length === 0) {
       throw new NillionError('Failed to retrieve bounties collection', 'FETCH_BOUNTIES_ERROR');
     }
 
-    const currentBounties = bountiesData[0].bounties || [];
+    const currentBounties = bountiesData[0]?.bounties || [];
     const newBounties = [...currentBounties, bountyData];
 
-    await collection.updateDataToNodes(
-      { bounties: newBounties },
-      { _id: RECORD_IDS.BOUNTY }
+    // Update data
+    await collection.update(
+      RECORD_IDS.BOUNTY,
+      { bounties: newBounties }
     );
 
     console.log('[NillionAPI] Bounty created successfully');

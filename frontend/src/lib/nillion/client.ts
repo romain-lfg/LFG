@@ -1,5 +1,5 @@
-import { SecretVaultWrapper } from 'nillion-sv-wrappers';
-import { orgConfig } from '../../../nillion/nillionOrgConfig';
+import { SecretVaultWrapper, Collection } from 'nillion-sv-wrappers';
+import { orgConfig } from './config';
 
 class NillionClient {
   private static instance: NillionClient;
@@ -25,8 +25,11 @@ class NillionClient {
       this.initializing = true;
       console.log('[NillionClient] Initializing...');
       
-      this.client = new SecretVaultWrapper(orgConfig);
-      await this.client.initialize();
+      // Create a new instance with the config
+      this.client = new SecretVaultWrapper({
+        orgCredentials: orgConfig.orgCredentials,
+        nodes: orgConfig.nodes
+      });
       
       this.initialized = true;
       console.log('[NillionClient] Initialized successfully');
