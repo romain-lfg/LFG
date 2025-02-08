@@ -35,14 +35,17 @@ class NillionClient {
         orgConfig.nodes,
         orgConfig.orgCredentials
       );
+
+      console.log('[NillionClient] Initializing collection...');
       await org.init();
 
       // Create a new collection schema for all nodes in the org
       const collectionName = 'Bounty Schema';
       const schema = await import('./schema.json');
-      console.log('[NillionClient] Creating schema with:', schema);
-      const newSchema = await org.createSchema(schema, collectionName);
-      const schemaId = newSchema[0].result.data;
+      console.log('[NillionClient] Creating schema with:', schema.default);
+      const newSchema = await org.createSchema(schema.default, collectionName);
+      console.log('[NillionClient] Schema creation response:', newSchema);
+      const schemaId = newSchema[0]?.result?.data;
       console.log('[NillionClient] Schema created with ID:', schemaId);
       return schemaId;
     } catch (error) {

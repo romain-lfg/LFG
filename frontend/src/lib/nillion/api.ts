@@ -12,9 +12,13 @@ export async function getBountyList(params?: BountyListParams) {
       console.log('[NillionAPI] Initializing schema...');
       const newSchemaId = await nillionClient.initializeSchema();
       console.log('[NillionAPI] Schema initialized with ID:', newSchemaId);
-      SCHEMA_IDS.BOUNTY = newSchemaId;
+      if (newSchemaId) {
+        SCHEMA_IDS.BOUNTY = newSchemaId;
+      }
     } catch (error) {
-      console.log('[NillionAPI] Schema already exists, using existing schema');
+      console.error('[NillionAPI] Error initializing schema:', error);
+      // Continue with existing schema
+      console.log('[NillionAPI] Using existing schema:', SCHEMA_IDS.BOUNTY);
     }
 
     // Get collection
