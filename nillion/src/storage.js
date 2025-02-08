@@ -7,6 +7,8 @@ const SCHEMA_ID_BOUNTY = '023c30b6-3ba0-495b-a235-cb853263ca1e';
 
 const BOUNTY_ID = '1163837d-318e-46f2-8c2b-86e0fb00b1e7';
 const USER_ID = '1163837d-318e-46f2-8c2b-42069b00b1e7';
+//open -n -a "Google Chrome" --args --disable-web-security --user-data-dir="/tmp/chrome_dev_session"
+
 
 //const RECORD_ID = '1163837d-318e-46f2-8c2b-86e0fb00b1e7';
 // Check if this is the main module
@@ -226,6 +228,7 @@ export const createUser = async (user) => {
 }
 
   export const getBountyList = async () => {
+    console.log("Getting bounty list TTTTTESSSST");
     const bountiesRetrieved = await retrieveBountyData(bountyFormat._id, SCHEMA_ID_BOUNTY)
     console.log("bountiesRetrieved:", bountiesRetrieved[0].bounties);
     return bountiesRetrieved[0].bounties;

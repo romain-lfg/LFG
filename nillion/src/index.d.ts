@@ -8,9 +8,10 @@ export function testFn(): void;
 
 //Working Functions
 export function createBounty(data: any): Promise<void>;
-export function getBountyList(): Promise<any>;
+export async function getBountyList(): Promise<any>;
 export function clearBounties(): Promise<void>;
 
 export function createUser(data: any): Promise<void>;
 export function getUserList(): Promise<any>;
 export function clearUsers(): Promise<void>;
+
