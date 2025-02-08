@@ -5,11 +5,10 @@ import { BountyListParams } from '@/types/nillion';
 
 export async function getBountyList(params?: BountyListParams) {
   try {
-    const client = await nillionClient.getClient();
     console.log('[NillionAPI] Fetching bounties with params:', params);
 
     // Get collection
-    const collection = await client.getCollection(SCHEMA_IDS.BOUNTY);
+    const collection = await nillionClient.getCollection(SCHEMA_IDS.BOUNTY);
     console.log('[NillionAPI] Collection initialized');
 
     // Retrieve data
@@ -61,11 +60,10 @@ export async function getBountyList(params?: BountyListParams) {
 
 export async function createBounty(bountyData: any) {
   try {
-    const client = await nillionClient.getClient();
     console.log('[NillionAPI] Creating bounty:', bountyData);
 
     // Get collection
-    const collection = await client.getCollection(SCHEMA_IDS.BOUNTY);
+    const collection = await nillionClient.getCollection(SCHEMA_IDS.BOUNTY);
     console.log('[NillionAPI] Collection initialized');
 
     // Retrieve current bounties
