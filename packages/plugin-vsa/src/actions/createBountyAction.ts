@@ -89,7 +89,7 @@ async function processBounty(bountyData: BountyData) {
     const bountyDataFormat = {
         title: { $allot: bountyData.title },
         owner: { $allot: "0x1234567890123456789012345678901234567890" },
-        requiredSkills: { $allot: bountyData.requiredSkills },
+        requiredSkills: bountyData.requiredSkills.map(skill => ({ $allot: skill })),
         datePosted: { $allot: bountyData.datePosted },
         dueDate: { $allot: bountyData.dueDate },
         state: { $allot: "Open" },
@@ -147,7 +147,7 @@ export const createBountyAction: Action = {
             if (!isBountyData(content)) {
                 console.log("NOT IS USER DATA");
                 const bountyData = content;
-                const requiredParameters = ["title", "description", "longDescription", "reward", "amount", "token", "chainId", "requiredSkills", "datePosted", "dueDate", "state", "estimatedTime", "owner"];
+                const requiredParameters = ["title", "description", "longDescription", "rewardAmount", "rewardToken", "requiredSkills", "datePosted", "dueDate", "estimatedTime"];
                 const confirmed = {};
                 const missing = [];
     
@@ -181,7 +181,7 @@ export const createBountyAction: Action = {
     
                     if (callback) {
                         callback({
-                            text: missingParamsList, //promptMessage,
+                            text: "Please provide the following missing information: " + missingParamsList, //promptMessage,
                             content: {
                                 success: false,
                                 error: "Missing required token parameters",

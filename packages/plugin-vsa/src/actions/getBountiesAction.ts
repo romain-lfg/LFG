@@ -11,7 +11,7 @@ import {
     generateObjectDeprecated,
 } from "@elizaos/core";
 
-import { storeUserData, retrieveUserData, testFn } from "@elizaos/nillion-core";
+import { testFn } from "@elizaos/nillion-core";
 
 const Handlebars = require('handlebars');
 

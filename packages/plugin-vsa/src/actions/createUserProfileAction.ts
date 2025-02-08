@@ -11,17 +11,19 @@ import {
     generateObjectDeprecated,
 } from "@elizaos/core";
 
-import { storeUserData, retrieveUserData, testFn } from "@elizaos/nillion-core";
+import { createUser } from "@elizaos/nillion-core";
 //pnpm start --"charachters=charachters/vsa.character.json"
 
 const Handlebars = require('handlebars');
 
 interface UserData { //Placeholder for the user data TODO: replace with the actual user data
     name: string;
-    sex: string;
-    age: number;
-    location: string;
-    interests: string[];
+    address: string;
+    skills: string[];
+    workingHoursStart: string;
+    workingHoursEnd: string;
+    timeZone: string;
+    minimumBountyValue: string;
 }
 
 
@@ -31,21 +33,26 @@ Example response:
 \`\`\`json
 {
     "name": "John Smith",
-    "sex": "male",
-    "age": 25,
-    "location": "New York, USA", 
-    "interests": ["reading", "hiking", "photography"]
+    "address": "0xoawdajp",
+    "skills": [typescript, nodejs, c#],
+    "workingHoursStart": "8am",
+    "workingHoursEnd": "16pm",
+    "timeZone": "UTC",
+    "minimumBountyValue": "0"
 }
 \`\`\`
 
 {{recentMessages}}
 
 Given the recent messages, extract the following information about the user: >>>(DO NOT RENAME THE KEYS)<<<
+>>>ONLY USE DATA FROM MESSAGES AFTER THE LAST TIME THE USER ASKED TO CREATE A USER PROFILE, if you cannot find the information after the last time the user asked to create a user profile, use null<<<
 - Name 
-- Sex
-- Age
-- Location
-- List of interests
+- Address
+- Skills
+- WorkingHoursStart
+- WorkingHoursEnd
+- TimeZone
+- MinimumBountyValue
 
 Respond with a JSON markdown block containing only the extracted values.`;
 
@@ -67,17 +74,28 @@ function isUserData(
 ): content is UserData {
     return (
         typeof content.name === "string" &&
-        typeof content.sex === "string" &&
-        typeof content.age === "number" &&
-        typeof content.location === "string" &&
-        Array.isArray(content.interests) &&
-        content.interests.every(interest => typeof interest === "string")
+        typeof content.address === "string" &&
+        Array.isArray(content.skills) &&
+        content.skills.every(skill => typeof skill === "string") &&
+        typeof content.workingHoursStart === "string" &&
+        typeof content.workingHoursEnd === "string" &&
+        typeof content.timeZone === "string" &&
+        typeof content.minimumBountyValue === "string"
     );
 }
 
 async function processUserProfile(userData: UserData) {
     console.log("Processing user profile:", userData);
-    await storeUserData(userData);
+    const userDataFormat = {
+        name: { $allot: userData.name },
+        address: { $allot: userData.address },
+        skills: userData.skills.map(skill => ({ $allot: skill })),
+        workingHoursStart: { $allot: userData.workingHoursStart },
+        workingHoursEnd: { $allot: userData.workingHoursEnd },
+        timeZone: { $allot: userData.timeZone },
+        minimumBountyValue: { $allot: userData.minimumBountyValue },
+      };
+    await createUser(userDataFormat);
 }
 
 
@@ -121,7 +139,7 @@ export const createUserProfileAction: Action = {
             if (!isUserData(content)) {
                 console.log("NOT IS USER DATA");
                 const userData = content;
-                const requiredParameters = ["name", "sex", "age", "location", "interests"];
+                const requiredParameters = ["name", "address", "skills", "workingHoursStart", "workingHoursEnd", "timeZone", "minimumBountyValue"];
                 const confirmed = {};
                 const missing = [];
     
@@ -155,10 +173,12 @@ export const createUserProfileAction: Action = {
                 // Create user data
                 const userDataFilled: UserData = {
                     name: content.name,
-                    sex: content.sex,
-                    age: content.age,
-                    location: content.location,
-                    interests: content.interests,
+                    address: content.address,
+                    skills: content.skills,
+                    workingHoursStart: content.workingHoursStart,
+                    workingHoursEnd: content.workingHoursEnd,
+                    timeZone: content.timeZone,
+                    minimumBountyValue: content.minimumBountyValue,
                 };
     
                 // Call the function to process the user profile
@@ -176,6 +196,17 @@ export const createUserProfileAction: Action = {
                 return true;
             } else {
                 console.log("USER DATA IS VALID");
+                if (callback) {
+                    callback({
+                        text: `Successfully created user profile`,
+                        content: {
+                            success: true,
+                            content,
+                        },
+                    });
+
+                }
+                processUserProfile(content);
                 return false;
             }
         } catch (error) {
