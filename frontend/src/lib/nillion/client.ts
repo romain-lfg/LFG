@@ -28,6 +28,29 @@ class NillionClient {
 
   private constructor() {}
 
+  async initializeSchema(): Promise<string> {
+    try {
+      console.log('[NillionClient] Initializing schema...');
+      const org = new SecretVaultWrapper(
+        orgConfig.nodes,
+        orgConfig.orgCredentials
+      );
+      await org.init();
+
+      // Create a new collection schema for all nodes in the org
+      const collectionName = 'Bounty Schema';
+      const schema = await import('./schema.json');
+      console.log('[NillionClient] Creating schema with:', schema);
+      const newSchema = await org.createSchema(schema, collectionName);
+      const schemaId = newSchema[0].result.data;
+      console.log('[NillionClient] Schema created with ID:', schemaId);
+      return schemaId;
+    } catch (error) {
+      console.error('[NillionClient] Error initializing schema:', error);
+      throw error;
+    }
+  }
+
   async getCollection(schemaId: string): Promise<SecretVaultWrapper> {
     try {
       console.log('[NillionClient] Creating collection with:', {
