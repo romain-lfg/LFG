@@ -14,45 +14,47 @@ export async function getBountyList(params?: BountyListParams) {
 
     // Retrieve data
     console.log('[NillionAPI] Reading from nodes...');
-    const bountiesData = await collection.readFromNodes({});
-    console.log('[NillionAPI] Raw bounties data:', JSON.stringify(bountiesData, null, 2));
-    console.log('[NillionAPI] Raw bounties data type:', typeof bountiesData);
+    const decryptedCollectionData = await collection.readFromNodes({});
+    console.log('[NillionAPI] Raw data:', JSON.stringify(decryptedCollectionData, null, 2));
+    console.log('[NillionAPI] Raw data type:', typeof decryptedCollectionData);
 
-    if (!bountiesData || !Array.isArray(bountiesData) || bountiesData.length === 0) {
-      console.log('[NillionAPI] No bounties found');
+    // Find all records (userId === "0") or filter by owner
+    const records = params?.owner
+      ? decryptedCollectionData?.filter(record => record?._id === params.owner)
+      : decryptedCollectionData;
+
+    console.log('[NillionAPI] Filtered records:', records);
+
+    if (!records || !Array.isArray(records) || records.length === 0) {
+      console.log('[NillionAPI] No records found');
       return { items: [], total: 0, hasMore: false };
     }
 
-    const bounties = bountiesData[0]?.bounties || [];
-    console.log('[NillionAPI] Found bounties:', bounties.length);
-
-    // Transform bounties to match the expected format
-    const transformedBounties: Bounty[] = bounties.map((bounty: any) => ({
-      title: bounty.title || '',
-      owner: bounty.owner || '',
-      requiredSkills: bounty.requiredSkills || '',
-      datePosted: bounty.datePosted || '',
-      dueDate: bounty.dueDate || '',
-      state: bounty.state || 'Open',
-      estimatedTime: bounty.estimatedTime || '',
-      description: bounty.description || '',
-      longDescription: bounty.longDescription || '',
-      bountyId: bounty.bountyId || '',
-      reward: {
-        amount: bounty.reward?.amount || '0',
-        token: bounty.reward?.token || 'ETH',
-        chainId: bounty.reward?.chainId || '1'
-      }
-    }));
-
-    // Filter by owner if specified
-    const filteredBounties = params?.owner 
-      ? transformedBounties.filter(bounty => bounty.owner === params.owner)
-      : transformedBounties;
+    // Transform records to bounties
+    const transformedBounties: Bounty[] = records.flatMap(record => {
+      const bounties = record?.bounties || [];
+      return bounties.map((bounty: any) => ({
+        title: bounty.title || '',
+        owner: bounty.owner || '',
+        requiredSkills: bounty.requiredSkills || '',
+        datePosted: bounty.datePosted || '',
+        dueDate: bounty.dueDate || '',
+        state: bounty.state || 'Open',
+        estimatedTime: bounty.estimatedTime || '',
+        description: bounty.description || '',
+        longDescription: bounty.longDescription || '',
+        bountyId: bounty.bountyId || '',
+        reward: {
+          amount: bounty.reward?.amount || '0',
+          token: bounty.reward?.token || 'ETH',
+          chainId: bounty.reward?.chainId || '1'
+        }
+      }));
+    });
 
     return {
-      items: filteredBounties,
-      total: filteredBounties.length,
+      items: transformedBounties,
+      total: transformedBounties.length,
       hasMore: false // TODO: Implement pagination
     };
   } catch (error) {
