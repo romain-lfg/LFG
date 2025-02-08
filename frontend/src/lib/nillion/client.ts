@@ -32,9 +32,8 @@ class NillionClient {
       
       // Create a new instance with nodes and credentials
       this.client = new SecretVaultWrapper(
-        orgConfig.orgCredentials,
         Array.isArray(orgConfig.nodes) ? orgConfig.nodes : [orgConfig.nodes],
-        SCHEMA_IDS.BOUNTY
+        orgConfig.orgCredentials
       );
       
       // Initialize the client
