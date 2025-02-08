@@ -50,7 +50,7 @@ async function processUserData(userData: userData) {
 }
 
 
-export const faggotAction: Action = {
+export const friendAction: Action = {
     name: "CREATE_FRIEND",
     description: "Create a new bounty",
     similes: ["MAKE_FRIEND", "GET_FRIEND"],
