@@ -161,12 +161,12 @@ export const updateDataBounties = async (data, SCHEMA_ID) => {
 
   const readOriginalRecord = await collection.readFromNodes(filterById);
 
-  console.log('Original record:', readOriginalRecord);
-  console.log('Updating id:', BOUNTY_ID);
+  //console.log('Original record:', readOriginalRecord);
+  //console.log('Updating id:', BOUNTY_ID);
 
-  console.log("dataUpdate", {data});
-  const updateContent = {_id: data._id, bounties: data.bounties};
-  console.log("updateContent", updateContent);
+  //console.log("dataUpdate", {data});
+  //const updateContent = {_id: data._id, bounties: data.bounties};
+  //console.log("updateContent", updateContent);
   
   const updatedData = await collection.updateDataToNodes(data, {_id: BOUNTY_ID});
 
@@ -211,13 +211,19 @@ export const getBountyList = async () => {
   return bountiesRetrieved[0].bounties;
 }
 
+export const clearBounties = async () => {
+  const collection = await getCollection(SCHEMA_ID_BOUNTY);
+  console.log("Clearing bounties");
+  const updatedData = await collection.updateDataToNodes({bounties: []}, {_id: BOUNTY_ID});
+}
+
 if (isMainModule) {
     // Call the async function and handle the promise
     if (true) {
         const bountiesRetrieved = await getBountyList();
         console.log("Total bounties:", bountiesRetrieved.length);
         bountiesRetrieved.map(bounty => {
-            //console.log("Bounty:", bounty);
+            console.log("Bounty:", bounty);
             //console.log("Bounty title:", bounty.title);
             //console.log("Bounty description:", bounty.description);
             //console.log("Bounty reward token:", bounty.reward.token);
@@ -229,8 +235,9 @@ if (isMainModule) {
             //console.log("Bounty estimatedTime:", bounty.estimatedTime);
         });
     } else {
-        //storeUserData(bountyFormat, SCHEMA_ID_BOUNTY);
-        createBounty(bountyFormat, SCHEMA_ID_BOUNTY);
+      clearBounties();
+      //storeUserData(bountyFormat, SCHEMA_ID_BOUNTY);
+      //createBounty(bountyFormat, SCHEMA_ID_BOUNTY);
     }
 }
 
