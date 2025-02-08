@@ -30,7 +30,19 @@ export class VSAService {
     skills?: string[];
     category?: string;
   }): Promise<PaginatedResponse<VSA>> {
-    return this.api.get<PaginatedResponse<VSA>>(API_ENDPOINTS.vsas, params as Record<string, string>);
+    // Convert params to a format suitable for query string
+    const queryParams: Record<string, string> = {};
+    
+    // Add pagination params
+    if (params.page) queryParams.page = params.page.toString();
+    if (params.limit) queryParams.limit = params.limit.toString();
+    
+    // Add filter params
+    if (params.status) queryParams.status = params.status;
+    if (params.category) queryParams.category = params.category;
+    if (params.skills?.length) queryParams.skills = params.skills.join(',');
+    
+    return this.api.get<PaginatedResponse<VSA>>(API_ENDPOINTS.vsas, queryParams);
   }
 
   /**
