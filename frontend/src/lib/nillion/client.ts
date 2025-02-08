@@ -29,7 +29,7 @@ class NillionClient {
   private constructor() {}
 
   async getCollection(schemaId: string): Promise<SecretVaultWrapper> {
-    const client = await this.getClient();
+    // Create a secret vault wrapper and initialize the SecretVault collection to use
     const collection = new SecretVaultWrapper(
       orgConfig.nodes,
       orgConfig.orgCredentials,
