@@ -26,10 +26,14 @@ class NillionClient {
       this.initializing = true;
       console.log('[NillionClient] Initializing...');
       
+      // Log the nodes array
+      console.log('[NillionClient] Nodes:', JSON.stringify(orgConfig.nodes));
+      console.log('[NillionClient] Nodes type:', typeof orgConfig.nodes);
+      
       // Create a new instance with nodes and credentials
       this.client = new SecretVaultWrapper(
         orgConfig.orgCredentials,
-        orgConfig.nodes,
+        Array.isArray(orgConfig.nodes) ? orgConfig.nodes : [orgConfig.nodes],
         SCHEMA_IDS.BOUNTY
       );
       
