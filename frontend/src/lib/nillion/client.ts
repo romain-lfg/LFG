@@ -29,14 +29,29 @@ class NillionClient {
   private constructor() {}
 
   async getCollection(schemaId: string): Promise<SecretVaultWrapper> {
-    // Create a secret vault wrapper and initialize the SecretVault collection to use
-    const collection = new SecretVaultWrapper(
-      orgConfig.nodes,
-      orgConfig.orgCredentials,
-      schemaId
-    );
-    await collection.init();
-    return collection;
+    try {
+      console.log('[NillionClient] Creating collection with:', {
+        nodes: orgConfig.nodes,
+        credentials: orgConfig.orgCredentials,
+        schemaId
+      });
+
+      // Create a secret vault wrapper and initialize the SecretVault collection to use
+      const collection = new SecretVaultWrapper(
+        orgConfig.nodes,
+        orgConfig.orgCredentials,
+        schemaId
+      );
+
+      console.log('[NillionClient] Collection created, initializing...');
+      await collection.init();
+      console.log('[NillionClient] Collection initialized');
+
+      return collection;
+    } catch (error) {
+      console.error('[NillionClient] Error in getCollection:', error);
+      throw error;
+    }
   }
 
   static getInstance(): NillionClient {

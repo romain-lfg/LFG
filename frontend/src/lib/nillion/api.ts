@@ -8,12 +8,15 @@ export async function getBountyList(params?: BountyListParams) {
     console.log('[NillionAPI] Fetching bounties with params:', params);
 
     // Get collection
+    console.log('[NillionAPI] Getting collection with schema:', SCHEMA_IDS.BOUNTY);
     const collection = await nillionClient.getCollection(SCHEMA_IDS.BOUNTY);
     console.log('[NillionAPI] Collection initialized');
 
     // Retrieve data
+    console.log('[NillionAPI] Reading from nodes...');
     const bountiesData = await collection.readFromNodes({});
-    console.log('[NillionAPI] Raw bounties data:', bountiesData);
+    console.log('[NillionAPI] Raw bounties data:', JSON.stringify(bountiesData, null, 2));
+    console.log('[NillionAPI] Raw bounties data type:', typeof bountiesData);
 
     if (!bountiesData || !Array.isArray(bountiesData) || bountiesData.length === 0) {
       console.log('[NillionAPI] No bounties found');
