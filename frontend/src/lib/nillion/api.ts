@@ -1,4 +1,4 @@
-import { getBountyList as nillionGetBountyList } from '../../../nillion';
+import { getBountyList as nillionGetBountyList } from '../../../../nillion';
 import { NillionError } from './errors';
 import { BountyListParams } from '@/types/nillion';
 
