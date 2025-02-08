@@ -2,82 +2,251 @@ import { SecretVaultWrapper } from 'nillion-sv-wrappers';
 import { v4 as uuidv4 } from 'uuid';
 import { orgConfig } from '../nillionOrgConfig.js';
 
-const SCHEMA_ID = '50375cef-636e-4505-b7ab-39d76b7f124d';
+const SCHEMA_ID_USER = '541a7214-7a50-4af8-98f7-7c0d7980175e';
+const SCHEMA_ID_BOUNTY = '023c30b6-3ba0-495b-a235-cb853263ca1e';
 
-const data = [
-    {
-        _id: "1163837d-318e-46f2-8c2b-86e0fb00b1e4",
-      name: { $allot: 'Vitalik Buterin' }, // name will be encrypted to a $share
-      gender: { $allot: "Male" }, // years_in_web3 will be encrypted to a $share
-      interests: [ 
-        { skills: "c++", hobbies: "duneriding" },
-        { skills: "typescript", hobbies: "reading" },
-      ], // responses will be stored in plaintext
-    },
-  ];
-const data2 = [
-  {
-      _id: "1163837d-318e-46f2-8c2b-86e0fb00b2e5",
-    name: { $allot: 'Terry Yamato' }, // name will be encrypted to a $share
-    gender: { $allot: "Female" }, // years_in_web3 will be encrypted to a $share
-    interests: [ 
-      { skills: "c+++++", hobbies: "potato" },
-      { skills: "wipescript", hobbies: "cheering" },
-    ], // responses will be stored in plaintext
-  },
-];
+const BOUNTY_ID = '1163837d-318e-46f2-8c2b-86e0fb00b1e7';
+const USER_ID = '1163837d-318e-46f2-8c2b-42069b00b1e7';
 
-export const storeUserData = async (userData) => {
-  try {
-    // Create a secret vault wrapper and initialize the SecretVault collection
-    const collection = new SecretVaultWrapper(
+//const RECORD_ID = '1163837d-318e-46f2-8c2b-86e0fb00b1e7';
+// Check if this is the main module
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+
+
+export const matchBounties = async (userId) => {
+  console.log("Matching bounties for:", userId);
+}
+
+export const resetSchema = async (SCHEMA_ID) => {
+    const org = new SecretVaultWrapper(
       orgConfig.nodes,
-      orgConfig.orgCredentials, 
-      SCHEMA_ID
+      orgConfig.orgCredentials
+    );
+    await org.init();
+
+    // Create a new collection schema for all nodes in the org
+    const collectionName = 'Bounty Schema';
+    const schema = JSON.parse(await readFile(new URL('../schemaBounty.json', import.meta.url)));
+    const newSchema = await org.createSchema(schema, collectionName);
+    SCHEMA_ID = newSchema[0].result.data
+    return SCHEMA_ID
+}
+
+export const retrieveUserData = async (userId, SCHEMA_ID) => {
+    const collection = await getCollection(SCHEMA_ID);
+    console.log('Retrieving user data for:', userId);
+    const decryptedCollectionData = await collection.readFromNodes({});
+    console.log(decryptedCollectionData)
+    // Find the record matching the userId
+    const userRecord = decryptedCollectionData.find(record => {
+        return record?._id === userId;
+    });
+    
+    if (userRecord) {
+        console.log('Found user record:', userRecord);
+        return userRecord;
+    } else {
+        console.log('No record found:');
+        return null;
+    }
+};
+
+export const getCollection = async (SCHEMA_ID) => {
+    // Create a secret vault wrapper and initialize the SecretVault collection to use
+    const collection = new SecretVaultWrapper(
+        orgConfig.nodes,
+        orgConfig.orgCredentials,
+        SCHEMA_ID
     );
     await collection.init();
+    return collection;
+};
 
-    // Add _id if not present
-    const dataToStore = {
-      _id: userData._id || uuidv4(),
-      ...userData
+const bountyDataFormat = {
+  title: { $allot: "title2" },
+  owner: { $allot: "owner1" },
+  requiredSkills: { $allot: "requiredSkills" },
+  datePosted: { $allot: "hostTime" },
+  dueDate: { $allot: "dueDate" },
+  state: { $allot: "state" },
+  estimatedTime: { $allot: "estimatedTime" },
+  description: { $allot: "description" },
+  longDescription: { $allot: "longDescription" },
+  bountyId: { $allot: "00000000-0000-0000-0000-000000000000" },
+  reward: {
+    amount: { $allot: "1000000000000000000" },
+    token: { $allot: "BTC" },
+    chainId: { $allot: "11155111" },
+  },
+
+};
+const bountyDataFormat2 = {
+  title: { $allot: "title2" },
+  owner: { $allot: "owner2" },
+  requiredSkills: { $allot: "requiredSkills" },
+  datePosted: { $allot: "hostTime" },
+  dueDate: { $allot: "dueDate" },
+  state: { $allot: "state" },
+  estimatedTime: { $allot: "estimatedTime" },
+  description: { $allot: "description" },
+  longDescription: { $allot: "longDescription" },
+  reward: {
+    amount: { $allot: "1000000000000000000" },
+    token: { $allot: "BTC" },
+    chainId: { $allot: "11155111" },
+  },
+};
+const bountyFormat = 
+    {
+      _id: BOUNTY_ID,
+      bounties:[bountyDataFormat, bountyDataFormat2, bountyDataFormat, bountyDataFormat2, bountyDataFormat2, bountyDataFormat2, bountyDataFormat2]
     };
 
-    // Write data to nodes
-    const dataWritten = await collection.writeToNodes([dataToStore]);
-    console.log('Data written to nodes:', JSON.stringify(dataWritten, null, 2));
+const userDataFormat = {
+      name: { $allot: "username" },
+      address: { $allot: "0xi29299100" },
+      skills: [ { $allot: "c++" }, { $allot: "typescript" }],
+      workingHoursStart: { $allot: "8am" },
+      workingHoursEnd: { $allot: "16pm" },
+      timeZone: { $allot: "UTC" },
+      minimumBountyValue: { $allot: "0" },
+    };
 
-    return dataWritten;
-  } catch (error) {
-    console.error('Error storing user data:', error.message);
-    throw error;
+const userFormat = 
+    {
+      _id: USER_ID,
+      users:[userDataFormat, userDataFormat]
+    };
+
+export const getUserBounties = async (userId, BountyData) => {
+  const userBounties = BountyData.filter(bounty => {
+    return bounty.owner === userId;
+  });
+  return userBounties;
+}
+
+export const retrieveBountyData = async (userId, SCHEMA_ID) => {
+  const collection = await getCollection(SCHEMA_ID);
+  console.log('Retrieving bounty data for:', userId);
+  const decryptedCollectionData = await collection.readFromNodes({});
+  // console.log(decryptedCollectionData)s
+  // Find the bounties matching the userId
+  const userRecord = userId === "0" 
+    ? decryptedCollectionData
+    : decryptedCollectionData.filter(record => {
+        return record?._id === userId;
+    });
+
+  
+  if (userRecord.length >= 1) {
+      console.log('Found bounties:', userRecord);
+      return userRecord;
+  } else {
+      console.log('No record found:');
+      return null;
   }
 };
 
-export const retrieveUserData = async (userId) => {
-  try {
-    // Create and initialize collection
-    const collection = new SecretVaultWrapper(
-      orgConfig.nodes,
-      orgConfig.orgCredentials,
-      SCHEMA_ID
+
+//{bounties: data.bounties}  format for data
+export const updateDataBounties = async (data, SCHEMA_ID) => {
+  const collection = await getCollection(SCHEMA_ID);
+  const filterById = {_id: BOUNTY_ID};
+
+  const readOriginalRecord = await collection.readFromNodes(filterById);
+
+  
+  const updatedData = await collection.updateDataToNodes(data, {_id: BOUNTY_ID});
+
+  console.log('Updated data:', updatedData);
+  console.log('Update result:', updatedData.map((n) => n.result.data));
+
+
+  const readUpdatedRecord = await collection.readFromNodes(filterById);
+  console.log('Updated record:', readUpdatedRecord);
+}
+//{bounties: data.bounties}  format for data
+export const updateDataUsers = async (data, SCHEMA_ID) => {
+  const collection = await getCollection(SCHEMA_ID);
+  const filterById = {_id: USER_ID};
+
+  const readOriginalRecord = await collection.readFromNodes(filterById);
+
+  
+  const updatedData = await collection.updateDataToNodes(data, {_id: USER_ID});
+
+  console.log('Updated data:', updatedData);
+  console.log('Update result:', updatedData.map((n) => n.result.data));
+
+
+  const readUpdatedRecord = await collection.readFromNodes(filterById);
+  console.log('Updated record:', readUpdatedRecord);
+}
+export const storeUserData = async (data, SCHEMA_ID) => {
+  // Implementation here
+  console.log('Storing user data for:', data._id);
+  console.log("data:", data);
+  const collection = await getCollection(SCHEMA_ID);
+ // console.log('Collection:', collection);
+    // Write collection data to nodes encrypting the specified fields ahead of time
+    
+    const dataWritten = await collection.writeToNodes([data]);
+    console.log(
+      '👀 Data written to nodes:',
+      JSON.stringify(dataWritten, null, 2)
     );
-    await collection.init();
 
-    // Read all data and find matching user
-    const decryptedData = await collection.readFromNodes({});
-    const userData = decryptedData.find(record => record._id === userId);
 
-    if (!userData) {
-      throw new Error(`User with ID ${userId} not found`);
-    }
-
-    return userData;
-  } catch (error) {
-    console.error('Error retrieving user data:', error.message);
-    throw error;
-  }
+    // Get the ids of the SecretVault records created
+    const newIds = [
+      ...new Set(dataWritten.map((item) => item.result.data.created).flat()),
+    ];
+    console.log('uploaded record ids:', newIds);
 };
+
+export const createBounty = async (bounty) => {
+  const bountiesRetrieved = await retrieveBountyData(bountyFormat._id, SCHEMA_ID_BOUNTY)
+  console.log("total bounties:", bountiesRetrieved[0].bounties.length);
+  const newBounties = [...bountiesRetrieved[0].bounties, bounty];
+  updateDataBounties({bounties: newBounties}, SCHEMA_ID_BOUNTY);
+}
+export const createUser = async (user) => {
+  const usersRetrieved   = await retrieveUserData(userFormat._id, SCHEMA_ID_USER)
+  var newUsers = [];
+  if(usersRetrieved !== null){
+    console.log("total users:", usersRetrieved.users.length);
+    newUsers = [...usersRetrieved.users, user];
+    console.log("newUsers:", newUsers);
+  } else {
+    newUsers = [user];
+  }
+  console.log("newUsers:", newUsers);
+  updateDataUsers({users: newUsers}, SCHEMA_ID_USER);
+}
+
+  export const getBountyList = async () => {
+    const bountiesRetrieved = await retrieveBountyData(bountyFormat._id, SCHEMA_ID_BOUNTY)
+    console.log("bountiesRetrieved:", bountiesRetrieved[0].bounties);
+    return bountiesRetrieved[0].bounties;
+  }
+
+  export const getUserList = async () => {
+    const usersRetrieved = await retrieveUserData(userFormat._id, SCHEMA_ID_USER)
+    console.log("usersRetrieved:", usersRetrieved.users);
+    return usersRetrieved.users;
+  }
+
+export const clearBounties = async () => {
+  const collection = await getCollection(SCHEMA_ID_BOUNTY);
+  console.log("Clearing bounties");
+  const updatedData = await collection.updateDataToNodes({bounties: []}, {_id: BOUNTY_ID});
+}
+export const clearUsers = async () => {
+  const collection = await getCollection(SCHEMA_ID_USER);
+  console.log("Clearing users");
+  const updatedData = await collection.updateDataToNodes({users: []}, {_id: USER_ID});
+  console.log("Updated data:", updatedData);
+}
 
 export const testFn = () => {
   console.log('test complete');

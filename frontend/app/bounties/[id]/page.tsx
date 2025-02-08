@@ -3,13 +3,47 @@
 import { useParams, useRouter } from 'next/navigation';
 import { IconBrandGithub, IconClock, IconCalendar, IconTrophy, IconArrowLeft } from '@tabler/icons-react';
 import Link from 'next/link';
-import { mockBounties } from '@/mocks/bounties';
-import { Bounty } from '@/types/bounty';
+import { FeatureGate } from '@/hooks/useFeature';
+import { useBounty } from '@/hooks/useBounty';
+import BountySkeleton from '@/components/bounties/BountySkeleton';
+import BountyError from '@/components/bounties/BountyError';
 
 export default function BountyDetail() {
   const { id } = useParams();
-  const bounty = mockBounties.find(b => b.id === id) as Bounty;
+  const {
+    data: bounty,
+    isLoading,
+    error,
+    refetch
+  } = useBounty(id as string);
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white pt-24">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <BountySkeleton />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white pt-24">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <BountyError onRetry={() => refetch()} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show not found state
   if (!bounty) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center pt-24">
@@ -131,14 +165,40 @@ export default function BountyDetail() {
 
           {/* Action Buttons */}
           <div className="flex gap-4">
-            {bounty.status === 'open' && (
-              <button className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all">
-                Apply for Bounty
+            <FeatureGate 
+              featurePath="bounties.apply"
+              fallback={
+                <button 
+                  className="flex-1 bg-gray-600 text-gray-300 px-6 py-3 rounded-lg font-semibold cursor-not-allowed"
+                  disabled
+                  title="Coming soon"
+                >
+                  Apply for Bounty (Coming Soon)
+                </button>
+              }
+            >
+              {bounty.status === 'open' && (
+                <button className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all">
+                  Apply for Bounty
+                </button>
+              )}
+            </FeatureGate>
+            <FeatureGate
+              featurePath="bounties.contact"
+              fallback={
+                <button 
+                  className="flex-1 border border-gray-600 text-gray-300 px-6 py-3 rounded-lg font-semibold cursor-not-allowed"
+                  disabled
+                  title="Coming soon"
+                >
+                  Contact Creator (Coming Soon)
+                </button>
+              }
+            >
+              <button className="flex-1 border border-indigo-400 hover:bg-indigo-900/50 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                Contact Creator
               </button>
-            )}
-            <button className="flex-1 border border-indigo-400 hover:bg-indigo-900/50 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-              Contact Creator
-            </button>
+            </FeatureGate>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { FeatureGate } from '@/hooks/useFeature';
 import { 
   IconX, 
   IconCurrencyEthereum, 
@@ -35,7 +36,24 @@ const additionalSkills = [
 export default function CreateBountyModal({ isOpen, onClose }: CreateBountyModalProps) {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [isSkillsDropdownOpen, setIsSkillsDropdownOpen] = useState(false);
-  const [form, setForm] = useState({
+  interface BountyForm {
+    title: string;
+    description: string;
+    reward: {
+      amount: string;
+      token: string;
+      chainId: number;
+    };
+    requirements: {
+      skills: string[];
+      estimatedTimeInHours: string;
+      deadline: string;
+    };
+    completionCriteria: string;
+    repositoryUrl: string;
+  }
+
+  const [form, setForm] = useState<BountyForm>({
     title: '',
     description: '',
     reward: {
@@ -170,19 +188,38 @@ export default function CreateBountyModal({ isOpen, onClose }: CreateBountyModal
             </div>
 
             {/* Connected Wallet */}
-            <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-              <div className="flex items-center space-x-3">
-                <IconWallet className="h-5 w-5 text-gray-400" />
-                <div>
-                  <div className="text-sm font-medium text-white">Connected Wallet</div>
-                  <div className="text-sm text-gray-400">{walletAddress}</div>
+            <FeatureGate
+              featurePath="contracts.enabled"
+              fallback={
+                <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                  <div className="flex items-center space-x-3">
+                    <IconWallet className="h-5 w-5 text-gray-400" />
+                    <div>
+                      <div className="text-sm font-medium text-white">Wallet Connection</div>
+                      <div className="text-sm text-gray-400">Coming Soon</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-2 w-2 rounded-full bg-gray-400"></div>
+                    <span className="text-sm text-gray-300">Not Connected</span>
+                  </div>
+                </div>
+              }
+            >
+              <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                <div className="flex items-center space-x-3">
+                  <IconWallet className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <div className="text-sm font-medium text-white">Connected Wallet</div>
+                    <div className="text-sm text-gray-400">{walletAddress}</div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="h-2 w-2 rounded-full bg-emerald-400"></div>
+                  <span className="text-sm text-gray-300">Connected</span>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 rounded-full bg-emerald-400"></div>
-                <span className="text-sm text-gray-300">Connected</span>
-              </div>
-            </div>
+            </FeatureGate>
 
             {/* Required Skills */}
             <div>
@@ -324,8 +361,14 @@ export default function CreateBountyModal({ isOpen, onClose }: CreateBountyModal
                 <input
                   type="number"
                   id="reward"
-                  value={form.reward}
-                  onChange={e => setForm(prev => ({ ...prev, reward: e.target.value }))}
+                  value={form.reward.amount}
+                  onChange={e => setForm(prev => ({
+                    ...prev,
+                    reward: {
+                      ...prev.reward,
+                      amount: e.target.value
+                    }
+                  }))}
                   className="block w-full rounded-lg bg-white/[0.06] border border-white/[0.05] pl-10 pr-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="0.00"
                   step="0.01"
@@ -343,8 +386,14 @@ export default function CreateBountyModal({ isOpen, onClose }: CreateBountyModal
               <input
                 type="datetime-local"
                 id="deadline"
-                value={form.deadline}
-                onChange={e => setForm(prev => ({ ...prev, deadline: e.target.value }))}
+                value={form.requirements.deadline}
+                onChange={e => setForm(prev => ({
+                  ...prev,
+                  requirements: {
+                    ...prev.requirements,
+                    deadline: e.target.value
+                  }
+                }))}
                 className="mt-1 block w-full rounded-lg bg-white/[0.06] border border-white/[0.05] px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 required
               />

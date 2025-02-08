@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Bounty Collection", 
+    "title": "User Collection", 
     "type": "array",
     "items": {
         "type": "object",
@@ -10,12 +10,12 @@
                 "format": "uuid",
                 "coerce": true
             },
-            "bounties": {
+            "users": {
                 "type": "array",
                 "items": {
                     "type": "object",
                     "properties": {
-                        "title": {
+                        "name": {
                             "type": "object",
                             "properties": {
                                 "$share": {
@@ -24,7 +24,7 @@
                             },
                             "required": ["$share"]
                         },
-                        "owner": {
+                        "address": {
                           "type": "object",
                           "properties": {
                               "$share": {
@@ -33,7 +33,7 @@
                           },
                           "required": ["$share"]
                         },
-                        "requiredSkills": {
+                        "skills": {
                             "type": "array",
                             "items": {
                             "type": "object",
@@ -45,7 +45,7 @@
                             "required": ["$share"]
                             }
                         },
-                        "datePosted": {
+                        "workingHoursStart": {
                           "type": "object",
                           "properties": {
                               "$share": {
@@ -54,7 +54,7 @@
                           },
                           "required": ["$share"]
                         },
-                        "dueDate": {
+                        "workingHoursEnd": {
                           "type": "object",
                           "properties": {
                               "$share": {
@@ -63,7 +63,7 @@
                           },
                           "required": ["$share"]
                         },
-                        "state": {
+                        "timeZone": {
                           "type": "object",
                           "properties": {
                               "$share": {
@@ -72,7 +72,7 @@
                           },
                           "required": ["$share"]
                         },
-                        "estimatedTime": {
+                        "minimumBountyValue": {
                           "type": "object",
                           "properties": {
                               "$share": {
@@ -80,64 +80,14 @@
                               }
                           },
                           "required": ["$share"]
-                        },
-                        "description": {
-                            "type": "object", 
-                            "properties": {
-                                "$share": {
-                                    "type": "string"
-                                }
-                            },
-                            "required": ["$share"]
-                        },
-                        "longDescription": {
-                            "type": "object", 
-                            "properties": {
-                                "$share": {
-                                    "type": "string"
-                                }
-                            },
-                            "required": ["$share"]
-                        },  
-                        "bountyId": {
-                            "type": "object",
-                            "properties": {
-                                "$share": {
-                                    "type": "string"
-                                }
-                            },
-                            "required": ["$share"]
-                        },
-                        "reward": {
-                            "type": "object",
-                            "items": {
-                                "type": "object",
-                            "properties": {
-                                "amount": {
-                                  "type": "string",
-                                  "minimum": 1,
-                                  "maximum": 50
-                                },
-                                "token": {
-                                  "type": "string",
-                                  "minimum": 1,
-                                  "maximum": 50
-                                },
-                                "chainId": {
-                                  "type": "string",
-                                  "minimum": 1,
-                                  "maximum": 50
-                                }
-                            },
-                            "required": ["amount", "token", "chainId"]
-                        },
-                        "minItems": 1
-                    }
-                  },
-                    "required": ["title", "description", "reward"]
+                        }
+                              
+                    },
+                  
+                    "required": ["name", "address", "skills", "workingHoursStart", "workingHoursEnd", "timeZone", "minimumBountyValue"]
                 }
             }
         },
-        "required": ["_id", "bounties"]
+        "required": ["_id", "users"]
     }
 }
