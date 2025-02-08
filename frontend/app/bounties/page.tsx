@@ -8,11 +8,14 @@ import { mockBounties } from '@/mocks/bounties';
 import CreateBountyModal from '@/components/bounties/CreateBountyModal';
 import BountySkeleton from '@/components/bounties/BountySkeleton';
 import BountyError from '@/components/bounties/BountyError';
+import { getBountyList } from '../../../nillion/src/index';
+import { useEffect } from 'react';
 
 export default function BountyBoard() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const isNillionEnabled = useFeature('nillion.enabled');
-  
+  //const isNillionEnabled = useFeature('nillion.enabled');
+  const [nillionBounties, setNillionBounties] = useState<any[]>([]);
+
   const {
     data: bountyData,
     isLoading,
@@ -20,8 +23,29 @@ export default function BountyBoard() {
     refetch
   } = useBounties();
 
-  // Use Nillion data if enabled, otherwise fall back to mock data
-  const bounties = isNillionEnabled ? bountyData?.items : mockBounties;
+  useEffect(() => {
+    const loadBounties = async () => {
+      try {
+        const bounties = await getBountyList();
+        console.log("bounties:", bounties);
+        setNillionBounties(bounties);
+      } catch (error) {
+        console.error("Error fetching bounties:", error);
+      }
+    };
+
+    // Initial fetch
+    loadBounties();
+
+    // Set up interval for subsequent fetches
+    const intervalId = setInterval(loadBounties, 30000); // 30 seconds
+
+    // Cleanup function to clear interval when component unmounts
+    return () => clearInterval(intervalId);
+  }, []); 
+
+
+  //isNillionEnabled ? bountyData?.items : mockBounties;
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
       {/* Header Section */}
@@ -73,9 +97,9 @@ export default function BountyBoard() {
             )}
 
             {/* Data State */}
-            {!isLoading && !error && bounties?.map((bounty) => (
+            {!isLoading && !error && nillionBounties?.map((bounty) => (
               <Link
-                key={bounty.id}
+                key={bounty!.id}
                 href={`/bounties/${bounty.id}`}
                 className="flex flex-col p-6 rounded-xl border border-indigo-900/50 bg-gradient-to-b from-indigo-950/50 to-transparent hover:border-indigo-500/50 transition-colors min-h-[24rem] group"
               >
@@ -92,7 +116,7 @@ export default function BountyBoard() {
                   <div className="mb-4">
                     <h4 className="text-sm font-semibold text-indigo-400 mb-2">Skills Required</h4>
                     <div className="flex flex-wrap gap-2">
-                      {bounty.requirements.skills.map((skill) => (
+                      {bounty.requiredSkills.map((skill: any) => (
                         <span
                           key={skill}
                           className="px-2 py-1 bg-indigo-900/30 rounded-md text-indigo-300 text-sm"
@@ -108,17 +132,17 @@ export default function BountyBoard() {
                     <h4 className="text-sm font-semibold text-indigo-400 mb-2">Reward</h4>
                     <div className="flex items-center gap-2">
                       <span className="text-xl font-bold text-white">
-                        {parseFloat(bounty.reward.amount) / 1e18} {bounty.reward.token}
+                        {parseFloat(bounty.reward.amount) } {bounty.reward.token}
                       </span>
                     </div>
                   </div>
 
                   {/* Time Estimate */}
-                  {bounty.requirements.estimatedTimeInHours && (
+                  {bounty.estimatedTimeInHours && (
                     <div className="mb-4">
                       <h4 className="text-sm font-semibold text-indigo-400 mb-2">Estimated Time</h4>
                       <span className="text-gray-300">
-                        {bounty.requirements.estimatedTimeInHours} hours
+                        {bounty.estimatedTimeInHours} hours
                       </span>
                     </div>
                   )}
