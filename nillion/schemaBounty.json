@@ -24,8 +24,80 @@
                             },
                             "required": ["$share"]
                         },
+                        "owner": {
+                          "type": "object",
+                          "properties": {
+                              "$share": {
+                                  "type": "string"
+                              }
+                          },
+                          "required": ["$share"]
+                        },
+                        "requiredSkills": {
+                          "type": "object",
+                          "properties": {
+                              "$share": {
+                                  "type": "string"
+                              }
+                          },
+                          "required": ["$share"]
+                        },
+                        "datePosted": {
+                          "type": "object",
+                          "properties": {
+                              "$share": {
+                                  "type": "string"
+                              }
+                          },
+                          "required": ["$share"]
+                        },
+                        "dueDate": {
+                          "type": "object",
+                          "properties": {
+                              "$share": {
+                                  "type": "string"
+                              }
+                          },
+                          "required": ["$share"]
+                        },
+                        "state": {
+                          "type": "object",
+                          "properties": {
+                              "$share": {
+                                  "type": "string"
+                              }
+                          },
+                          "required": ["$share"]
+                        },
+                        "estimatedTime": {
+                          "type": "object",
+                          "properties": {
+                              "$share": {
+                                  "type": "string"
+                              }
+                          },
+                          "required": ["$share"]
+                        },
                         "description": {
                             "type": "object", 
+                            "properties": {
+                                "$share": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["$share"]
+                        },
+                        "longDescription": {
+                            "type": "object", 
+                            "properties": {
+                                "$share": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": ["$share"]
+                        },  
+                        "bountyId": {
+                            "type": "object",
                             "properties": {
                                 "$share": {
                                     "type": "string"
