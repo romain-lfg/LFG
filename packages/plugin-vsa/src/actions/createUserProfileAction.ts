@@ -24,6 +24,7 @@ interface UserData { //Placeholder for the user data TODO: replace with the actu
     workingHoursEnd: string;
     timeZone: string;
     minimumBountyValue: string;
+    walletAddress: string;
 }
 
 
@@ -38,7 +39,8 @@ Example response:
     "workingHoursStart": "8am",
     "workingHoursEnd": "16pm",
     "timeZone": "UTC",
-    "minimumBountyValue": "0"
+    "minimumBountyValue": "0",
+    "walletAddress": "0x1234567890123456789012345678901234567890"
 }
 \`\`\`
 
@@ -53,7 +55,7 @@ Given the recent messages, extract the following information about the user: >>>
 - WorkingHoursEnd
 - TimeZone
 - MinimumBountyValue
-
+- WalletAddress
 Respond with a JSON markdown block containing only the extracted values.`;
 
 const missingUserDataTemplate = `Here are the user data parameters I have confirmed:
@@ -80,7 +82,8 @@ function isUserData(
         typeof content.workingHoursStart === "string" &&
         typeof content.workingHoursEnd === "string" &&
         typeof content.timeZone === "string" &&
-        typeof content.minimumBountyValue === "string"
+        typeof content.minimumBountyValue === "string" &&
+        typeof content.walletAddress === "string"
     );
 }
 
@@ -88,13 +91,13 @@ async function processUserProfile(userData: UserData) {
     console.log("Processing user profile:", userData);
     const userDataFormat = {
         name: { $allot: userData.name },
-        address: { $allot: userData.address },
+        address: { $allot: userData.walletAddress },
         skills: userData.skills.map(skill => ({ $allot: skill })),
         workingHoursStart: { $allot: userData.workingHoursStart },
         workingHoursEnd: { $allot: userData.workingHoursEnd },
         timeZone: { $allot: userData.timeZone },
-        minimumBountyValue: { $allot: userData.minimumBountyValue },
-      };
+        minimumBountyValue: { $allot: userData.minimumBountyValue }
+    };
     await createUser(userDataFormat);
 }
 
@@ -139,7 +142,7 @@ export const createUserProfileAction: Action = {
             if (!isUserData(content)) {
                 console.log("NOT IS USER DATA");
                 const userData = content;
-                const requiredParameters = ["name", "address", "skills", "workingHoursStart", "workingHoursEnd", "timeZone", "minimumBountyValue"];
+                const requiredParameters = ["name", "walletAddress", "skills", "workingHoursStart", "workingHoursEnd", "timeZone", "minimumBountyValue"];
                 const confirmed = {};
                 const missing = [];
     
@@ -179,6 +182,7 @@ export const createUserProfileAction: Action = {
                     workingHoursEnd: content.workingHoursEnd,
                     timeZone: content.timeZone,
                     minimumBountyValue: content.minimumBountyValue,
+                    walletAddress: content.walletAddress,
                 };
     
                 // Call the function to process the user profile
