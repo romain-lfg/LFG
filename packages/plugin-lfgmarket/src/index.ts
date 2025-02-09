@@ -7,6 +7,8 @@ import { completeJobAction } from "./actions/completeJobAction";
 import { submitRatingAction } from "./actions/submitRatingAction";
 import { releasePaymentAction } from "./actions/releasePaymentAction";
 import { initiateDisputeAction } from "./actions/initiateDisputeAction";
+import { getUserReputationAction } from "./actions/getUserReputationAction";
+import { getJobDetailsAction } from "./actions/getJobDetailsAction";
 // Create a single instance of the service
 
 const lfgMarketService = new LfgMarketService();
@@ -20,7 +22,9 @@ export const lfgMarketPlugin: Plugin = {
         completeJobAction, 
         submitRatingAction, 
         releasePaymentAction, 
-        initiateDisputeAction
+        initiateDisputeAction,
+        getUserReputationAction,
+        getJobDetailsAction
     ],
     services: [lfgMarketService]
 };

@@ -45,3 +45,11 @@ export interface AcceptedJobData {
   user: string;
   jobId: number;
 }
+
+export interface JobDetailsData {
+  jobId: number;
+}
+
+export interface OtherUserData {
+  user: string;
+}
