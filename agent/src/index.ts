@@ -156,7 +156,6 @@ import { ankrPlugin } from "@elizaos/plugin-ankr";
 import { formPlugin } from "@elizaos/plugin-form";
 import { MongoClient } from "mongodb";
 import { quickIntelPlugin } from "@elizaos/plugin-quick-intel";
-import { vsaPlugin } from "@elizaos/plugin-vsa";
 import { vsaContractsPlugin } from "@elizaos/plugin-vsa-contracts";
 
 import { trikonPlugin } from "@elizaos/plugin-trikon";

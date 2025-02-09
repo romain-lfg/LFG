@@ -505,9 +505,6 @@ importers:
       '@elizaos/plugin-video-generation':
         specifier: workspace:*
         version: link:../packages/plugin-video-generation
-      '@elizaos/plugin-vsa':
-        specifier: workspace:*
-        version: link:../packages/plugin-vsa
       '@elizaos/plugin-vsa-contracts':
         specifier: workspace:*
         version: link:../packages/plugin-vsa-contracts
@@ -4934,21 +4931,6 @@ importers:
       whatwg-url:
         specifier: 7.1.0
         version: 7.1.0
-
-  packages/plugin-vsa:
-    dependencies:
-      '@elizaos/core':
-        specifier: workspace:*
-        version: link:../core
-      '@elizaos/nillion-core':
-        specifier: workspace:*
-        version: link:../../nillion
-      '@elizaos/plugin-tee':
-        specifier: workspace:*
-        version: link:../plugin-tee
-      tsup:
-        specifier: 8.3.5
-        version: 8.3.5(@swc/core@1.10.14(@swc/helpers@0.5.15))(jiti@2.4.2)(postcss@8.5.1)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
 
   packages/plugin-vsa-contracts:
     dependencies:
