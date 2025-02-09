@@ -25,7 +25,7 @@
   },
   "contributors": [],
   "scripts": {
-    "build": "mkdir -p dist && cp src/index.js dist/ && cp src/storage.js dist/ && cp src/index.d.ts dist/"
+    "build": "mkdir -p dist && cp src/index.js dist/ && cp src/storage.js dist/ && cp src/index.d.ts dist/ && cp src/LocalSecretVault.js dist/"
   },
   "dependencies": {
     "nillion-sv-wrappers": "^1.0.4",
@@ -34,6 +34,7 @@
   "exports": {
     ".": {
       "import": "./dist/index.js",
+      "require": "./dist/LocalSecretVault.js",
       "types": "./dist/index.d.ts"
     }
   }
