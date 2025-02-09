@@ -9,10 +9,6 @@ export interface JobDetails {
     description: string;
   }
 
-export interface UserData {
-  user: string;
-}
-
 export interface RatingData {
   user: string;
     jobId: number;
@@ -52,4 +48,15 @@ export interface JobDetailsData {
 
 export interface OtherUserData {
   user: string;
+}
+
+export interface UserData { //Placeholder for the user data TODO: replace with the actual user data
+  name: string;
+  address: string;
+  skills: string[];
+  workingHoursStart: string;
+  workingHoursEnd: string;
+  timeZone: string;
+  minimumBountyValue: string;
+  walletAddress: string;
 }
