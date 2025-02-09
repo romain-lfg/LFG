@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import {recoverStringFromRaw} from "./Helpers.sol";
+
 /**
     Market is a contract designed to facilitate the interaction between job offerings and job seekers.
     An employer can create jobs, which an employee can take up. Both must be registered and the job
@@ -124,7 +126,7 @@ contract Market is ReentrancyGuard, Ownable(msg.sender) {
         emit JobAssigned(_jobId, user);
     }
 
-    function completeJob(address user, uint256 _jobId) 
+    function completeJob(address user, uint256 _jobId, string memory gitHash, bytes calldata signature) 
         external 
         jobExists(_jobId) 
         nonReentrant 
@@ -133,6 +135,9 @@ contract Market is ReentrancyGuard, Ownable(msg.sender) {
         require(msg.sender == user || msg.sender == agent, "User must send the transaction.");
         require(user == job.employee, "Only employee can complete job");
         require(job.status == JobStatus.Assigned, "Invalid job status");
+
+        bool verification = ecverifyGitHash(user, _jobId, gitHash, signature);
+        require(verification, "Data was improperly signed.");
 
         job.status = JobStatus.Completed;
         emit JobCompleted(_jobId);
@@ -321,5 +326,19 @@ contract Market is ReentrancyGuard, Ownable(msg.sender) {
 
         (bool success, ) = payable(owner()).call{value: balance}("");
         require(success, "Treasury withdrawal failed");
+    }
+
+    // Verify user signed git hash
+    function ecverifyGitHash(
+        address user,
+        uint256 jobId, 
+        string memory gitHash,
+        bytes calldata signedGitHash
+    ) public pure returns (bool) {
+
+        bytes32 hash = keccak256(abi.encodePacked(jobId, gitHash));
+        address recovered = recoverStringFromRaw(hash, signedGitHash);
+    
+        return user == recovered;
     }
 }
