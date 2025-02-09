@@ -65,7 +65,7 @@ export const matchBountiesAction: Action = {
                 });
             }
         } 
-        catch (error) {
+        catch (error: any) {
             console.error("Error matching bounties:", error);
             if (callback) {
                 callback({
@@ -75,6 +75,7 @@ export const matchBountiesAction: Action = {
             }
             return false;
         }
+        return true;
     },
     examples: [
         [
