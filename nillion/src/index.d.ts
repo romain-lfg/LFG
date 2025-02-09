@@ -15,3 +15,7 @@ export function createUser(data: any): Promise<void>;
 export function getUserList(): Promise<any>;
 export function clearUsers(): Promise<void>;
 
+export function matchBountiesUser(userId: string): Promise<any>;
+export function matchBountiesOwner(userId: string): Promise<any>;
+
+
