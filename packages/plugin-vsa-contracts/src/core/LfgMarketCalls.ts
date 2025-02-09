@@ -63,7 +63,7 @@ export class LfgMarketCalls {
   ): Promise<ethers.ContractTransaction> {
     try {
       const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.wallet);
-      const tx = await contract.completeCall(user, _jobId);
+      const tx = await contract.completeJob(user, _jobId);
       return tx;
     } catch (error) {
       console.error('Failed to submit transaction:', error);

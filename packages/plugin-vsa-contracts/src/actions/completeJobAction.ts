@@ -8,43 +8,44 @@ const dataTemplate = `Respond with a JSON markdown block containing only the ext
 Example response:
 \`\`\`json
 {
-    "user": "0xf94563b7013384EB4b3243D37250068Ee483857a",
-    "jobId": 1
+    "userAddress": "0xf94563b7013384EB4b3243D37250068Ee483857a",
+    "bountyId": 1
 }
 \`\`\`
 
 {{recentMessages}}
 
 Given the recent messages, extract the following information about the bounty: >>>(DO NOT RENAME THE KEYS)<<< 
-- user
+- userAddress
+- bountyId
 
 Respond with a JSON markdown block containing only the extracted values.`;
 
 function isCompletedJobData(
     content: CompletedJobData
 ): content is CompletedJobData {
-    if (!isAddress(content.user)) {
+    if (!isAddress(content.userAddress)) {
         elizaLogger.error("Invalid user address");
-        return false;
     }
     return (
-        typeof content.user === "string" &&
-        isAddress(content.user) &&
-        typeof content.jobId === "number"
+        typeof content.userAddress === "string" &&
+        isAddress(content.userAddress) &&
+        typeof content.bountyId === "string" &&
+        isAddress(content.userAddress)
     );
 }
 
 async function processCompletedJobData(completedJobData: CompletedJobData, runtime: IAgentRuntime) {
-    elizaLogger.info("Processing job completion for:", completedJobData.user);
+    elizaLogger.info("Processing job completion for:", completedJobData.userAddress);
 
     const service = runtime.getService(ServiceType.LFG_MARKET) as LfgMarketService;
-    const tx = await service.market.completeJob(completedJobData.user, completedJobData.jobId);
+    const tx = await service.market.completeJob(completedJobData.userAddress, completedJobData.bountyId);
 }
 
 export const completeJobAction: Action = {
-    name: "COMPLETE_JOB",
-    similes: ["FINISH_JOB", "END_JOB"],
-    description: "Completes a job",
+    name: "COMPLETE_BOUNTY",
+    similes: ["FINISH_BOUNTY", "END_BOUNTY"],
+    description: "Completes a bounty",
     
     validate: async (runtime: IAgentRuntime, _message: Memory) => {
         // Validate settings are present
@@ -79,13 +80,13 @@ export const completeJobAction: Action = {
             }));
     
             if (!isCompletedJobData(content)) {
-                const requiredParameters = ["user", "jobId"];
+                const requiredParameters = ["userAddress", "bountyId"];
                 const confirmed: Record<string, any> = {};
                 const missing: string[] = [];
     
                 // Check for confirmed and missing parameters
                 for (const param of requiredParameters) {
-                    if (content[param] != null) {
+                    if (content[param] != null && content[param] != "null") {
                         console.log("content. " + param + " = " + content[param]);
                         confirmed[param] = content[param];
                     } else {
@@ -111,15 +112,15 @@ export const completeJobAction: Action = {
     
                 // Create rating data
                 const completedJobDataFilled: CompletedJobData = {
-                    user: content.user,
-                    jobId: content.jobId
+                    userAddress: content.userAddress,
+                    bountyId: content.bountyId
                 };
     
                 // Call the function to process the rating
-                await processCompletedJobData(completedJobDataFilled, runtime);
+                //await processCompletedJobData(completedJobDataFilled, runtime);
                 if (callback) {
                     callback({
-                        text: `Successfully completed a job.`,
+                        text: `Successfully completed bounty.`,
                         content: {
                             success: true,
                             completedJobDataFilled,
@@ -129,10 +130,10 @@ export const completeJobAction: Action = {
     
                 return true;
             } else {
-                console.log("Completed job data is valid");
+                console.log("Completed bounty data is valid");
                 if (callback) {
                     callback({
-                        text: `Thank you. You have successfully completed a job.`,
+                        text: `Thank you. You have successfully completed a bounty.`,
                         content: {
                             success: true,
                             content,
@@ -141,17 +142,17 @@ export const completeJobAction: Action = {
 
                 }
                 const completedJobDataFilled: CompletedJobData = {
-                    user: content.user,
-                    jobId: content.jobId
+                    userAddress: content.userAddress,
+                    bountyId: content.bountyId
                 };
                 await processCompletedJobData(completedJobDataFilled, runtime);
                 return false;
             }
         } catch (error: any) {
-            elizaLogger.error("Error completing a job with error", error);
+            elizaLogger.error("Error completing a bounty with error", error);
             if (callback) {
                 callback({
-                    text: `Error completing a job with error: ${error.message}`,
+                    text: `Error completing a bounty with error: ${error.message}`,
                     content: { error: error.message },
                 });
             }
@@ -163,13 +164,13 @@ export const completeJobAction: Action = {
         [
             {
                 user: "{{user1}}",
-                content: { text: "I have completed a job on the job bounty marketplace" }
+                content: { text: "I have completed a bounty on the job bounty marketplace" }
             },
             {
                 user: "{{user2}}",
                 content: {
-                    text: "Job successfully completed.",
-                    action: "COMPLETE_JOB"
+                    text: "Bounty successfully completed.",
+                    action: "COMPLETE_BOUNTY"
                 }
             }
         ]
