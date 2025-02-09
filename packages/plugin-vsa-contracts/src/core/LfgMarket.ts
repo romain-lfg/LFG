@@ -15,7 +15,7 @@ export class LfgMarket {
 
     async registerUser(
         user: string,
-        maxAttempts: number = 10
+        maxAttempts: number = 1
     ): Promise<void> {
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
@@ -41,7 +41,7 @@ export class LfgMarket {
         _description: string,
         _deadline: number,
         _payment: string,
-        maxAttempts: number = 10
+        maxAttempts: number = 1
     ): Promise<void> {
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
@@ -66,7 +66,7 @@ export class LfgMarket {
     async acceptJob(
         user: string,
         _jobId: number, // how does agent get this???
-        maxAttempts: number = 10
+        maxAttempts: number = 1
     ): Promise<void> {
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
@@ -90,7 +90,7 @@ export class LfgMarket {
     async completeJob(
         user: string,
         _jobId: number, // how does agent get this???
-        maxAttempts: number = 10
+        maxAttempts: number = 1
     ): Promise<void> {
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
@@ -114,7 +114,7 @@ export class LfgMarket {
     async releasePayment(
         user: string,
         _jobId: number,
-        maxAttempts: number = 10
+        maxAttempts: number = 1
     ): Promise<void> {
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
@@ -139,7 +139,7 @@ export class LfgMarket {
         user: string,
         _jobId: number,
         _rating: number,
-        maxAttempts: number = 10
+        maxAttempts: number = 1
     ): Promise<void> {
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
@@ -164,7 +164,7 @@ export class LfgMarket {
     async initiateDispute(
         user: string,
         _jobId: number,
-        maxAttempts: number = 10
+        maxAttempts: number = 1
     ): Promise<void> {
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
@@ -187,7 +187,7 @@ export class LfgMarket {
 
     async getUserReputation(
         user: string,
-        maxAttempts: number = 10
+        maxAttempts: number = 1
     ): Promise<number> {
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
@@ -210,7 +210,7 @@ export class LfgMarket {
 
     async getJobDetails(
         _jobId: number,
-        maxAttempts: number = 10
+        maxAttempts: number = 1
     ): Promise<JobDetails> {
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
@@ -232,7 +232,7 @@ export class LfgMarket {
     }
 
     async getJobCount(
-        maxAttempts: number = 10
+        maxAttempts: number = 1
     ): Promise<number> {
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
