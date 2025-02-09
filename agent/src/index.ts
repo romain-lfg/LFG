@@ -157,7 +157,7 @@ import { formPlugin } from "@elizaos/plugin-form";
 import { MongoClient } from "mongodb";
 import { quickIntelPlugin } from "@elizaos/plugin-quick-intel";
 import { vsaPlugin } from "@elizaos/plugin-vsa";
-import { lfgMarketPlugin } from "@elizaos/plugin-lfgmarket";
+import { vsaContractsPlugin } from "@elizaos/plugin-vsa-contracts";
 
 import { trikonPlugin } from "@elizaos/plugin-trikon";
 import arbitragePlugin from "@elizaos/plugin-arbitrage";
@@ -1300,9 +1300,9 @@ export async function createAgent(
             getSecret(character, "ARBITRAGE_BUNDLE_EXECUTOR_ADDRESS")
                 ? arbitragePlugin
                 : null,
-            getSecret(character, "LFGMARKET_EVM_PROVIDER_URL") &&
-            getSecret(character, "LFGMARKET_EVM_PRIVATE_KEY") 
-                ? lfgMarketPlugin 
+            getSecret(character, "VSA_CONTRACTS_EVM_PROVIDER_URL") &&
+            getSecret(character, "VSA_CONTRACTS_EVM_PRIVATE_KEY") 
+                ? vsaContractsPlugin 
                 : null,
         ]
             .flat()

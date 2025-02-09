@@ -38,9 +38,9 @@ export class LfgMarketService extends Service {
         this.runtime = runtime;
 
         // Get WebSocket URL with multiple fallback options
-        let wsUrl = runtime.getSetting("LFGMARKET_ETHEREUM_WS_URL")
+        let wsUrl = runtime.getSetting("VSA_CONTRACTS_ETHEREUM_WS_URL")
 
-        let rpcUrl = runtime.getSetting("LFGMARKET_EVM_PROVIDER_URL") 
+        let rpcUrl = runtime.getSetting("VSA_CONTRACTS_EVM_PROVIDER_URL") 
                     
 
         // Debug logging
@@ -50,7 +50,7 @@ export class LfgMarketService extends Service {
         });
 
         if (!wsUrl && !rpcUrl) {
-            throw new Error("Missing both LFGMARKET_ETHEREUM_WS_URL and LFGMARKET_EVM_PROVIDER_URL envs");
+            throw new Error("Missing both VSA_CONTRACTS_ETHEREUM_WS_URL and VSA_CONTRACTS_EVM_PROVIDER_URL envs");
         }
 
         // If we only have RPC URL, derive WS URL
@@ -64,8 +64,8 @@ export class LfgMarketService extends Service {
         }
 
         // Initialize wallet and providers
-        const walletKey = runtime.getSetting("LFGMARKET_EVM_PRIVATE_KEY") 
-        if (!walletKey) throw new Error("Missing LFGMARKET_EVM_PRIVATE_KEY env");
+        const walletKey = runtime.getSetting("VSA_CONTRACTS_EVM_PRIVATE_KEY") 
+        if (!walletKey) throw new Error("Missing VSA_CONTRACTS_EVM_PRIVATE_KEY env");
 
         // Initialize provider
         console.log('Initializing WebSocketProvider with URL:', wsUrl);

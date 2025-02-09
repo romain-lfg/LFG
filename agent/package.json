@@ -135,7 +135,7 @@
         "@elizaos/plugin-hyperbolic": "workspace:*",
         "@elizaos/plugin-football": "workspace:*",
         "@elizaos/plugin-imgflip": "workspace:*",
-        "@elizaos/plugin-lfgmarket": "workspace:*",
+        "@elizaos/plugin-vsa-contracts": "workspace:*",
         "@elizaos/plugin-ethstorage": "workspace:*",
         "@elizaos/plugin-mina": "workspace:*",
         "@elizaos/plugin-email-automation": "workspace:*",

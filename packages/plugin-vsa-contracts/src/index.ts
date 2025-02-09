@@ -13,11 +13,12 @@ import { getJobDetailsAction } from "./actions/getJobDetailsAction";
 
 const lfgMarketService = new LfgMarketService();
 
-export const lfgMarketPlugin: Plugin = {
-    name: "lfg-market-plugin",
-    description: "Marketplace for job bounties plugin",
+export const vsaContractsPlugin: Plugin = {
+    name: "vsa-contracts-plugin",
+    description: "Contract interaction job bounties marketplace plugin",
     actions: [
         registerUserAction, 
+        createJobAction,
         acceptJobAction, 
         completeJobAction, 
         submitRatingAction, 
@@ -29,4 +30,4 @@ export const lfgMarketPlugin: Plugin = {
     services: [lfgMarketService]
 };
 
-export default lfgMarketPlugin;
+export default vsaContractsPlugin;

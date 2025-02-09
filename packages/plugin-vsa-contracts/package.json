@@ -1,5 +1,5 @@
 {
-    "name": "@elizaos/plugin-lfgmarket",
+    "name": "@elizaos/plugin-vsa-contracts",
     "version": "0.0.1",
     "description": "LFG Marketplace plugin for Eliza",
     "main": "dist/index.js",
