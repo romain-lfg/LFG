@@ -1,5 +1,4 @@
-import { SecretVaultWrapper } from 'nillion-sv-wrappers/SecretVault/wrapper.js';
-
+import { SecretVaultWrapper } from 'nillion-sv-wrappers';
 /**
  * LocalSecretVault extends SecretVaultWrapper to provide local secret vault functionality.
  * Inherits all functionality from SecretVaultWrapper while allowing for local-specific
