@@ -11,7 +11,7 @@
 - 🛠️ Smart Contract for Escrow and managing bounty originators and devs
 - 🔗 Stores data about users in Nillion
 - 👥 Signed git hash signature recovery for job completion proof of work
-- 📦 Deployed on Arbitrum Sepolia
+- 📦 Deployed on Arbitrum Sepolia at https://sepolia.arbiscan.io/address/0xcabac2acd4f89e48ce9f31ee0af437bd45b064ba
 
 ## 📁 Project Structure
 
