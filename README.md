@@ -8,6 +8,7 @@
 
 ## 🚩 Overview
 
+- 🕵️‍♀️ Nexus represents devs on the job marketplace, offloading relationship and matchmaking to AI
 - 🛠️ Smart Contract for Escrow and managing bounty originators and devs
 - 🔗 Stores data about users in Nillion
 - 👥 Signed git hash signature recovery for job completion proof of work
