@@ -17,6 +17,7 @@ Example response:
 
 Given the recent messages, extract the following information about the bounty: >>>(DO NOT RENAME THE KEYS)<<< 
 - user
+- jobId
 
 Respond with a JSON markdown block containing only the extracted values.`;
 
@@ -35,8 +36,8 @@ function isPaymentData(
 }
 
 async function processPaymentData(paymentData: PaymentData, runtime: IAgentRuntime) {
-    elizaLogger.info("Processing payment for user address:", paymentData.user);
-
+    console.log("Processing payment for user address:", paymentData.user);
+    console.log("Processing payment for job ID:", paymentData.jobId);
     const service = runtime.getService(ServiceType.LFG_MARKET) as LfgMarketService;
     const tx = await service.market.releasePayment(paymentData.user, paymentData.jobId);
 }
