@@ -1,20 +1,16 @@
 import { Wallet } from "@ethersproject/wallet";
-import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import { elizaLogger } from "@elizaos/core";
 import { LfgMarketCalls } from "./LfgMarketCalls";
-import { ethers } from "ethers";
+import { ethers, Signer } from "ethers";
 import { JobDetails } from "../type";
-
-const ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL;
 
 export class LfgMarket {
     private RETRY_DELAY = 1000; // 1 second
 
-    private calls = new LfgMarketCalls(this.provider);
+    private calls = new LfgMarketCalls(this.wallet);
 
     constructor(
-        private wallet: Wallet,
-        private provider: StaticJsonRpcProvider = new StaticJsonRpcProvider(ETHEREUM_RPC_URL)
+        private wallet: Wallet
     ) {}
 
     async registerUser(

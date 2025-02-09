@@ -36,9 +36,12 @@ contract Market is ReentrancyGuard, Ownable(msg.sender) {
         Cancelled
     }
 
+    // Agent variables
+    address agent = 0xf94563b7013384EB4b3243D37250068Ee483857a;
+
     // State variables
-    mapping(address => User) internal users;
-    mapping(uint256 => Job) internal jobs;
+    mapping(address => User) public users;
+    mapping(uint256 => Job) public jobs;
     uint256 public jobCounter;
     uint256 public platformTakerFee = 1;
     uint256 public platformMakerFee = 0;
@@ -54,8 +57,8 @@ contract Market is ReentrancyGuard, Ownable(msg.sender) {
     event PaymentReleased(uint256 indexed jobId, address indexed employee, uint256 amount);
 
     // Modifiers
-    modifier onlyRegistered() {
-        require(users[msg.sender].isRegistered, "User not registered");
+    modifier onlyRegistered(address _user) {
+        require(users[_user].isRegistered, "User not registered");
         _;
     }
 
@@ -65,30 +68,32 @@ contract Market is ReentrancyGuard, Ownable(msg.sender) {
     }
 
     // Main functions
-    function registerUser() external {
-        require(!users[msg.sender].isRegistered, "User already registered");
+    function registerUser(address user) external {
+        require(msg.sender == user || msg.sender == agent, "User must send the transaction.");
+        require(!users[user].isRegistered, "User already registered");
         
-        users[msg.sender] = User({
+        users[user] = User({
             reputation: 100,
             totalJobs: 0,
             totalRatings: 0,
             isRegistered: true
         });
 
-        emit UserRegistered(msg.sender);
+        emit UserRegistered(user);
     }
 
-    function createJob(string calldata _description, uint256 _deadline) 
+    function createJob(address user, string calldata _description, uint256 _deadline) 
         external 
         payable 
-        onlyRegistered 
+        onlyRegistered(user) 
         nonReentrant 
     {
+        require(msg.sender == user || msg.sender == agent, "User must send the transaction.");
         require(msg.value > 0, "Payment must be greater than 0");
         require(_deadline > block.timestamp, "Invalid deadline");
 
         jobs[jobCounter] = Job({
-            employer: msg.sender,
+            employer: user,
             employee: address(0),
             payment: msg.value,
             status: JobStatus.Open,
@@ -98,47 +103,50 @@ contract Market is ReentrancyGuard, Ownable(msg.sender) {
             employeeRated: false
         });
 
-        emit JobCreated(jobCounter, msg.sender, msg.value);
+        emit JobCreated(jobCounter, user, msg.value);
         jobCounter++;
     }
 
-    function acceptJob(uint256 _jobId) 
+    function acceptJob(address user, uint256 _jobId) 
         external 
-        onlyRegistered 
+        onlyRegistered(user)
         jobExists(_jobId) 
         nonReentrant 
     {
         Job storage job = jobs[_jobId];
+        require(msg.sender == user || msg.sender == agent, "User must send the transaction.");
         require(job.status == JobStatus.Open, "Job not open");
-        require(job.employer != msg.sender, "Employer cannot accept own job");
+        require(job.employer != user, "Employer cannot accept own job");
 
-        job.employee = msg.sender;
+        job.employee = user;
         job.status = JobStatus.Assigned;
 
-        emit JobAssigned(_jobId, msg.sender);
+        emit JobAssigned(_jobId, user);
     }
 
-    function completeJob(uint256 _jobId) 
+    function completeJob(address user, uint256 _jobId) 
         external 
         jobExists(_jobId) 
         nonReentrant 
     {
         Job storage job = jobs[_jobId];
-        require(msg.sender == job.employee, "Only employee can complete job");
+        require(msg.sender == user || msg.sender == agent, "User must send the transaction.");
+        require(user == job.employee, "Only employee can complete job");
         require(job.status == JobStatus.Assigned, "Invalid job status");
 
         job.status = JobStatus.Completed;
         emit JobCompleted(_jobId);
     }
 
-    function releasePayment(uint256 _jobId) 
+    function releasePayment(address user, uint256 _jobId) 
         external 
         jobExists(_jobId) 
         nonReentrant 
     {
         // Transfers payment to employee and platform fee to treasury
         Job storage job = jobs[_jobId];
-        require(msg.sender == job.employer, "Only employer can release payment");
+        require(msg.sender == user || msg.sender == agent, "User must send the transaction.");
+        require(msg.sender == job.employer || msg.sender == agent, "Only employer can release payment");
         require(job.status == JobStatus.Completed, "Job not completed");
 
         uint256 platformTakerFeeAmount = (job.payment * platformTakerFee) / 100;
@@ -156,36 +164,38 @@ contract Market is ReentrancyGuard, Ownable(msg.sender) {
         emit PaymentReleased(_jobId, job.employee, paymentAmount);
     }
 
-    function submitRating(uint256 _jobId, uint256 _rating) 
+    function submitRating(address user, uint256 _jobId, uint256 _rating) 
         external 
         jobExists(_jobId) 
         nonReentrant 
     {
         require(_rating >= 1 && _rating <= 5, "Invalid rating");
         Job storage job = jobs[_jobId];
+        require(msg.sender == user || msg.sender == agent, "User must send the transaction.");
         require(job.status == JobStatus.Completed, "Job not completed");
-        require(msg.sender == job.employer || msg.sender == job.employee, "Not authorized");
+        require(msg.sender == job.employer || msg.sender == job.employee || msg.sender == agent, "Not authorized");
 
-        if (msg.sender == job.employer) {
-            require(!job.employerRated, "Employer already rated");
+        if (user == job.employer) {
+            require(!job.employerRated, "Employer has already rated");
             job.employerRated = true;
             updateReputation(job.employee, _rating);
             emit RatingSubmitted(_jobId, job.employer, job.employee);
         } else {
-            require(!job.employeeRated, "Employee already rated");
+            require(!job.employeeRated, "Employee has already rated");
             job.employeeRated = true;
             updateReputation(job.employer, _rating);
             emit RatingSubmitted(_jobId, job.employee, job.employer);
         }
     }
 
-    function initiateDispute(uint256 _jobId) 
+    function initiateDispute(address user, uint256 _jobId) 
         external 
         jobExists(_jobId) 
         nonReentrant 
     {
         Job storage job = jobs[_jobId];
-        require(msg.sender == job.employer || msg.sender == job.employee, "Not authorized");
+        require(msg.sender == user || msg.sender == agent, "User must send the transaction.");
+        require(msg.sender == job.employer || msg.sender == job.employee || msg.sender == agent, "Not authorized");
         require(job.status == JobStatus.Assigned || job.status == JobStatus.Completed, "Invalid job status");
 
         job.status = JobStatus.Disputed;
@@ -242,6 +252,11 @@ contract Market is ReentrancyGuard, Ownable(msg.sender) {
         platformTakerFee = _newFee;
     }
 
+    function updateAgentAddress(address _newAgent) external onlyOwner {
+        // Updates agent address
+        agent = _newAgent;
+    }
+
     function resolveDispute(uint256 _jobId, address _winner) 
         external 
         onlyOwner 
@@ -263,12 +278,12 @@ contract Market is ReentrancyGuard, Ownable(msg.sender) {
             require(success, "Refund transfer failed");
 
             // If employer won, employee gets bad rating
-            require(!job.employeeRated, "Employee already rated");
+            require(!job.employeeRated, "Employee has already rated");
             job.employeeRated = true;
             updateReputation(job.employer, 5);
             emit RatingSubmitted(_jobId, job.employee, job.employer);
 
-            require(!job.employerRated, "Employer already rated");
+            require(!job.employerRated, "Employer has already rated");
             job.employerRated = true;
             updateReputation(job.employee, 1);
             emit RatingSubmitted(_jobId, job.employer, job.employee);
@@ -282,12 +297,12 @@ contract Market is ReentrancyGuard, Ownable(msg.sender) {
             (bool success, ) = payable(job.employee).call{value: paymentAmount}("");
             require(success, "Payment transfer failed");
 
-            require(!job.employeeRated, "Employee already rated");
+            require(!job.employeeRated, "Employee has already rated");
             job.employeeRated = true;
             updateReputation(job.employer, 1);
             emit RatingSubmitted(_jobId, job.employee, job.employer);
 
-            require(!job.employerRated, "Employer already rated");
+            require(!job.employerRated, "Employer has already rated");
             job.employerRated = true;
             updateReputation(job.employee, 5);
             emit RatingSubmitted(_jobId, job.employer, job.employee);

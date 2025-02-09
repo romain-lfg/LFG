@@ -8,3 +8,13 @@ export interface JobDetails {
     deadline: BigNumber;
     description: string;
   }
+
+export interface UserData {
+  user: string;
+}
+
+export interface RatingData {
+  user: string;
+  jobId: number;
+  rating: number;
+}

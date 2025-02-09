@@ -1,21 +1,22 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import { Contract } from "@ethersproject/contracts";
 import { StaticJsonRpcProvider } from "@ethersproject/providers";
-import { ethers } from "ethers";
+import { ethers, Signer, Wallet } from "ethers";
 import { LFG_MARKET_ABI } from "./abi";
 import { LFG_MARKET_ADDRESS } from "./addresses";
 import { JobDetails } from "../type";
 
 export class LfgMarketCalls {
-  provider: StaticJsonRpcProvider;
+  wallet: Wallet;
 
-  constructor(provider: StaticJsonRpcProvider) {
-    this.provider = provider;
+  constructor(wallet: Wallet) {
+    this.wallet = wallet;
   }
   
   async registerUserCall(user: string): Promise<ethers.ContractTransaction> {
     try {
-      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.provider);
+      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.wallet);
+      console.log('registerUserCall', user.toLowerCase());
       const tx = await contract.registerUser(user.toLowerCase());
       return tx;
     } catch (error) {
@@ -31,7 +32,7 @@ export class LfgMarketCalls {
     payment: BigNumber
   ): Promise<ethers.ContractTransaction> {
     try {
-      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.provider);
+      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.wallet);
       const tx = await contract.createJob(user, _description, _deadline, {
         value: payment
       });
@@ -47,7 +48,7 @@ export class LfgMarketCalls {
     _jobId: number
   ): Promise<ethers.ContractTransaction> {
     try {
-      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.provider);
+      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.wallet);
       const tx = await contract.acceptJob(user, _jobId);
       return tx;
     } catch (error) {
@@ -61,7 +62,7 @@ export class LfgMarketCalls {
     _jobId: number
   ): Promise<ethers.ContractTransaction> {
     try {
-      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.provider);
+      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.wallet);
       const tx = await contract.completeCall(user, _jobId);
       return tx;
     } catch (error) {
@@ -75,7 +76,7 @@ export class LfgMarketCalls {
     _jobId: number
   ): Promise<ethers.ContractTransaction> {
     try {
-      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.provider);
+      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.wallet);
       const tx = await contract.releasePayment(user, _jobId);
       return tx;
     } catch (error) {
@@ -90,7 +91,7 @@ export class LfgMarketCalls {
     _rating: number
   ): Promise<ethers.ContractTransaction> {
     try {
-      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.provider);
+      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.wallet);
       const tx = await contract.submitRating(user, _jobId, _rating);
       return tx;
     } catch (error) {
@@ -104,7 +105,7 @@ export class LfgMarketCalls {
     _jobId: number
   ): Promise<ethers.ContractTransaction> {
     try {
-      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.provider);
+      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.wallet);
       const tx = await contract.initiateDispute(user, _jobId);
       return tx;
     } catch (error) {
@@ -115,7 +116,7 @@ export class LfgMarketCalls {
 
   async getUserReputationCall(_user: string): Promise<number> {
     try {
-      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.provider);
+      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.wallet);
       const userReputation = await contract.getUserReputation(_user);
       return userReputation;
     } catch (error) {
@@ -126,7 +127,7 @@ export class LfgMarketCalls {
 
   async getJobDetailsCall(_jobId: number): Promise<JobDetails> {
     try {
-      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.provider);
+      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.wallet);
       const jobDetails = await contract.getJobDetails(_jobId);
       
       return {
