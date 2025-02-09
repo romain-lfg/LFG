@@ -96,7 +96,7 @@ async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
 
     const service = runtime.getService(ServiceType.LFG_MARKET) as LfgMarketService;
     const tx = await service.market.createJob(bountyData.walletAddress, bountyData.description, 18000000000, bountyData.amount);
-    const id = await service.market.getJobCount();
+    const id = await service.market.getJobCount()-1;
     const bountyDataFormat = {
         title: { $allot: bountyData.title },
         owner: { $allot: bountyData.walletAddress },

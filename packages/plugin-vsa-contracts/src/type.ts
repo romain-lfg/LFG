@@ -33,13 +33,13 @@ export interface JobData {
 }
 
 export interface CompletedJobData {
-  user: string;
-  jobId: number;
+  userAddress: string;
+  bountyId: number;
 }
 
 export interface AcceptedJobData {
-  user: string;
-  jobId: number;
+  userAddress: string;
+  bountyId: number;
 }
 
 export interface JobDetailsData {

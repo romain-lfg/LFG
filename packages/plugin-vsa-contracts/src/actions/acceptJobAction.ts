@@ -8,43 +8,45 @@ const dataTemplate = `Respond with a JSON markdown block containing only the ext
 Example response:
 \`\`\`json
 {
-    "user": "0xf94563b7013384EB4b3243D37250068Ee483857a",
-    "jobId": 1
+    "userAddress": "0xf94563b7013384EB4b3243D37250068Ee483857a",
+    "bountyId": 1
 }
 \`\`\`
 
 {{recentMessages}}
 
 Given the recent messages, extract the following information about the bounty: >>>(DO NOT RENAME THE KEYS)<<< 
-- user
+- userAddress
+- bountyId
 
 Respond with a JSON markdown block containing only the extracted values.`;
 
 function isAcceptedJobData(
     content: AcceptedJobData
 ): content is AcceptedJobData {
-    if (!isAddress(content.user)) {
+    if (!isAddress(content.userAddress)) {
         elizaLogger.error("Invalid user address");
         return false;
     }
     return (
-        typeof content.user === "string" &&
-        isAddress(content.user) &&
-        typeof content.jobId === "number"
+        typeof content.userAddress === "string" &&
+        isAddress(content.userAddress) &&
+        typeof content.bountyId === "string"
     );
 }
 
 async function processAcceptedJobData(acceptedJobData: AcceptedJobData, runtime: IAgentRuntime) {
-    elizaLogger.info("Processing job acceptance for:", acceptedJobData.user);
+    elizaLogger.info("Processing job acceptance for:", acceptedJobData.userAddress);
+    elizaLogger.info("Bounty ID:", acceptedJobData.bountyId);
 
     const service = runtime.getService(ServiceType.LFG_MARKET) as LfgMarketService;
-    const tx = await service.market.acceptJob(acceptedJobData.user, acceptedJobData.jobId);
+    const tx = await service.market.acceptJob(acceptedJobData.userAddress, acceptedJobData.bountyId);
 }
 
 export const acceptJobAction: Action = {
-    name: "ACCEPT_JOB",
-    similes: ["TAKE_JOB", "START_JOB"],
-    description: "Accepts a job",
+    name: "ACCEPT_BOUNTY",
+    similes: ["TAKE_BOUNTY", "START_BOUNTY"],
+    description: "Accepts a bounty",
     
     validate: async (runtime: IAgentRuntime, _message: Memory) => {
         // Validate settings are present
@@ -79,7 +81,7 @@ export const acceptJobAction: Action = {
             }));
     
             if (!isAcceptedJobData(content)) {
-                const requiredParameters = ["user", "jobId"];
+                const requiredParameters = ["userAddress", "bountyId"];
                 const confirmed: Record<string, any> = {};
                 const missing: string[] = [];
     
@@ -111,8 +113,8 @@ export const acceptJobAction: Action = {
     
                 // Create rating data
                 const acceptedJobDataFilled: AcceptedJobData = {
-                    user: content.user,
-                    jobId: content.jobId
+                    userAddress: content.userAddress,
+                    bountyId: content.bountyId
                 };
     
                 // Call the function to process the rating
@@ -141,8 +143,8 @@ export const acceptJobAction: Action = {
 
                 }
                 const acceptedJobDataFilled: AcceptedJobData = {
-                    user: content.user,
-                    jobId: content.jobId
+                    userAddress: content.userAddress,
+                    bountyId: content.bountyId
                 };
                 await processAcceptedJobData(acceptedJobDataFilled, runtime);
                 return false;
