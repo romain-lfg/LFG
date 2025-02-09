@@ -194,10 +194,11 @@ export const storeUserData = async (data, SCHEMA_ID) => {
     // Write collection data to nodes encrypting the specified fields ahead of time
     
     const dataWritten = await collection.writeToNodes([data]);
-    console.log(
-      '👀 Data written to nodes:',
-      JSON.stringify(dataWritten, null, 2)
-    );
+    // Log the data written to nodes with pretty-printing (2 space indent)
+    // console.log(
+    //   '👀 Data written to nodes:',
+    //   JSON.stringify(dataWritten, null, 2)
+    // );
 
 
     // Get the ids of the SecretVault records created
@@ -259,7 +260,7 @@ export const matchBountiesOwner = async (userId) => {
   
   const matches = [];
   for (const bounty of bounties) {
-    if (bounty.owner === userId) {
+    if (bounty.owner == userId) {
       for (const user of users) {
         // Compare bounty and user here
         //console.log(`Comparing bounty ${bounty.title} with user ${user.name}`);
@@ -311,7 +312,7 @@ export const matchBountiesUser = async (userId) => {
       for (const user of users) {
         // Compare bounty and user here
         //console.log("user:", user.address);
-        if (user.address === userId && bounty.bountyId == 2) {
+        if (user.address == userId) {
           //console.log(`Comparing bounty ${bounty.title} with user ${user.name}`);
           const userSkills = user.skills;
           const bountySkills = bounty.requiredSkills;
