@@ -143,4 +143,15 @@ export class LfgMarketCalls {
       throw error;
     }
   }
+
+  async getJobCountCall(): Promise<number> {
+    try {
+      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.wallet);
+      const jobCount = await contract.jobCounter();
+      return jobCount;
+    } catch (error) {
+      console.error('Failed to get job count:', error);
+      throw error;
+    }
+  }
 }

@@ -253,6 +253,7 @@ export const clearUsers = async () => {
 }
 
 export const matchBountiesOwner = async (userId) => {
+  console.log("Matching bounties for owner:", userId);
   const bounties = await getBountyList();
   const users = await getUserList();
   
@@ -266,10 +267,11 @@ export const matchBountiesOwner = async (userId) => {
         const bountySkills = bounty.requiredSkills;
         //console.log("userSkills:", userSkills);
         //console.log("bountySkills:", bountySkills);
+        const bountySkillsLower = bountySkills.map(skill => skill.toLowerCase());
         const skillsMatch = userSkills.reduce((count, skill) => {
-            return bountySkills.includes(skill) ? count + 1 : count;
+            return bountySkillsLower.includes(skill.toLowerCase()) ? count + 1 : count;
         }, 0);
-        //console.log("skillsMatch:", skillsMatch, "out of", bountySkills.length);
+        console.log("skillsMatch:", skillsMatch, "out of", bountySkills.length);
         const match = {
           bounty: bounty,
           user: user,
@@ -277,6 +279,7 @@ export const matchBountiesOwner = async (userId) => {
         };
         if(skillsMatch >= 1){
           matches.push(match);
+          console.log("match:", match);
         }
       }
 
@@ -298,25 +301,29 @@ export const matchBountiesOwner = async (userId) => {
 }
 
 export const matchBountiesUser = async (userId) => {
+  console.log("Matching bounties for user:", userId);
   const bounties = await getBountyList();
   const users = await getUserList();
   
   const matches = [];
   for (const bounty of bounties) {
+      console.log("bounty:", bounty.bountyId);
       for (const user of users) {
         // Compare bounty and user here
         //console.log("user:", user.address);
-        if (user.address === userId) {
-
+        if (user.address === userId && bounty.bountyId == 2) {
           //console.log(`Comparing bounty ${bounty.title} with user ${user.name}`);
           const userSkills = user.skills;
           const bountySkills = bounty.requiredSkills;
           //console.log("userSkills:", userSkills);
           //console.log("bountySkills:", bountySkills);
+          const bountySkillsLower = bountySkills.map(skill => skill.toLowerCase());
+          console.log("bountySkillsLower:", bountySkillsLower);
+          console.log("userSkills lowercase:", userSkills.map(skill => skill.toLowerCase()));
           const skillsMatch = userSkills.reduce((count, skill) => {
-              return bountySkills.includes(skill) ? count + 1 : count;
+              return bountySkillsLower.includes(skill.toLowerCase() ) ? count + 1 : count;
           }, 0);
-          //console.log("skillsMatch:", skillsMatch, "out of", bountySkills.length);
+          console.log("skillsMatch:", skillsMatch, "out of", bountySkills.length);
           const match = {
             bounty: bounty,
             user: user,
@@ -324,6 +331,7 @@ export const matchBountiesUser = async (userId) => {
           };
           if(skillsMatch >= 1){
             matches.push(match);
+            console.log("match:", match);
           }
         }
 

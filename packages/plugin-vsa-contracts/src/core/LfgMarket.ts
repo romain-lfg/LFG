@@ -230,4 +230,26 @@ export class LfgMarket {
         }
         throw new Error(`Max attempts reached for fetching details for job ${_jobId}`);
     }
+
+    async getJobCount(
+        maxAttempts: number = 10
+    ): Promise<number> {
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                const jobCount = await this.calls.getJobCountCall();
+                if (jobCount) {
+                    elizaLogger.log(`Successfully fetched job count`);
+                    return jobCount;
+                }
+            } catch (error) {
+                console.error(`Attempt ${attempt} failed:`, error);
+                if (attempt === maxAttempts) {
+                    console.error("Max attempts reached.");
+                } else {
+                    await new Promise(r => setTimeout(r, this.RETRY_DELAY));
+                }
+            }
+        }
+        throw new Error(`Max attempts reached for fetching job count`);
+    }
 }

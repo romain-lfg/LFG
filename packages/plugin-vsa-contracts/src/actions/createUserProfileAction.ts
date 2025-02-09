@@ -9,23 +9,19 @@ import {
     HandlerCallback,
     composeContext,
     generateObjectDeprecated,
+    ServiceType,
 } from "@elizaos/core";
 
 import { createUser } from "@elizaos/nillion-core";
+import { LfgMarketService } from "../services/LfgMarketService";
+import { UserData } from "../type";
+import { getAddress, isAddress } from "@ethersproject/address";
+
 //pnpm start --"charachters=charachters/vsa.character.json"
 
 const Handlebars = require('handlebars');
 
-interface UserData { //Placeholder for the user data TODO: replace with the actual user data
-    name: string;
-    address: string;
-    skills: string[];
-    workingHoursStart: string;
-    workingHoursEnd: string;
-    timeZone: string;
-    minimumBountyValue: string;
-    walletAddress: string;
-}
+
 
 
 const userDataTemplate = `Respond with a JSON markdown block containing only the extracted values. Use null for any values that cannot be determined.
@@ -75,7 +71,8 @@ function isUserData(
     content: UserData
 ): content is UserData {
     return (
-        typeof content.name === "string" &&
+        
+        (typeof content.name === "string" &&
         typeof content.address === "string" &&
         Array.isArray(content.skills) &&
         content.skills.every(skill => typeof skill === "string") &&
@@ -83,11 +80,11 @@ function isUserData(
         typeof content.workingHoursEnd === "string" &&
         typeof content.timeZone === "string" &&
         typeof content.minimumBountyValue === "string" &&
-        typeof content.walletAddress === "string"
+        typeof content.walletAddress === "string") && (isAddress(content.walletAddress))
     );
 }
 
-async function processUserProfile(userData: UserData) {
+async function processUserProfile(userData: UserData, runtime: IAgentRuntime) {
     console.log("Processing user profile:", userData);
     const userDataFormat = {
         name: { $allot: userData.name },
@@ -99,6 +96,8 @@ async function processUserProfile(userData: UserData) {
         minimumBountyValue: { $allot: userData.minimumBountyValue }
     };
     await createUser(userDataFormat);
+    const service = runtime.getService(ServiceType.LFG_MARKET) as LfgMarketService;
+    const tx = await service.market.registerUser(userData.walletAddress);
 }
 
 
@@ -186,7 +185,7 @@ export const createUserProfileAction: Action = {
                 };
     
                 // Call the function to process the user profile
-                await processUserProfile(userDataFilled);
+                await processUserProfile(userDataFilled, runtime);
                 if (callback) {
                     callback({
                         text: `Successfully created user profile`,
@@ -210,7 +209,7 @@ export const createUserProfileAction: Action = {
                     });
 
                 }
-                processUserProfile(content);
+                processUserProfile(content, runtime);
                 return false;
             }
         } catch (error) {

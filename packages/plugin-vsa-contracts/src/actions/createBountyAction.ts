@@ -9,9 +9,13 @@ import {
     HandlerCallback,
     composeContext,
     generateObjectDeprecated,
+    ServiceType,
 } from "@elizaos/core";
 
-import {  } from "@elizaos/nillion-core";
+import { LfgMarketService } from "../services/LfgMarketService";
+import { isAddress } from "@ethersproject/address";
+import { CompletedJobData, JobData } from "../type";
+
 import { createBounty } from "@elizaos/nillion-core";
 
 const Handlebars = require('handlebars');
@@ -82,12 +86,17 @@ function isBountyData(
         typeof content.datePosted === "string" &&
         typeof content.dueDate === "string" &&
         typeof content.estimatedTime === "string" &&
-        typeof content.walletAddress === "string"
+        typeof content.walletAddress === "string" &&
+        isAddress(content.walletAddress)
     );
 }
 
-async function processBounty(bountyData: BountyData) {
+async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
     console.log("Processing new Bounty creation:", bountyData);
+
+    const service = runtime.getService(ServiceType.LFG_MARKET) as LfgMarketService;
+    const tx = await service.market.createJob(bountyData.walletAddress, bountyData.description, 18000000000, bountyData.amount);
+    const id = await service.market.getJobCount();
     const bountyDataFormat = {
         title: { $allot: bountyData.title },
         owner: { $allot: bountyData.walletAddress },
@@ -98,7 +107,7 @@ async function processBounty(bountyData: BountyData) {
         estimatedTime: { $allot: bountyData.estimatedTime },
         description: { $allot: bountyData.description },
         longDescription: { $allot: bountyData.longDescription },
-        bountyId: { $allot: "00000000-0000-0000-0000-000000000000" },
+        bountyId: { $allot: id },
         reward: {
           amount: { $allot: bountyData.amount },
           token: { $allot: bountyData.token },
@@ -149,7 +158,7 @@ export const createBountyAction: Action = {
             if (!isBountyData(content)) {
                 console.log("NOT IS USER DATA");
                 const bountyData = content;
-                const requiredParameters = ["title", "description", "longDescription", "rewardAmount", "rewardToken", "requiredSkills", "datePosted", "dueDate", "estimatedTime"];
+                const requiredParameters = ["title", "description", "longDescription", "amount", "token", "requiredSkills", "datePosted", "dueDate", "estimatedTime", "walletAddress"];
                 const confirmed = {};
                 const missing = [];
     
@@ -210,7 +219,7 @@ export const createBountyAction: Action = {
                 };
     
                 // Call the function to process the user profile
-                await processBounty(bountyDataFilled);
+                await processBounty(bountyDataFilled, runtime);
                 if (callback) {
                     callback({
                         text: `Successfully created bounty`,
@@ -234,7 +243,7 @@ export const createBountyAction: Action = {
                     });
 
                 }
-                processBounty(content);
+                processBounty(content, runtime);
                 return false;
             }
         } catch (error) {
