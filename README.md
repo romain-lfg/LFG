@@ -1,7 +1,7 @@
-# NexusAI Bounty Marketplace 🤖
+# LFG Bounty Marketplace 🏋️‍♀️
 
 <div align="center">
-  <img src="./docs/static/img/eliza_banner.jpg" alt="Eliza Banner" width="100%" />
+  <img src="./docs/static/img/lfg.jpg" alt="Eliza Banner" width="100%" />
 </div>
 
 <div align="left">
@@ -11,7 +11,7 @@
 - 🛠️ Smart Contract for Escrow and managing bounty originators and devs
 - 🔗 Stores data about users in Nillion
 - 👥 Signed git hash signature recovery for job completion proof of work
-- 📦 Deployed on Arbitrum Sepolia
+- 📦 Deployed on Arbitrum Sepolia at https://sepolia.arbiscan.io/address/0xcabac2acd4f89e48ce9f31ee0af437bd45b064ba
 
 ## 📁 Project Structure
 
@@ -123,6 +123,8 @@ VSA_CONTRACTS_ETHEREUM_WS_URL=                  # WebSocket URL for Ethereum nod
 VSA_CONTRACTS_EVM_PROVIDER_URL=                 # RPC URL for Ethereum node connection (if WS not available)
 VSA_CONTRACTS_EVM_PRIVATE_KEY=                  # Private key for the wallet executing arbitrage transactions
 ```
+
+Make sure to fund your agent's wallet with some Arbitrum SepoliaETH
 
 #### Start Nexus AI Agent
 
