@@ -21,7 +21,7 @@ Given the recent messages, extract the following information about the bounty: >
 
 Respond with a JSON markdown block containing only the extracted values.`;
 
-function isRating(
+function isRatingData(
     content: RatingData
 ): content is RatingData {
     if (!isAddress(content.user)) {
@@ -66,7 +66,7 @@ export const submitRatingAction: Action = {
             state = await runtime.updateRecentMessageState(state);
         }
 
-        elizaLogger.info("Register user action handler called");
+        elizaLogger.info("Submit rating action handler called");
 
         try {
             const context = composeContext({
@@ -80,17 +80,16 @@ export const submitRatingAction: Action = {
                 modelClass: ModelClass.LARGE,
             }));
     
-            if (!isRating(content)) {
-                const ratingData = content;
-                const requiredParameters = ["username"];
+            if (!isRatingData(content)) {
+                const requiredParameters = ["user", "jobId", "rating"];
                 const confirmed: Record<string, any> = {};
                 const missing: string[] = [];
     
                 // Check for confirmed and missing parameters
                 for (const param of requiredParameters) {
-                    if (ratingData[param] != null) {
-                        console.log("ratingData. " + param + " = " + ratingData[param]);
-                        confirmed[param] = ratingData[param];
+                    if (content[param] != null) {
+                        console.log("content. " + param + " = " + content[param]);
+                        confirmed[param] = content[param];
                     } else {
                         missing.push(param);
                     }
@@ -107,7 +106,7 @@ export const submitRatingAction: Action = {
                             text: "Please provide the following missing information: " + missingParamsList, //promptMessage,
                             content: {
                                 success: false,
-                                error: "Missing required token parameters",
+                                error: "Missing required rating parameters",
                             },
                         });
                     }
