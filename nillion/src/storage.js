@@ -311,7 +311,7 @@ export const matchBountiesUser = async (userId) => {
       for (const user of users) {
         // Compare bounty and user here
         //console.log("user:", user.address);
-        if (user.address === userId && bounty.bountyId == 2) {
+        if (user.address === userId) {
           //console.log(`Comparing bounty ${bounty.title} with user ${user.name}`);
           const userSkills = user.skills;
           const bountySkills = bounty.requiredSkills;
@@ -375,10 +375,10 @@ if (isMainModule) {
       //getUserList();
       //getBountyList();
       //matchBountiesOwner("owner2");
-      //matchBountiesUser("0xi29299100");
+      matchBountiesUser("0xE2eE625D83C68123aCa4251d6a82f23b70d9eEE3");
       //storeUserData({users: [userDataFormat]}, SCHEMA_ID_USER);
       //storeUserData(bountyFormat, SCHEMA_ID_BOUNTY);
-      clearBounties();
+      //clearBounties();
       //createBounty(bountyDataFormat, SCHEMA_ID_BOUNTY);
     }
 }
