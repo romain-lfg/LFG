@@ -18,7 +18,7 @@ const Handlebars = require('handlebars');
 
 interface BountyData { //Placeholder for the user data TODO: replace with the actual user data
     title: string;
-    owner: string;
+    walletAddress: string;
     description: string;
     longDescription: string;
     amount: string;
@@ -47,6 +47,7 @@ Example response:
     "datePosted": "2024-01-15",
     "dueDate": "2024-02-15", 
     "estimatedTime": "80",
+    "walletAddress": "0x1234567890123456789012345678901234567890"
 }
 \`\`\`
 
@@ -63,7 +64,7 @@ Given the recent messages, extract the following information about the bounty: >
 - datePosted
 - dueDate
 - estimatedTime
-
+- walletAddress
 Respond with a JSON markdown block containing only the extracted values.`;
 
 
@@ -80,7 +81,8 @@ function isBountyData(
         content.requiredSkills.every(skill => typeof skill === "string") &&
         typeof content.datePosted === "string" &&
         typeof content.dueDate === "string" &&
-        typeof content.estimatedTime === "string"
+        typeof content.estimatedTime === "string" &&
+        typeof content.walletAddress === "string"
     );
 }
 
@@ -88,7 +90,7 @@ async function processBounty(bountyData: BountyData) {
     console.log("Processing new Bounty creation:", bountyData);
     const bountyDataFormat = {
         title: { $allot: bountyData.title },
-        owner: { $allot: "0x1234567890123456789012345678901234567890" },
+        owner: { $allot: bountyData.walletAddress },
         requiredSkills: bountyData.requiredSkills.map(skill => ({ $allot: skill })),
         datePosted: { $allot: bountyData.datePosted },
         dueDate: { $allot: bountyData.dueDate },
@@ -204,7 +206,7 @@ export const createBountyAction: Action = {
                     dueDate: content.dueDate,
                     state: content.state,
                     estimatedTime: content.estimatedTime,
-                    owner: content.owner,
+                    walletAddress: content.walletAddress,
                 };
     
                 // Call the function to process the user profile
