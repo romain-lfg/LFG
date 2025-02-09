@@ -370,6 +370,9 @@ importers:
       '@elizaos/plugin-letzai':
         specifier: workspace:*
         version: link:../packages/plugin-letzai
+      '@elizaos/plugin-vsa-contracts':
+        specifier: workspace:*
+        version: link:../packages/plugin-vsa-contracts
       '@elizaos/plugin-lightning':
         specifier: workspace:*
         version: link:../packages/plugin-lightning
@@ -3404,6 +3407,82 @@ importers:
       tsup:
         specifier: 8.3.5
         version: 8.3.5(@swc/core@1.10.14(@swc/helpers@0.5.15))(jiti@2.4.2)(postcss@8.5.1)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
+
+  packages/plugin-vsa-contracts:
+    dependencies:
+      '@elizaos/adapter-sqlite':
+        specifier: ^0.1.8
+        version: 0.1.9(axios@1.7.9)(encoding@0.1.13)(react@19.0.0)(whatwg-url@14.1.0)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      '@elizaos/core':
+        specifier: workspace:*
+        version: link:../core
+      '@ethersproject/abi':
+        specifier: ^5.7.0
+        version: 5.7.0
+      '@ethersproject/abstract-provider':
+        specifier: ^5.7.0
+        version: 5.7.0
+      '@ethersproject/address':
+        specifier: ^5.7.0
+        version: 5.7.0
+      '@ethersproject/bignumber':
+        specifier: ^5.7.0
+        version: 5.7.0
+      '@ethersproject/contracts':
+        specifier: ^5.7.0
+        version: 5.7.0
+      '@ethersproject/providers':
+        specifier: ^5.7.2
+        version: 5.7.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@ethersproject/units':
+        specifier: ^5.7.0
+        version: 5.7.0
+      '@ethersproject/wallet':
+        specifier: ^5.7.0
+        version: 5.7.0
+      '@flashbots/ethers-provider-bundle':
+        specifier: 0.6.2
+        version: 0.6.2(ethers@5.7.2(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.4.7
+      ethers:
+        specifier: 5.7.2
+        version: 5.7.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
+      ws:
+        specifier: ^8.18.0
+        version: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    devDependencies:
+      '@types/dotenv':
+        specifier: ^8.2.0
+        version: 8.2.3
+      '@types/lodash':
+        specifier: ^4.17.14
+        version: 4.17.15
+      '@types/node':
+        specifier: ^22.10.9
+        version: 22.13.1
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.5.14
+      '@vitest/coverage-v8':
+        specifier: ^2.1.4
+        version: 2.1.9(vitest@2.1.8(@types/node@22.13.1)(jsdom@25.0.1(bufferutil@4.0.9)(canvas@2.11.2(encoding@0.1.13))(utf-8-validate@5.0.10))(terser@5.38.0))
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
+      tsup:
+        specifier: ^8.0.2
+        version: 8.3.5(@swc/core@1.10.14(@swc/helpers@0.5.15))(jiti@2.4.2)(postcss@8.5.1)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
+      typescript:
+        specifier: ^5.7.3
+        version: 5.7.3
+      vitest:
+        specifier: ^2.1.4
+        version: 2.1.8(@types/node@22.13.1)(jsdom@25.0.1(bufferutil@4.0.9)(canvas@2.11.2(encoding@0.1.13))(utf-8-validate@5.0.10))(terser@5.38.0)
 
   packages/plugin-lightning:
     dependencies:
@@ -45861,7 +45940,7 @@ snapshots:
 
   '@types/bs58@4.0.4':
     dependencies:
-      '@types/node': 22.13.1
+      '@types/node': 20.17.9
       base-x: 3.0.10
 
   '@types/cacheable-request@6.0.3':
