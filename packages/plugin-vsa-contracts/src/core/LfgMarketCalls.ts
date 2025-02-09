@@ -62,7 +62,7 @@ export class LfgMarketCalls {
     _jobId: number
   ): Promise<ethers.ContractTransaction> {
     try {
-      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.wallet);
+      const contract = new Contract(LFG_MARKET_ADDRESS_ARBITRUM_SEPOLIA, LFG_MARKET_ABI, this.wallet);
       const tx = await contract.completeJob(user, _jobId);
       return tx;
     } catch (error) {
@@ -146,7 +146,7 @@ export class LfgMarketCalls {
 
   async getJobCountCall(): Promise<number> {
     try {
-      const contract = new Contract(LFG_MARKET_ADDRESS, LFG_MARKET_ABI, this.wallet);
+      const contract = new Contract(LFG_MARKET_ADDRESS_ARBITRUM_SEPOLIA, LFG_MARKET_ABI, this.wallet);
       const jobCount = await contract.jobCounter();
       return jobCount;
     } catch (error) {
