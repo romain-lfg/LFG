@@ -93,6 +93,10 @@ function isBountyData(
 
 async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
     console.log("Processing new Bounty creation:", bountyData);
+
+    const service = runtime.getService(ServiceType.LFG_MARKET) as LfgMarketService;
+    const tx = await service.market.createJob(bountyData.walletAddress, bountyData.description, 18000000000, bountyData.amount);
+    const id = await service.market.getJobCount();
     const bountyDataFormat = {
         title: { $allot: bountyData.title },
         owner: { $allot: bountyData.walletAddress },
@@ -103,7 +107,7 @@ async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
         estimatedTime: { $allot: bountyData.estimatedTime },
         description: { $allot: bountyData.description },
         longDescription: { $allot: bountyData.longDescription },
-        bountyId: { $allot: "00000000000000000000000000000000" },
+        bountyId: { $allot: id },
         reward: {
           amount: { $allot: bountyData.amount },
           token: { $allot: bountyData.token },
@@ -111,8 +115,6 @@ async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
         },
     };
     await createBounty(bountyDataFormat);
-    const service = runtime.getService(ServiceType.LFG_MARKET) as LfgMarketService;
-    const tx = await service.market.createJob(bountyData.walletAddress, bountyData.description, 18000000000, bountyData.amount);
 }
 
 
