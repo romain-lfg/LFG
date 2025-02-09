@@ -17,7 +17,7 @@ const isMainModule = import.meta.url === `file://${process.argv[1]}`;
 
 
 export const resetSchema = async (SCHEMA_ID) => {
-    const org = new SecretVaultWrapper(
+    const org = new LocalSecretVault(
       orgConfig.nodes,
       orgConfig.orgCredentials
     );
@@ -52,7 +52,7 @@ export const retrieveUserData = async (userId, SCHEMA_ID) => {
 
 export const getCollection = async (SCHEMA_ID) => {
     // Create a secret vault wrapper and initialize the SecretVault collection to use
-    const collection = new SecretVaultWrapper(
+    const collection = new LocalSecretVault(
         orgConfig.nodes,
         orgConfig.orgCredentials,
         SCHEMA_ID

@@ -1,4 +1,4 @@
-import { SecretVaultWrapper } from 'nillion-sv-wrappers';
+import { LocalSecretVault } from './LocalSecretVault.js';
 import { v4 as uuidv4 } from 'uuid';
 import { orgConfig } from '../nillionOrgConfig.js';
 
@@ -17,7 +17,7 @@ const isMainModule = import.meta.url === `file://${process.argv[1]}`;
 
 
 export const resetSchema = async (SCHEMA_ID) => {
-    const org = new SecretVaultWrapper(
+    const org = new LocalSecretVault(
       orgConfig.nodes,
       orgConfig.orgCredentials
     );
@@ -52,7 +52,7 @@ export const retrieveUserData = async (userId, SCHEMA_ID) => {
 
 export const getCollection = async (SCHEMA_ID) => {
     // Create a secret vault wrapper and initialize the SecretVault collection to use
-    const collection = new SecretVaultWrapper(
+    const collection = new LocalSecretVault(
         orgConfig.nodes,
         orgConfig.orgCredentials,
         SCHEMA_ID
@@ -375,10 +375,10 @@ if (isMainModule) {
       //getUserList();
       //getBountyList();
       //matchBountiesOwner("owner2");
-      matchBountiesUser("0xi29299100");
+      //matchBountiesUser("0xi29299100");
       //storeUserData({users: [userDataFormat]}, SCHEMA_ID_USER);
       //storeUserData(bountyFormat, SCHEMA_ID_BOUNTY);
-      //clearBounties();
+      clearBounties();
       //createBounty(bountyDataFormat, SCHEMA_ID_BOUNTY);
     }
 }
