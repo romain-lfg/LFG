@@ -107,7 +107,7 @@ async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
         estimatedTime: { $allot: bountyData.estimatedTime },
         description: { $allot: bountyData.description },
         longDescription: { $allot: bountyData.longDescription },
-        bountyId: { $allot: id },
+        bountyId: { $allot: id.toString()},
         reward: {
           amount: { $allot: bountyData.amount },
           token: { $allot: bountyData.token },
