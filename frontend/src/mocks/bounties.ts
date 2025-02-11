@@ -2,7 +2,7 @@
  * Mock bounty data for development
  */
 
-import { Bounty } from '../types/bounty';
+import { Bounty } from '../types/nillion';
 
 export const mockBounties: Bounty[] = [
   {
@@ -16,16 +16,18 @@ export const mockBounties: Bounty[] = [
     },
     requirements: {
       skills: ['Solidity', 'Hardhat', 'Testing'],
-      experienceLevel: 'intermediate',
+
       estimatedTimeInHours: 20,
       deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
     },
     status: 'open',
-    createdBy: '0x1234567890123456789012345678901234567890',
+    creator: {
+      address: '0x1234567890123456789012345678901234567890',
+      name: 'Test User'
+    },
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    completionCriteria: 'All tests passing with 95%+ coverage',
-    repositoryUrl: 'https://github.com/example/smart-contracts'
+
   },
   {
     id: '2',
@@ -38,12 +40,15 @@ export const mockBounties: Bounty[] = [
     },
     requirements: {
       skills: ['Node.js', 'Telegram API', 'TypeScript'],
-      experienceLevel: 'intermediate',
+
       estimatedTimeInHours: 30,
       deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days from now
     },
     status: 'open',
-    createdBy: '0x1234567890123456789012345678901234567890',
+    creator: {
+      address: '0x1234567890123456789012345678901234567890',
+      name: 'Test User'
+    },
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     completionCriteria: 'Bot deployed and handling all specified commands',
@@ -65,7 +70,10 @@ export const mockBounties: Bounty[] = [
       deadline: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString() // 10 days from now
     },
     status: 'open',
-    createdBy: '0x1234567890123456789012345678901234567890',
+    creator: {
+      address: '0x1234567890123456789012345678901234567890',
+      name: 'Test User'
+    },
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     completionCriteria: 'Responsive design implemented and approved',

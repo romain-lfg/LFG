@@ -5,6 +5,7 @@ import { IconBrandGithub, IconClock, IconCalendar, IconTrophy, IconArrowLeft } f
 import Link from 'next/link';
 import { FeatureGate } from '@/hooks/useFeature';
 import { useBounty } from '@/hooks/useBounty';
+import type { Bounty } from '@/types/nillion';
 import BountySkeleton from '@/components/bounties/BountySkeleton';
 import BountyError from '@/components/bounties/BountyError';
 
@@ -15,7 +16,7 @@ export default function BountyDetail() {
     isLoading,
     error,
     refetch
-  } = useBounty(id as string);
+  } = useBounty(id as string) as { data: Bounty | undefined; isLoading: boolean; error: Error | null; refetch: () => void };
 
   // Show loading state
   if (isLoading) {
@@ -139,29 +140,7 @@ export default function BountyDetail() {
             </div>
           </div>
 
-          {/* Completion Criteria */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Completion Criteria</h2>
-            <div className="prose prose-invert max-w-none">
-              <p className="text-gray-300">{bounty.completionCriteria}</p>
-            </div>
-          </div>
 
-          {/* Repository Link */}
-          {bounty.repositoryUrl && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Repository</h2>
-              <a
-                href={bounty.repositoryUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors"
-              >
-                <IconBrandGithub className="h-5 w-5" />
-                <span>View Repository</span>
-              </a>
-            </div>
-          )}
 
           {/* Action Buttons */}
           <div className="flex gap-4">
