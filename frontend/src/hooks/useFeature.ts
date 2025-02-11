@@ -1,11 +1,12 @@
 import { isFeatureEnabled } from '@/config/features';
+import { type ReactElement, type ReactNode } from 'react';
 
 /**
  * Hook to check if a feature is enabled
  * @param featurePath Dot notation path to feature flag
  * @returns boolean indicating if feature is enabled
  */
-export function useFeature(featurePath: string): boolean {
+export function useFeature(featurePath: `bounties.${string}`): boolean {
   return isFeatureEnabled(featurePath);
 }
 
@@ -21,15 +22,15 @@ export function FeatureGate({
   children, 
   fallback = null 
 }: { 
-  featurePath: string;
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-}): React.ReactElement | null {
+  featurePath: `bounties.${string}`;
+  children: ReactNode;
+  fallback?: ReactNode;
+}): ReactElement | null {
   const isEnabled = useFeature(featurePath);
   
   if (!isEnabled) {
-    return fallback as React.ReactElement | null;
+    return fallback as ReactElement | null;
   }
   
-  return children as React.ReactElement;
+  return children as ReactElement;
 }

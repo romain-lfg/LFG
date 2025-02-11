@@ -43,7 +43,7 @@ export default function BountyBoard() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
       {/* Header Section */}
       <section className="pt-24 pb-32">
         <div className="container mx-auto px-4">
@@ -131,3 +131,6 @@ export default function BountyBoard() {
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateBounty}
       />
+    </div>
+  );
+}
