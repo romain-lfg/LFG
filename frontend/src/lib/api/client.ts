@@ -1,9 +1,14 @@
-// Simple Bounty type matching our backend
+// Bounty type matching our backend data structure
 export interface Bounty {
   title: string;
   description: string;
-  reward: number;
-  requirements: string[];
+  requiredSkills: string[];
+  estimatedTime: string;
+  reward: {
+    amount: string;
+    token: string;
+    chainId: string;
+  };
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';

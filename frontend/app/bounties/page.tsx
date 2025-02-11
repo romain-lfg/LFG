@@ -18,6 +18,7 @@ export default function BountyBoard() {
       setIsLoading(true);
       setError(null);
       const data = await apiClient.getBounties();
+      console.log('Received bounties data:', data);
       setBounties(data);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to load bounties'));
@@ -105,12 +106,12 @@ export default function BountyBoard() {
 
                 <div className="flex items-center gap-4 text-sm text-gray-400">
                   <div className="flex items-center gap-1">
-                    <span>{bounty.reward} ETH</span>
+                    <span>{bounty.reward.amount} {bounty.reward.token}</span>
                   </div>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {bounty.requirements.map((skill, index) => (
+                  {bounty.requiredSkills?.map((skill: string, index: number) => (
                     <span
                       key={index}
                       className="px-2 py-1 text-xs rounded-full bg-indigo-900/50 text-indigo-300"

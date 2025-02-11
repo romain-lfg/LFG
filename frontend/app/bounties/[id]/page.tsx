@@ -79,14 +79,14 @@ export default function BountyDetail() {
           {/* Reward */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4">Reward</h2>
-            <p className="text-gray-300">{bounty.reward} ETH</p>
+            <p className="text-gray-300">{bounty.reward.amount} {bounty.reward.token}</p>
           </div>
 
           {/* Required Skills */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4">Required Skills</h2>
             <div className="flex flex-wrap gap-2">
-              {bounty.requirements.map((skill, index) => (
+              {bounty.requiredSkills?.map((skill: string, index: number) => (
                 <span
                   key={index}
                   className="px-3 py-1 bg-indigo-900/50 rounded-full text-indigo-300"
