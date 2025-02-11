@@ -22,8 +22,13 @@ export default function CreateBountyModal({ isOpen, onClose, onSubmit }: CreateB
     const bounty: Bounty = {
       title,
       description,
-      requirements,
-      reward: parseFloat(reward),
+      requiredSkills: requirements,
+      estimatedTime: '2 days', // Default value for now
+      reward: {
+        amount: reward,
+        token: 'ETH',
+        chainId: '1'
+      }
     };
     onSubmit(bounty);
     handleClose();
