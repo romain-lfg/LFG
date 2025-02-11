@@ -1,62 +1,59 @@
-import { Bounty } from '../nillion/client';
+// Simple Bounty type matching our backend
+export interface Bounty {
+  title: string;
+  description: string;
+  reward: number;
+  requirements: string[];
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
-
-if (!API_KEY) {
-  console.warn('API_KEY is not set in environment variables');
-}
-
-interface ApiClientConfig {
-  baseUrl?: string;
-  apiKey?: string;
-}
 
 class ApiClient {
   private baseUrl: string;
-  private apiKey: string;
 
-  constructor(config: ApiClientConfig = {}) {
-    this.baseUrl = config.baseUrl || API_URL;
-    this.apiKey = config.apiKey || API_KEY || '';
+  constructor(baseUrl: string = API_URL) {
+    this.baseUrl = baseUrl;
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const headers = {
       'Content-Type': 'application/json',
-      'X-API-Key': this.apiKey,
       ...options.headers,
     };
 
     const response = await fetch(url, { ...options, headers });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'An error occurred' }));
-      throw new Error(error.message || `HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return response.json();
   }
 
-  // Bounty endpoints
+  // Create a new bounty
   async createBounty(bounty: Bounty): Promise<void> {
-    await this.request('/api/bounties', {
+    await this.request('/bounties', {
       method: 'POST',
       body: JSON.stringify(bounty),
     });
   }
 
+  // Get all bounties
   async getBounties(): Promise<Bounty[]> {
-    return this.request<Bounty[]>('/api/bounties');
+    return this.request<Bounty[]>('/bounties');
   }
 
+  // Get bounties matching a user
   async matchBountiesForUser(userId: string): Promise<Bounty[]> {
-    return this.request<Bounty[]>(`/api/bounties/match/user/${userId}`);
+    return this.request<Bounty[]>(`/bounties/match/${userId}`);
   }
 
-  async matchBountiesForOwner(userId: string): Promise<Bounty[]> {
-    return this.request<Bounty[]>(`/api/bounties/match/owner/${userId}`);
+  // Clear all bounties (testing only)
+  async clearBounties(): Promise<void> {
+    await this.request('/bounties/clear', {
+      method: 'POST'
+    });
   }
 }
 

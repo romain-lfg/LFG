@@ -1,21 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { FeatureGate } from '@/hooks/useFeature';
-import { 
-  IconX, 
-  IconCurrencyEthereum, 
-  IconPlus, 
-  IconChevronDown,
-  IconWallet,
-  IconClock,
-  IconCheck,
-  IconBrandGithub
-} from '@tabler/icons-react';
+import { IconX } from '@tabler/icons-react';
+import { Bounty } from '@/lib/api/client';
 
 interface CreateBountyModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit: (bounty: Bounty) => void;
 }
 
 // Popular skills shown by default
