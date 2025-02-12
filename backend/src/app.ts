@@ -9,6 +9,23 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Initialize Nillion only once
+let nillionInitialized = false;
+
+async function initializeNillion() {
+  if (!nillionInitialized) {
+    console.log('Starting Nillion initialization...');
+    try {
+      // Add any necessary Nillion initialization here if needed
+      nillionInitialized = true;
+      console.log('Nillion initialization complete');
+    } catch (error: unknown) {
+      console.error('Failed to initialize Nillion:', error);
+      throw new Error(error instanceof Error ? error.message : 'Failed to initialize Nillion');
+    }
+  }
+}
+
 // For local development
 if (process.env.NODE_ENV !== 'production') {
   const port = process.env.PORT || 3001;
@@ -22,14 +39,25 @@ export { app };
 
 // Export a request handler function for Vercel
 export default async function handler(req: any, res: any) {
-  await new Promise((resolve, reject) => {
-    app(req, res, (err: any) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve(undefined);
+  try {
+    // Initialize Nillion if not already done
+    await initializeNillion();
+
+    // Handle the request
+    return await new Promise((resolve, reject) => {
+      app(req, res, (err: any) => {
+        if (err) {
+          console.error('Error handling request:', err);
+          return reject(err);
+        }
+        resolve(undefined);
+      });
     });
-  });
+  } catch (error: unknown) {
+    console.error('Handler error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({ error: 'Internal Server Error', details: errorMessage });
+  }
 }
 
 // Health check

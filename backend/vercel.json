@@ -6,7 +6,14 @@
       "use": "@vercel/node",
       "config": { 
         "includeFiles": ["src/**"],
-        "maxLambdaSize": "10mb"
+        "maxLambdaSize": "10mb",
+        "runtime": "nodejs18.x",
+        "functions": {
+          "src/app.ts": {
+            "memory": 1024,
+            "maxDuration": 60
+          }
+        }
       }
     }
   ],
