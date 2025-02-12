@@ -2,12 +2,23 @@ import express from 'express';
 import cors from 'cors';
 import { createBounty, getBountyList, clearBounties, matchBountiesUser } from './lib/nillion/index.js';
 
+// Create Express app
 export const app = express();
-const port = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  const port = process.env.PORT || 3001;
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+}
+
+// Export a default function for Vercel
+export default app;
 
 // Health check
 app.get('/health', (req, res) => {
@@ -59,6 +70,4 @@ app.post('/bounties/clear', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+
