@@ -9,9 +9,8 @@ const app = express();
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
     ? [
-        'https://lfg-frontend.vercel.app',
-        'https://lfg-frontend-git-main-romain-lfgs-projects.vercel.app',
-        /https:\/\/lfg-frontend-.*-romain-lfgs-projects\.vercel\.app/,  // For preview deployments
+        'https://lfg-platform.vercel.app',  // Production frontend
+        'http://localhost:3000',  // Allow local frontend to access production API
       ]
     : 'http://localhost:3000',  // Development
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -119,9 +118,22 @@ export { app };
 
 // Export a request handler function for Vercel
 export default async function handler(req: any, res: any) {
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' ? 'https://lfg-platform.vercel.app' : 'http://localhost:3000');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    return res.status(200).end();
+  }
   const requestId = Math.random().toString(36).substring(7);
   const startTime = Date.now();
   console.log(`[${startTime}][${requestId}] Handling ${req.method} request to ${req.url}`);
+
+  // Add CORS headers for all requests
+  res.setHeader('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' ? 'https://lfg-platform.vercel.app' : 'http://localhost:3000');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   
   try {
     // Quick responses for health check and favicon
