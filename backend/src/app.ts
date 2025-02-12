@@ -13,35 +13,31 @@ app.use(express.json());
 let nillionInitialized = false;
 let initializationPromise: Promise<void> | null = null;
 
-async function initializeNillion() {
-  if (initializationPromise) {
-    return initializationPromise;
+// Initialize Nillion on startup
+console.log('Starting Nillion initialization...');
+initializationPromise = (async () => {
+  try {
+    // Ensure imports are loaded
+    console.log('Checking Nillion imports...');
+    const nillionFunctions = { createBounty, getBountyList, clearBounties, matchBountiesUser };
+    console.log('Available Nillion functions:', Object.keys(nillionFunctions));
+    nillionInitialized = true;
+    console.log('Nillion initialization complete');
+  } catch (error: unknown) {
+    console.error('Failed to initialize Nillion:', error);
+    nillionInitialized = false;
+    throw new Error(error instanceof Error ? error.message : 'Failed to initialize Nillion');
   }
+})();
 
-  if (!nillionInitialized) {
-    initializationPromise = (async () => {
-      console.log('Starting Nillion initialization...');
-      try {
-        // Ensure imports are loaded
-        console.log('Checking Nillion imports...');
-        const nillionFunctions = { createBounty, getBountyList, clearBounties, matchBountiesUser };
-        console.log('Available Nillion functions:', Object.keys(nillionFunctions));
-
-        // Test a simple function call
-        console.log('Testing getBountyList function...');
-        await getBountyList();
-        
-        nillionInitialized = true;
-        console.log('Nillion initialization complete');
-      } catch (error: unknown) {
-        console.error('Failed to initialize Nillion:', error);
-        nillionInitialized = false;
-        initializationPromise = null;
-        throw new Error(error instanceof Error ? error.message : 'Failed to initialize Nillion');
-      }
-    })();
-
-    return initializationPromise;
+async function waitForNillionInit() {
+  if (!nillionInitialized && initializationPromise) {
+    try {
+      await initializationPromise;
+    } catch (error) {
+      console.error('Error waiting for Nillion:', error);
+      throw error;
+    }
   }
 }
 
@@ -61,8 +57,13 @@ export default async function handler(req: any, res: any) {
   console.log(`Handling ${req.method} request to ${req.url}`);
   
   try {
+    // Health check endpoint should bypass Nillion initialization
+    if (req.url === '/health') {
+      return res.json({ status: 'ok' });
+    }
+
     // Set a timeout for the entire handler
-    const timeout = 50000; // 50 seconds (Vercel's limit is 60s)
+    const timeout = 9000; // 9 seconds, leaving 1 second buffer for Vercel's 10s limit
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Handler timeout')), timeout);
     });
@@ -70,22 +71,16 @@ export default async function handler(req: any, res: any) {
     // Race between our handler and the timeout
     await Promise.race([
       (async () => {
-        console.log('Starting handler execution...');
-        
-        // Initialize Nillion if not already done
-        console.log('Checking Nillion initialization...');
-        await initializeNillion();
-        console.log('Nillion initialization check complete');
+        // Wait for Nillion to be ready
+        await waitForNillionInit();
 
         // Handle the request
-        await new Promise((resolve, reject) => {
-          console.log('Processing request through Express...');
+        return new Promise((resolve, reject) => {
           app(req, res, (err: any) => {
             if (err) {
               console.error('Error in Express handler:', err);
               return reject(err);
             }
-            console.log('Express handler complete');
             resolve(undefined);
           });
         });
@@ -98,8 +93,6 @@ export default async function handler(req: any, res: any) {
     if (!res.headersSent) {
       res.status(500).json({ error: 'Internal Server Error', details: errorMessage });
     }
-  } finally {
-    console.log(`Request handling complete for ${req.method} ${req.url}`);
   }
 }
 
