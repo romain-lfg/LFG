@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import { createBounty, getBountyList, clearBounties, matchBountiesUser } from '../../nillion/src/index.js';
+import { createBounty, getBountyList, clearBounties, matchBountiesUser } from './lib/nillion/index.js';
 
-const app = express();
+export const app = express();
 const port = process.env.PORT || 3001;
 
 // Middleware

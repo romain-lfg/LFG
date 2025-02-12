@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "NODE_OPTIONS='--loader ts-node/esm' ts-node src/app.ts",
     "build": "tsc",
+    "postbuild": "cp -r src/lib/nillion/*.js src/lib/nillion/*.json dist/lib/nillion/",
     "start": "node dist/app.js"
   },
   "dependencies": {
@@ -16,6 +17,7 @@
     "nillion-sv-wrappers": "^1.0.9",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
+    "uuid": "^9.0.0",
     "winston": "^3.8.2",
     "zod": "^3.21.4"
   },
