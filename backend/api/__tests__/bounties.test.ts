@@ -1,7 +1,7 @@
 import { testRequest, mockBounty } from './setup';
-import * as nillion from '../lib/nillion/index.js';
+import * as nillion from '../lib/nillion';
 
-jest.mock('../lib/nillion/index.js');
+jest.mock('../lib/nillion');
 
 describe('Bounty API Endpoints', () => {
   beforeEach(() => {

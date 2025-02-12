@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": ".vercel/output/functions"
+  },
+  "exclude": [
+    "node_modules",
+    "api/lib/nillion/**/*.js",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/__tests__/**"
+  ]
+}

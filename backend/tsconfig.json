@@ -2,15 +2,17 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "esnext",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
-    "esModuleInterop": true,
     "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
     "skipLibCheck": true,
     "allowJs": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": ".vercel/output/functions",
+    "rootDir": "."
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules/@types/mocha", "node_modules/@types/webrtc"]
+  "include": ["api/**/*"],
+  "exclude": ["node_modules", "api/lib/nillion/**/*.js"]
 }
