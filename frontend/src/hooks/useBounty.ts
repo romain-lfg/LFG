@@ -12,18 +12,21 @@ export function useBounty(id: string) {
 
   console.log('[useBounty] Nillion enabled:', isNillionEnabled);
 
-  return useQuery<Bounty | undefined>({
+  return useQuery({
     queryKey: [BOUNTY_QUERY_KEY, id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Bounty> => {
       console.log('[useBounty] Fetching bounty data...');
       if (!isNillionEnabled) {
         // Use mock data when Nillion is disabled
-        return mockBounties.find(b => b.id === id);
+        const bounty = mockBounties.find(b => b.id === id);
+        if (!bounty) throw new Error('Bounty not found');
+        return bounty;
       }
 
       const { items } = await nillionService.getBounties();
       const bounty = items.find(b => b.id === id);
       console.log('[useBounty] Found bounty:', bounty);
+      if (!bounty) throw new Error('Bounty not found');
       return bounty;
     },
     enabled: !!id,

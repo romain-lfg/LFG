@@ -1,30 +1,59 @@
-# API Integration Plan
+# API Integration Guide
 
 ## Current Status
-- Frontend deployed on Vercel
-- Feature flags implemented for gradual feature rollout
-- Mock data in use for development
+- Backend API implemented with Express
+- Simple API key authentication
+- Nillion SDK integration with development fallback
+- Frontend API client ready for use
 
 ## Integration Phases
 
-### Phase 1: API Contract Definition
-1. **Document Required Endpoints**
-   - Authentication endpoints
-   - Bounty endpoints
-   - VSA endpoints
-   - User profile endpoints
+## Using the API Client
 
-2. **Define Data Schemas**
-   - Request/Response formats
-   - Error handling standards
-   - Validation requirements
+We've implemented a simple API client that handles all backend communication. Here's how to use it:
 
-### Phase 2: Environment Setup
-1. **Environment Configuration**
+```typescript
+import { apiClient } from '../lib/api/client';
+
+// Get all bounties
+const bounties = await apiClient.getBounties();
+
+// Create a new bounty
+await apiClient.createBounty({
+  title: 'New Bounty',
+  description: 'Description...',
+  // ... other bounty fields
+});
+
+// Match bounties for a user
+const matches = await apiClient.matchBountiesForUser('userId');
+
+// Match bounties for an owner
+const ownerBounties = await apiClient.matchBountiesForOwner('ownerId');
+```
+
+### Error Handling
+
+The API client automatically handles errors and provides meaningful error messages:
+
+```typescript
+try {
+  const bounties = await apiClient.getBounties();
+} catch (error) {
+  console.error('Failed to fetch bounties:', error.message);
+}
+```
+
+## Environment Setup
+
+1. **Required Environment Variables**
    ```env
-   NEXT_PUBLIC_API_URL=https://api.example.com
-   NEXT_PUBLIC_NETWORK=sepolia
-   NEXT_PUBLIC_IPFS_GATEWAY=https://ipfs.example.com
+   # API Configuration
+   NEXT_PUBLIC_API_URL=http://localhost:3001  # Backend API URL
+   NEXT_PUBLIC_API_KEY=your-api-key          # API key for authentication
+
+   # Optional Configuration
+   NEXT_PUBLIC_ENVIRONMENT=development       # or production
    ```
 
 2. **Environment Branches**
@@ -71,42 +100,41 @@
    - Common issues and solutions
    - Deployment procedures
 
-## Required API Endpoints
+## Available API Endpoints
 
-### Authentication
+### Public Endpoints
 ```typescript
-POST /api/auth/connect-wallet
-GET /api/auth/nonce
-POST /api/auth/verify-signature
+GET /health                 // Health check
+GET /api-docs               // Swagger UI
+GET /api-docs.json          // OpenAPI specification
 ```
 
-### Bounties
+### Protected Bounty Endpoints
+All these endpoints require the `X-API-Key` header:
+
 ```typescript
+// List bounties with filtering
 GET /api/bounties
-GET /api/bounties/:id
+  ?page=1              // Optional: Page number
+  &pageSize=10         // Optional: Items per page
+  &status=open         // Optional: Filter by status
+  &skills=solidity,web3 // Optional: Filter by skills
+
+// Create new bounty
 POST /api/bounties
-PUT /api/bounties/:id
-GET /api/bounties/:id/applications
-POST /api/bounties/:id/apply
+
+// Match bounties for user
+GET /api/bounties/match/user/:userId
+
+// Match bounties for owner
+GET /api/bounties/match/owner/:userId
 ```
 
-### VSA
-```typescript
-GET /api/vsas
-GET /api/vsas/:id
-POST /api/vsas
-PUT /api/vsas/:id
-```
-
-### User Profiles
-```typescript
-GET /api/users/:address
-PUT /api/users/:address
-GET /api/users/:address/bounties
-GET /api/users/:address/vsas
-```
+The API client handles authentication automatically when configured with an API key.
 
 ## Data Schemas
+
+## Data Types
 
 ### Bounty
 ```typescript
@@ -114,23 +142,32 @@ interface Bounty {
   id: string;
   title: string;
   description: string;
+  longDescription?: string;
+  status: 'open' | 'in_progress' | 'completed' | 'cancelled';
+  requiredSkills: string[];
+  estimatedTime: string;
+  datePosted: string;
+  dueDate: string;
   reward: {
     amount: string;
     token: string;
-    chainId: number;
+    chainId: string;
   };
-  requirements: {
-    skills: string[];
-    estimatedTimeInHours: string;
-    deadline: string;
+  ownerId?: string;      // ID of bounty creator
+  assignedTo?: string;   // ID of assigned user
+}
+```
+
+### API Response
+```typescript
+interface ApiResponse<T> {
+  status: 'success' | 'error';
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+    details?: unknown;
   };
-  status: 'open' | 'in_progress' | 'completed' | 'cancelled';
-  creator: {
-    address: string;
-    name?: string;
-  };
-  createdAt: string;
-  updatedAt: string;
 }
 ```
 
@@ -152,22 +189,40 @@ interface VSA {
 }
 ```
 
-## Next Steps
+## Development Workflow
 
-1. **Immediate Actions**
-   - [ ] Review and finalize API contract with backend team
-   - [ ] Set up staging environment
-   - [ ] Create integration test suite
-   - [ ] Implement API client with proper error handling
+1. **Local Development**
+   - Backend runs on `http://localhost:3001`
+   - API documentation available at `http://localhost:3001/api-docs`
+   - Set `NEXT_PUBLIC_API_KEY` to `default-dev-key` for development
 
-2. **Team Coordination**
-   - [ ] Share API documentation with team
-   - [ ] Set up monitoring tools
-   - [ ] Define deployment procedures
-   - [ ] Create rollback procedures
+2. **Testing**
+   - Backend includes test suite with Jest
+   - API endpoints can be tested via Swagger UI
+   - Use the health check endpoint to verify API status
 
-3. **Development Process**
-   - [ ] Implement endpoints one at a time
-   - [ ] Write tests for each endpoint
-   - [ ] Update feature flags as features become available
-   - [ ] Document any deviations from plan
+3. **Debugging**
+   - Check browser console for API client errors
+   - Backend logs available in terminal
+   - Swagger UI provides request/response inspection
+
+4. **Production Deployment**
+   - Update environment variables in Vercel
+   - Ensure API key is properly set
+   - Verify CORS configuration matches frontend URL
+
+## Security Notes
+
+1. **API Key**
+   - Keep your API key secure
+   - Don't commit it to version control
+   - Use environment variables
+
+2. **CORS**
+   - Backend only accepts requests from configured frontend URL
+   - Set `FRONTEND_URL` in backend environment
+
+3. **Error Handling**
+   - Don't expose sensitive information in error messages
+   - Log errors appropriately
+   - Return user-friendly error messages

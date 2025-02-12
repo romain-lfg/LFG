@@ -31,10 +31,10 @@ class NillionClient {
   async initializeSchema(): Promise<string> {
     try {
       console.log('[NillionClient] Initializing schema...');
-      const org = new SecretVaultWrapper(
-        orgConfig.nodes,
-        orgConfig.orgCredentials
-      );
+      const org = new SecretVaultWrapper({
+        nodes: orgConfig.nodes,
+        orgCredentials: orgConfig.orgCredentials
+      });
 
       console.log('[NillionClient] Initializing collection...');
       await org.init();
@@ -63,11 +63,11 @@ class NillionClient {
       });
 
       // Create a secret vault wrapper and initialize the SecretVault collection to use
-      const collection = new SecretVaultWrapper(
-        orgConfig.nodes,
-        orgConfig.orgCredentials,
+      const collection = new SecretVaultWrapper({
+        nodes: orgConfig.nodes,
+        credentials: orgConfig.orgCredentials,
         schemaId
-      );
+      });
 
       console.log('[NillionClient] Collection created, initializing...');
       await collection.init();
@@ -97,10 +97,10 @@ class NillionClient {
       console.log('[NillionClient] Initializing...');
       
       // Create a new instance with nodes and credentials
-      this.client = new SecretVaultWrapper(
-        orgConfig.nodes,
-        orgConfig.orgCredentials
-      );
+      this.client = new SecretVaultWrapper({
+        nodes: orgConfig.nodes,
+        credentials: orgConfig.orgCredentials
+      });
       
       // Initialize the client
       await this.client.init();
