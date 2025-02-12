@@ -5,8 +5,23 @@ import { createBounty, getBountyList, clearBounties, matchBountiesUser } from '.
 // Create Express app
 const app = express();
 
+// CORS configuration
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? [
+        'https://lfg-frontend.vercel.app',
+        'https://lfg-frontend-git-main-romain-lfgs-projects.vercel.app',
+        /https:\/\/lfg-frontend-.*-romain-lfgs-projects\.vercel\.app/,  // For preview deployments
+      ]
+    : 'http://localhost:3000',  // Development
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,  // Allow credentials (cookies, authorization headers, etc)
+  maxAge: 86400  // Cache preflight requests for 24 hours
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Initialize Nillion only once
