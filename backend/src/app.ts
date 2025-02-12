@@ -3,7 +3,7 @@ import cors from 'cors';
 import { createBounty, getBountyList, clearBounties, matchBountiesUser } from './lib/nillion/index.js';
 
 // Create Express app
-export const app = express();
+const app = express();
 
 // Middleware
 app.use(cors());
@@ -17,8 +17,20 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// Export a default function for Vercel
-export default app;
+// Export the Express app for testing
+export { app };
+
+// Export a request handler function for Vercel
+export default async function handler(req: any, res: any) {
+  await new Promise((resolve, reject) => {
+    app(req, res, (err: any) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(undefined);
+    });
+  });
+}
 
 // Health check
 app.get('/health', (req, res) => {
