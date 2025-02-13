@@ -25,7 +25,7 @@ interface BountyData { //Placeholder for the user data TODO: replace with the ac
     walletAddress: string;
     description: string;
     longDescription: string;
-    amount: string;
+    rewardAmount: string;
     token: string;
     chainId: string;
     requiredSkills: string[];
@@ -44,11 +44,9 @@ Example response:
 {
     "title": "Build a DeFi Dashboard",
     "description": "Create a dashboard to track DeFi positions",
-    "longDescription": "Create a dashboard to track DeFi positions",
-    "amount": "1000000000",
+    "rewardAmount": "1000000000",
     "token": "USDC",
     "requiredSkills": ["React", "Web3.js", "TypeScript"],
-    "datePosted": "2024-01-15",
     "dueDate": "2024-02-15", 
     "estimatedTime": "80",
     "walletAddress": "0x1234567890123456789012345678901234567890"
@@ -60,12 +58,10 @@ Example response:
 Given the recent messages, extract the following information about the bounty: >>>(DO NOT RENAME THE KEYS)<<<
 >>>ONLY USE DATA FROM MESSAGES AFTER THE LAST TIME THE USER ASKED TO CREATE A BOUNTY, if you cannot find the information after the last time the user asked to create a bounty, use null<<<
 - title
-- Description
-- longDescription
-- amount
+- description
+- rewardAmount
 - token
 - requiredSkills
-- datePosted
 - dueDate
 - estimatedTime
 - walletAddress
@@ -78,15 +74,15 @@ function isBountyData(
     return (
         typeof content.title === "string" &&
         typeof content.description === "string" &&
-        typeof content.longDescription === "string" &&
-        typeof content.amount === "string" &&
+        //typeof content.longDescription === "string" &&
+        typeof content.rewardAmount === "string" &&
         typeof content.token === "string" &&
         Array.isArray(content.requiredSkills) &&
         content.requiredSkills.every(skill => typeof skill === "string") &&
-        typeof content.datePosted === "string" &&
-        typeof content.dueDate === "string" &&
-        typeof content.estimatedTime === "string" &&
-        typeof content.walletAddress === "string" &&
+        //typeof content.datePosted === "string" &&
+        typeof content.dueDate === "string" && content.dueDate != "null" &&
+        typeof content.estimatedTime === "string" && content.estimatedTime != null &&
+        typeof content.walletAddress === "string" && content.walletAddress != null &&
         isAddress(content.walletAddress)
     );
 }
@@ -95,7 +91,7 @@ async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
     console.log("Processing new Bounty creation:", bountyData);
 
     const service = runtime.getService(ServiceType.LFG_MARKET) as LfgMarketService;
-    const tx = await service.market.createJob(bountyData.walletAddress, bountyData.description, 18000000000, bountyData.amount);
+    const tx = await service.market.createJob(bountyData.walletAddress, bountyData.description, 18000000000, bountyData.rewardAmount);
     const id = await service.market.getJobCount()-1;
     console.log("id:", id);
     const numberId = Number(id).toString();
@@ -105,15 +101,15 @@ async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
         title: { $allot: bountyData.title },
         owner: { $allot: bountyData.walletAddress },
         requiredSkills: bountyData.requiredSkills.map(skill => ({ $allot: skill })),
-        datePosted: { $allot: bountyData.datePosted },
+        datePosted: { $allot: (new Date().toISOString().split('T')[0]) },
         dueDate: { $allot: bountyData.dueDate },
         state: { $allot: "Open" },
         estimatedTime: { $allot: bountyData.estimatedTime },
         description: { $allot: bountyData.description },
-        longDescription: { $allot: bountyData.longDescription },
+        longDescription: { $allot: bountyData.description },
         bountyId: { $allot: numberId},
         reward: {
-          amount: { $allot: bountyData.amount },
+          amount: { $allot: bountyData.rewardAmount },
           token: { $allot: bountyData.token },
           chainId: { $allot: "11192" },
         },
@@ -163,7 +159,7 @@ export const createBountyAction: Action = {
             if (!isBountyData(content)) {
                 console.log("NOT IS USER DATA");
                 const bountyData = content;
-                const requiredParameters = ["title", "description", "longDescription", "amount", "token", "requiredSkills", "datePosted", "dueDate", "estimatedTime", "walletAddress"];
+                const requiredParameters = ["title", "description", "rewardAmount", "token", "requiredSkills", "dueDate", "estimatedTime", "walletAddress"];
                 const confirmed = {};
                 const missing = [];
     
@@ -211,12 +207,12 @@ export const createBountyAction: Action = {
                 const bountyDataFilled: BountyData = {
                     title: content.title,
                     description: content.description,
-                    longDescription: content.longDescription,
-                    amount: content.amount,
+                    longDescription: "content.longDescription",
+                    rewardAmount: content.rewardAmount,
                     token: content.token,
                     chainId: content.chainId,
                     requiredSkills: content.requiredSkills,
-                    datePosted: content.datePosted,
+                    datePosted: "content.datePosted",
                     dueDate: content.dueDate,
                     state: content.state,
                     estimatedTime: content.estimatedTime,
