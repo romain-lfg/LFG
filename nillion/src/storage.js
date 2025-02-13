@@ -373,14 +373,13 @@ if (isMainModule) {
       //createUser(userDataFormat);
       //storeUserData(userFormat, SCHEMA_ID_USER);
       //getUserList();
-      getBountyList();
+      //getBountyList();
       //matchBountiesOwner("owner2");
       //matchBountiesUser("0xE2eE625D83C68123aCa4251d6a82f23b70d9eEE3");
       //storeUserData({users: [userDataFormat]}, SCHEMA_ID_USER);
       //storeUserData(bountyFormat, SCHEMA_ID_BOUNTY);
       //clearBounties();
       //createBounty(bountyDataFormat, SCHEMA_ID_BOUNTY);
-      //console.log(new Date().toISOString().split('T')[0]);
     }
 }
 
