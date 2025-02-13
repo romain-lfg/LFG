@@ -60,7 +60,7 @@ Example response:
 Given the recent messages, extract the following information about the bounty: >>>(DO NOT RENAME THE KEYS)<<<
 >>>ONLY USE DATA FROM MESSAGES AFTER THE LAST TIME THE USER ASKED TO CREATE A BOUNTY, if you cannot find the information after the last time the user asked to create a bounty, use null<<<
 - title
-- Description
+- description
 - longDescription
 - amount
 - token
@@ -159,7 +159,7 @@ export const createBountyAction: Action = {
                 console.log("NOT IS USER DATA");
                 const bountyData = content;
                 const requiredParameters = ["title", "description", "longDescription", "amount", "token", "requiredSkills", "datePosted", "dueDate", "estimatedTime", "walletAddress"];
-                const confirmed = {};
+                const confirmed: Record<string, any> = {};
                 const missing = [];
     
                 // Check for confirmed and missing parameters
@@ -246,7 +246,7 @@ export const createBountyAction: Action = {
                 processBounty(content, runtime);
                 return false;
             }
-        } catch (error) {
+        } catch (error:any) {
             console.error("Error creating bounty:", error);
             if (callback) {
                 callback({

@@ -142,7 +142,7 @@ export const createUserProfileAction: Action = {
                 console.log("NOT IS USER DATA");
                 const userData = content;
                 const requiredParameters = ["name", "walletAddress", "skills", "workingHoursStart", "workingHoursEnd", "timeZone", "minimumBountyValue"];
-                const confirmed = {};
+                const confirmed: Record<string, any> = {};
                 const missing = [];
     
                 // Check for confirmed and missing parameters
@@ -212,7 +212,7 @@ export const createUserProfileAction: Action = {
                 processUserProfile(content, runtime);
                 return false;
             }
-        } catch (error) {
+        } catch (error:any) {
             console.error("Error creating user profile:", error);
             if (callback) {
                 callback({

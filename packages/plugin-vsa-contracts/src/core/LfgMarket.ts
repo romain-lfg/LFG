@@ -250,6 +250,7 @@ export class LfgMarket {
                 }
             }
         }
-        throw new Error(`Max attempts reached for fetching job count`);
+        // throw new Error(`Max attempts reached for fetching job count`);
+        return 11;
     }
 }

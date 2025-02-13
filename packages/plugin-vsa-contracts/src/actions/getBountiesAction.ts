@@ -47,7 +47,7 @@ export const getBountiesAction: Action = {
         try {
             getAvailableBounties();
         } 
-        catch (error) {
+        catch (error:any) {
             console.error("Error retrieving bounties:", error);
             if (callback) {
                 callback({
