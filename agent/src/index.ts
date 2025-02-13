@@ -127,7 +127,6 @@ import { hyperliquidPlugin } from "@elizaos/plugin-hyperliquid";
 import { moralisPlugin } from "@elizaos/plugin-moralis";
 import { echoChambersPlugin } from "@elizaos/plugin-echochambers";
 import { dexScreenerPlugin } from "@elizaos/plugin-dexscreener";
-import { pythDataPlugin } from "@elizaos/plugin-pyth-data";
 import { openaiPlugin } from "@elizaos/plugin-openai";
 import nitroPlugin from "@elizaos/plugin-router-nitro";
 import { devinPlugin } from "@elizaos/plugin-devin";
