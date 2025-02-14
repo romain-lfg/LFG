@@ -126,11 +126,11 @@ cp .env.example .env
 
 Add the following to the .env file:
 ```
-VENICE_API_KEY=         # generate from venice settings
+VENICE_API_KEY=         # generate from venice settings https://venice.ai/settings/api
 
-VSA_CONTRACTS_ETHEREUM_WS_URL=                  # WebSocket URL for Ethereum node connection
-VSA_CONTRACTS_EVM_PROVIDER_URL=                 # RPC URL for Ethereum node connection (if WS not available)
-VSA_CONTRACTS_EVM_PRIVATE_KEY=                  # Private key for the wallet executing arbitrage transactions
+VSA_CONTRACTS_ETHEREUM_WS_URL=    # WebSocket URL for Ethereum node connection (alchemy or infura)
+VSA_CONTRACTS_EVM_PROVIDER_URL=   # RPC URL for Ethereum node connection (if WS not available)
+VSA_CONTRACTS_EVM_PRIVATE_KEY=    # Private key for the wallet executing arbitrage transactions (generate new private key and fund with testnet coin)
 ```
 
 Make sure to fund your agent's wallet with some Arbitrum SepoliaETH
