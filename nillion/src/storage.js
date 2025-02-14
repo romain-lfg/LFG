@@ -348,6 +348,7 @@ export const matchBountiesUser = async (userId) => {
     //console.log("Match Score:", match.skillsMatch);
     //console.log("---");
   });
+  console.log("matches:", matches.length);
   return matches;
 
 }
@@ -373,9 +374,9 @@ if (isMainModule) {
       //createUser(userDataFormat);
       //storeUserData(userFormat, SCHEMA_ID_USER);
       //getUserList();
-      getBountyList();
+      //getBountyList();
       //matchBountiesOwner("owner2");
-      //matchBountiesUser("0xE2eE625D83C68123aCa4251d6a82f23b70d9eEE3");
+      matchBountiesUser("0x6942040b6d25D6207E98f8E26C6101755D67Ac89");
       //storeUserData({users: [userDataFormat]}, SCHEMA_ID_USER);
       //storeUserData(bountyFormat, SCHEMA_ID_BOUNTY);
       //clearBounties();
