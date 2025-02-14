@@ -172,7 +172,7 @@ export const matchBountiesForUserAction: Action = {
                 };
     
                 // Call the function to process the user profile
-                await processMatchBounties(bountyDataFilled, runtime);
+                await processMatchBounties(bountyDataFilled, runtime, callback);
                 if (callback) {
                     callback({
                         text: `Successfully matched bounties`,
@@ -196,7 +196,7 @@ export const matchBountiesForUserAction: Action = {
                     });
 
                 }
-                processMatchBounties(content, runtime);
+                processMatchBounties(content, runtime, callback);
                 return false;
             }
         } catch (error) {
