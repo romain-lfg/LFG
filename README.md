@@ -33,7 +33,7 @@
 - model - Venice AI via staked VVV/VCU token
 
 #### Packages
-- `plugin-vsa-contracts/` - Smart contract interaction layer
+- `plugin-vsa-contracts/` - Agent interaction layer
   - **Actions/**
     - `createUserProfileAction.ts` - User profile creation and Safe smart wallet deployment
     - `createBountyAction.ts` - Bounty creation
