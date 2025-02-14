@@ -29,7 +29,6 @@ export const vsaContractsPlugin: Plugin = {
         getJobDetailsAction,
         createBountyAction,
         getBountiesAction,
-        matchBountiesAction,
         createUserProfileAction,
         matchBountiesForUserAction
     ],
