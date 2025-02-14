@@ -370,16 +370,16 @@ if (isMainModule) {
             //console.log("Bounty estimatedTime:", bounty.estimatedTime);
         });
     } else {
-      //clearUsers();
+      clearUsers();
       //createUser(userDataFormat);
       //storeUserData(userFormat, SCHEMA_ID_USER);
       //getUserList();
       //getBountyList();
       //matchBountiesOwner("owner2");
-      matchBountiesUser("0x6942040b6d25D6207E98f8E26C6101755D67Ac89");
+      //matchBountiesUser("0x6942040b6d25D6207E98f8E26C6101755D67Ac89");
       //storeUserData({users: [userDataFormat]}, SCHEMA_ID_USER);
       //storeUserData(bountyFormat, SCHEMA_ID_BOUNTY);
-      //clearBounties();
+      clearBounties();
       //createBounty(bountyDataFormat, SCHEMA_ID_BOUNTY);
       //console.log(new Date().toISOString().split('T')[0]);
     }

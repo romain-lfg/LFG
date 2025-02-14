@@ -135,7 +135,6 @@ export const createUserProfileAction: Action = {
                 modelClass: ModelClass.LARGE,
             }));
     
-            console.log("content stage mate");
             console.log(content);
     
             if (!isUserData(content)) {
