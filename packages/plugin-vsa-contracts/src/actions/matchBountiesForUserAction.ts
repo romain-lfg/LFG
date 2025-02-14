@@ -55,7 +55,7 @@ function isBountyData(
 
 async function processMatchBounties(bountyData: BountyData, runtime: IAgentRuntime, callback?: HandlerCallback) {
     console.log("Matching bounties");
-    const matches = await matchBountiesUser(userAdress);
+    const matches = await matchBountiesUser(bountyData.walletAddress);
             console.log("Found matches:", matches);
             let matchText = "Here are the bounties that match your skills:\n\n";
             
