@@ -17,7 +17,7 @@
 - 🍦 Contract deployed on Gelato ABC testnet at https://explorer.abc.t.raas.gelato.cloud/address/0x8db664cfE7A51302CA03895418B42D3ABd565ECa?tab=read_write_contract
 - ❄️ Contract deployed on Avalanche Fuji testnet at https://subnets-test.avax.network/c-chain/address/0xCabaC2ACD4f89e48ce9F31eE0af437Bd45b064ba?tab=code&contractTab=read
 - 💬 Telegram bot deployed at https://t.me/NexusAgent_Bot
-- Frontend deployed at https://lfg-bounty-marketplace.vercel.app/
+- Frontend deployed at https://lfg-platform.vercel.app/
 
 
 ## 📁 Project Structure
