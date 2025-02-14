@@ -1,7 +1,7 @@
 # LFG Bounty Marketplace 🏋️‍♀️
 
 <div align="center">
-  <img src="./docs/static/img/lfg.jpg" alt="Eliza Banner" width="100%" />
+  <img src="./docs/static/img/lfg_banner.jpg" alt="Eliza Banner" width="100%" />
 </div>
 
 <div align="left">
@@ -17,8 +17,9 @@
 - 🍦 Contract deployed on Gelato ABC testnet at https://explorer.abc.t.raas.gelato.cloud/address/0x8db664cfE7A51302CA03895418B42D3ABd565ECa?tab=read_write_contract
 - ❄️ Contract deployed on Avalanche Fuji testnet at https://subnets-test.avax.network/c-chain/address/0xCabaC2ACD4f89e48ce9F31eE0af437Bd45b064ba?tab=code&contractTab=read
 - 💬 Telegram bot deployed at https://t.me/NexusAgent_Bot
-- Frontend deployed at https://lfg-platform.vercel.app/
-
+- 📊 Frontend deployed at https://lfg-platform.vercel.app/
+- 🐬 Agent hosted on GCP
+- 🏝️ Venice AI API for model inference
 
 ## 📁 Project Structure
 
@@ -34,7 +35,7 @@
 #### Packages
 - `plugin-vsa-contracts/` - Smart contract interaction layer
   - **Actions/**
-    - `createUserProfileAction.ts` - User profile creation
+    - `createUserProfileAction.ts` - User profile creation and Safe smart wallet deployment
     - `createBountyAction.ts` - Bounty creation
     - `acceptJobAction.ts` - Bounty acceptance
     - `completeJobAction.ts` - Bounty completion with git hash signed for proof of work
