@@ -44,7 +44,7 @@
     - `getUserReputationAction.ts` - Get user reputation
     - `getJobDetailsAction.ts` - Get bounty details
     - `initiateDisputeAction.ts` - Dispute initiation if dev underperforms
-    - `matchBountiesAction.ts` - Skill-based bounty matching
+    - `matchBountiesForUserAction.ts` - Skill-based bounty matching
   - **In Development:**
     - Improved arbitration
     - Payment from user to agent
