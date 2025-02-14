@@ -188,7 +188,7 @@ export const createUserProfileAction: Action = {
                 await processUserProfile(userDataFilled, runtime);
                 if (callback) {
                     callback({
-                        text: `Successfully created user profile`,
+                        text: `Successfully created user profile and Safe smart wallet for user ${content.name} with address ${content.walletAddress}.`,
                         content: {
                             success: true,
                             userDataFilled,
@@ -201,7 +201,7 @@ export const createUserProfileAction: Action = {
                 console.log("USER DATA IS VALID");
                 if (callback) {
                     callback({
-                        text: `Successfully created user profile`,
+                        text: `Successfully created user profile and Safe smart wallet for user ${content.name} with address ${content.walletAddress}.`,
                         content: {
                             success: true,
                             content,
