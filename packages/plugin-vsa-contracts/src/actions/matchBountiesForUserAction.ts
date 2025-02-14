@@ -12,6 +12,7 @@ import {
     ServiceType,
 } from "@elizaos/core";
 
+import {matchBountiesUser } from "@elizaos/nillion-core";
 import { LfgMarketService } from "../services/LfgMarketService";
 import { isAddress } from "@ethersproject/address";
 import { CompletedJobData, JobData } from "../type";
@@ -52,8 +53,32 @@ function isBountyData(
     );
 }
 
-async function processMatchBounties(bountyData: BountyData, runtime: IAgentRuntime) {
+async function processMatchBounties(bountyData: BountyData, runtime: IAgentRuntime, callback?: HandlerCallback) {
     console.log("Matching bounties");
+    const matches = await matchBountiesUser(userAdress);
+            console.log("Found matches:", matches);
+            let matchText = "Here are the bounties that match your skills:\n\n";
+            
+            for (const match of await matches) {
+                matchText += `Title: ${match.bounty.title}\n`;
+                matchText += `Bounty ID: ${match.bounty.bountyId}\n`;
+                matchText += `Description: ${match.bounty.longDescription}\n`;
+                matchText += `Skills Match: ${match.skillsMatch} out of ${match.bounty.requiredSkills.length} required skills\n`;
+                matchText += `Required Skills: ${match.bounty.requiredSkills.join(", ")}\n`;
+                matchText += `Reward: ${match.bounty.reward.amount} ${match.bounty.reward.token}\n`;
+                matchText += "-------------------\n";
+            }
+
+            if ((matches).length === 0) {
+                matchText = "No bounties match your skills. Please try again with different skills or wait for new bounties to be posted.";
+            }
+
+            if (callback) {
+                callback({
+                    text: matchText,
+                    content: { matches: await matches }
+                });
+            }
 
 }
 
