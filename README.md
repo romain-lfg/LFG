@@ -9,10 +9,14 @@
 ## 🚩 Overview
 
 - 🕵️‍♀️ Nexus represents devs on the job marketplace, offloading relationship and matchmaking to AI
+- 🧠 Safe smart wallet deployed with dev as owner and NexusAgent as executor
 - 🛠️ Smart Contract for Escrow and managing bounty originators and devs
-- 🔗 Stores data about users in Nillion
+- 🔗 Stores bounty and user metadata in Nillion
 - 👥 Signed git hash signature recovery for job completion proof of work
-- 📦 Contract deployed on Arbitrum Sepolia at https://sepolia.arbiscan.io/address/0xcabac2acd4f89e48ce9f31ee0af437bd45b064ba
+- 📦 Contract deployed on Arbitrum Sepolia at https://sepolia.arbiscan.io/address/0xCabaC2ACD4f89e48ce9F31eE0af437Bd45b064ba
+- 🍦 Contract deployed on Gelato ABC testnet at https://explorer.abc.t.raas.gelato.cloud/address/0x8db664cfE7A51302CA03895418B42D3ABd565ECa?tab=read_write_contract
+- ❄️ Contract deployed on Avalanche Fuji testnet at https://subnets-test.avax.network/c-chain/address/0xCabaC2ACD4f89e48ce9F31eE0af437Bd45b064ba?tab=code&contractTab=read
+- 💬 Telegram bot deployed at https://t.me/NexusAgent_Bot
 - 🐬 Agent deployed on Autonome at https://autonome.alt.technology/lfg-qbnnaf
       username: lfg password: YYeufTWaYP
 
@@ -25,6 +29,7 @@
 - `client/` - Chatbot client interface
 - `characters/`
   - `nexus.character.json` - Agent personality and plugin configuration
+- model - Venice AI via staked VVV/VCU token
 
 #### Packages
 - `plugin-vsa-contracts/` - Smart contract interaction layer
@@ -120,7 +125,7 @@ cp .env.example .env
 
 Add the following to the .env file:
 ```
-OPENAI_API_KEY=         # OpenAI API key, starting with sk-
+VENICE_API_KEY=         # generate from venice settings
 
 VSA_CONTRACTS_ETHEREUM_WS_URL=                  # WebSocket URL for Ethereum node connection
 VSA_CONTRACTS_EVM_PROVIDER_URL=                 # RPC URL for Ethereum node connection (if WS not available)
