@@ -8,5 +8,6 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   treeshake: true,
-  target: 'node18'
+  target: 'node23',
+  platform: 'node'
 });

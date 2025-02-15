@@ -1,5 +1,5 @@
 import { Wallet } from "@ethersproject/wallet";
-import { elizaLogger } from "@elizaos/core";
+import { elizaLogger, IAgentRuntime } from "@elizaos/core";
 import { LfgMarketCalls } from "./LfgMarketCalls";
 import { ethers, Signer } from "ethers";
 import { JobDetails } from "../type";
@@ -7,10 +7,11 @@ import { JobDetails } from "../type";
 export class LfgMarket {
     private RETRY_DELAY = 1000; // 1 second
 
-    private calls = new LfgMarketCalls(this.wallet);
+    private calls = new LfgMarketCalls(this.wallet, this.runtime);
 
     constructor(
-        private wallet: Wallet
+        private wallet: Wallet,
+        private runtime: IAgentRuntime
     ) {}
 
     async registerUser(

@@ -74,7 +74,8 @@ export class LfgMarketService extends Service {
 
         // Initialize Market instance with Contract instance
         this.market = new LfgMarket(
-            wallet
+            wallet,
+            runtime
         );
 
         // Setup WebSocket connection

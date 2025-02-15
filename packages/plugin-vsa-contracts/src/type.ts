@@ -50,9 +50,10 @@ export interface OtherUserData {
   user: string;
 }
 
-export interface UserData { //Placeholder for the user data TODO: replace with the actual user data
+export interface UserData {
   name: string;
   address: string;
+  safeAddress: string;
   skills: string[];
   workingHoursStart: string;
   workingHoursEnd: string;
