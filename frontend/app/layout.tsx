@@ -2,8 +2,7 @@ import type { Metadata } from 'next'
 import { Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
-import QueryProvider from '@/providers/QueryProvider'
-import { AppPrivyProvider } from '@/providers/PrivyProvider'
+import Providers from '@/components/Providers'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -34,12 +33,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={spaceGrotesk.variable}>
       <body className={`${spaceGrotesk.className} antialiased`}>
-        <QueryProvider>
-          <AppPrivyProvider>
-            <Navbar />
-            {children}
-          </AppPrivyProvider>
-        </QueryProvider>
+        <Providers>
+          <Navbar />
+          {children}
+        </Providers>
       </body>
     </html>
   )

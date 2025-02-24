@@ -1,3 +1,5 @@
+'use client';
+
 import { usePrivy } from '@privy-io/react-auth';
 import { useCallback, useEffect } from 'react';
 

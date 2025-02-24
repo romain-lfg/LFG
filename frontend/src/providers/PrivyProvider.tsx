@@ -1,3 +1,5 @@
+'use client';
+
 import { PrivyProvider } from '@privy-io/react-auth';
 import { ReactNode } from 'react';
 
