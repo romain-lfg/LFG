@@ -1,6 +1,6 @@
 'use client';
 
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy, useWallets, useIdentityToken } from '@privy-io/react-auth';
 import { useCallback, useEffect } from 'react';
 
 export const useAuth = () => {
@@ -10,23 +10,31 @@ export const useAuth = () => {
     authenticated,
     user,
     ready,
-    wallet,
   } = usePrivy();
+
+  const { wallets } = useWallets();
+  const { identityToken } = useIdentityToken();
 
   // Sync user data with our backend when authentication state changes
   const syncUserWithBackend = useCallback(async () => {
-    if (!authenticated || !user || !wallet) return;
+    if (!authenticated || !user || !wallets.length) return;
 
     try {
+      const activeWallet = wallets[0]; // Use the first wallet as the active one
+      if (!identityToken) {
+        console.error('No identity token available');
+        return;
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/sync`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await user.getIdToken()}`,
+          'Authorization': `Bearer ${identityToken}`,
         },
         body: JSON.stringify({
           privyUserId: user.id,
-          walletAddress: wallet.address,
+          walletAddress: activeWallet.address,
         }),
       });
 
@@ -36,7 +44,7 @@ export const useAuth = () => {
     } catch (error) {
       console.error('Error syncing user with backend:', error);
     }
-  }, [authenticated, user, wallet]);
+  }, [authenticated, user, wallets, identityToken]);
 
   // Sync user whenever authentication state changes
   useEffect(() => {
@@ -51,6 +59,6 @@ export const useAuth = () => {
     isAuthenticated: authenticated,
     isLoading: !ready,
     user,
-    wallet,
+    activeWallet: wallets[0],
   };
 };
