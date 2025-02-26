@@ -2,6 +2,7 @@
 
 import { PrivyProvider } from '@privy-io/react-auth';
 import { ReactNode } from 'react';
+import { AuthProvider } from '@/context/AuthContext';
 
 interface AppPrivyProviderProps {
   children: ReactNode;
@@ -23,7 +24,9 @@ export const AppPrivyProvider = ({ children }: AppPrivyProviderProps) => {
         },
       }}
     >
-      {children}
+      <AuthProvider>
+        {children}
+      </AuthProvider>
     </PrivyProvider>
   );
 };

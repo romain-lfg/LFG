@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
@@ -12,6 +12,7 @@ import {
 } from '@tabler/icons-react';
 import CreateBountyModal from '@/components/bounties/CreateBountyModal';
 import { apiClient, Bounty } from '@/lib/api/client';
+import { useAuth } from '@/context/AuthContext';
 
 const navigation = [
   { name: 'Overview', href: '/dashboard', icon: IconHome },
@@ -27,6 +28,14 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const { isAuthenticated, isLoading, activeWallet } = useAuth();
+
+  // Redirect to home if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   const handleCreateBounty = async (bounty: Bounty) => {
     try {
@@ -37,6 +46,20 @@ export default function DashboardLayout({
       console.error('Failed to create bounty:', err);
     }
   };
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-400"></div>
+      </div>
+    );
+  }
+
+  // Only render dashboard if authenticated
+  if (!isAuthenticated) {
+    return null; // Will redirect in useEffect
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex">
@@ -101,7 +124,9 @@ export default function DashboardLayout({
                 <span className="text-sm text-gray-300">VSA Active</span>
               </div>
               <div className="text-sm text-gray-300">
-                0x742...3ab4
+                {activeWallet?.address ? 
+                  `${activeWallet.address.substring(0, 6)}...${activeWallet.address.substring(activeWallet.address.length - 4)}` : 
+                  '0x742...3ab4'}
               </div>
             </div>
           </div>

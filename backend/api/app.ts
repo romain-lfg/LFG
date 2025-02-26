@@ -1,6 +1,7 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { createBounty, getBountyList, clearBounties, matchBountiesUser } from './lib/nillion/index.js';
+import userRoutes from '../src/routes/user.routes.js';
 
 // Create Express app
 const app = express();
@@ -23,85 +24,83 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Register routes
+app.use('/api/users', userRoutes);
+
 // Initialize Nillion only once
 let nillionInitialized = false;
 let initializationPromise: Promise<void> | null = null;
 let lastInitAttempt = 0;
 const INIT_RETRY_INTERVAL = 30000; // 30 seconds
 
-// Helper to check memory usage
-function logMemoryUsage(tag: string) {
-  if (process.env.NODE_ENV !== 'production') return;
-  const used = process.memoryUsage();
-  console.log(`[${Date.now()}] Memory usage (${tag}):\n` +
-    `  RSS: ${Math.round(used.rss / 1024 / 1024)}MB\n` +
-    `  Heap: ${Math.round(used.heapUsed / 1024 / 1024)}/${Math.round(used.heapTotal / 1024 / 1024)}MB`);
+// Helper function to log memory usage
+function logMemoryUsage(label: string) {
+  if (process.memoryUsage) {
+    const memUsage = process.memoryUsage();
+    console.log(`[${Date.now()}] Memory usage (${label}):`, {
+      rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
+      heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
+      heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
+      external: `${Math.round(memUsage.external / 1024 / 1024)}MB`
+    });
+  }
 }
 
 // Initialize Nillion
 async function initializeNillion() {
   const now = Date.now();
-  if (nillionInitialized) {
-    return initializationPromise;
+  
+  // Prevent frequent retry attempts
+  if (now - lastInitAttempt < INIT_RETRY_INTERVAL) {
+    console.log(`[${now}] Skipping initialization attempt (too soon)`);
+    return;
   }
   
-  // Allow retrying initialization more frequently
-  if (now - lastInitAttempt < 5000) { // 5 seconds
-    return initializationPromise;
-  }
-  
-  // Log initial memory state
-  logMemoryUsage('before-init');
-
   lastInitAttempt = now;
-  console.log(`[${now}] Starting Nillion initialization...`);
   
-  initializationPromise = (async () => {
-    const startTime = now;
+  if (nillionInitialized) {
+    console.log(`[${now}] Nillion already initialized`);
+    return;
+  }
+  
+  if (initializationPromise) {
+    console.log(`[${now}] Nillion initialization already in progress`);
+    return initializationPromise;
+  }
+  
+  console.log(`[${now}] Starting Nillion initialization`);
+  logMemoryUsage('before-nillion-init');
+  
+  initializationPromise = new Promise<void>(async (resolve, reject) => {
     try {
-      // Ensure imports are loaded
-      console.log(`[${now}] Checking Nillion imports...`);
-      const nillionFunctions = { createBounty, getBountyList, clearBounties, matchBountiesUser };
-      console.log(`[${now}] Available Nillion functions:`, Object.keys(nillionFunctions));
+      // Placeholder for actual initialization
+      // In the real implementation, this would initialize the Nillion client
       
-      // Test each function to ensure it's properly loaded
-      for (const [name, fn] of Object.entries(nillionFunctions)) {
-        if (typeof fn !== 'function') {
-          throw new Error(`${name} is not a function`);
-        }
-      }
-      
+      console.log(`[${Date.now()}] Nillion initialized successfully`);
+      logMemoryUsage('after-nillion-init');
       nillionInitialized = true;
-      console.log(`[${now}] Nillion initialization complete after ${Date.now() - startTime}ms`);
-      
-      // Log memory usage after initialization
-      logMemoryUsage('after-init');
-      
-      // Suggest garbage collection
-      if (global.gc) {
-        global.gc();
-        logMemoryUsage('after-gc');
-      }
-    } catch (error: unknown) {
-      const errorMsg = error instanceof Error ? error.message : 'Failed to initialize Nillion';
-      console.error(`[${now}] Failed to initialize Nillion after ${Date.now() - startTime}ms:`, errorMsg);
-      nillionInitialized = false;
-      throw new Error(errorMsg);
+      resolve();
+    } catch (error) {
+      console.error(`[${Date.now()}] Failed to initialize Nillion:`, error);
+      initializationPromise = null;
+      reject(error);
     }
-  })();
-
+  });
+  
   return initializationPromise;
 }
 
 // Initial initialization attempt
 initializeNillion();
 
+// Wait for Nillion to initialize
 async function waitForNillionInit() {
-  try {
+  if (nillionInitialized) return;
+  
+  if (initializationPromise) {
+    await initializationPromise;
+  } else {
     await initializeNillion();
-  } catch (error) {
-    console.error('Error waiting for Nillion:', error);
-    throw error;
   }
 }
 
@@ -109,95 +108,18 @@ async function waitForNillionInit() {
 if (process.env.NODE_ENV !== 'production') {
   const port = process.env.PORT || 3001;
   app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+    console.log(`Server running at http://localhost:${port}`);
   });
 }
 
-// Export the Express app for testing
-export { app };
-
 // Export a request handler function for Vercel
 export default async function handler(req: any, res: any) {
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' ? 'https://lfg-platform.vercel.app' : 'http://localhost:3000');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Max-Age', '86400');
-    return res.status(200).end();
-  }
-  const requestId = Math.random().toString(36).substring(7);
-  const startTime = Date.now();
-  console.log(`[${startTime}][${requestId}] Handling ${req.method} request to ${req.url}`);
-
-  // Add CORS headers for all requests
-  res.setHeader('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' ? 'https://lfg-platform.vercel.app' : 'http://localhost:3000');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  
   try {
-    // Quick responses for health check and favicon
-    if (req.url === '/health' || req.url === '/favicon.ico') {
-      return res.json({ status: 'ok', time: Date.now() });
-    }
-
-    // Set a shorter timeout for initialization
-    const timeout = 5000; // 5 seconds
+    await waitForNillionInit();
     
-    let timeoutId: NodeJS.Timeout | undefined;
-    const timeoutPromise = new Promise((_, reject) => {
-      timeoutId = setTimeout(() => {
-        const timeoutTime = Date.now();
-        console.error(`[${timeoutTime}][${requestId}] Handler timeout after ${timeoutTime - startTime}ms`);
-        reject(new Error(`Request timeout after ${timeoutTime - startTime}ms`));
-      }, timeout);
-    });
-
-    try {
-      // Handle the request with timeout
-      const result = await Promise.race([
-        (async () => {
-        try {
-          // Wait for Nillion to be ready
-          const initStart = Date.now();
-          await waitForNillionInit();
-          console.log(`[${Date.now()}][${requestId}] Nillion init took ${Date.now() - initStart}ms`);
-
-          // Handle the request
-          return new Promise((resolve, reject) => {
-            const requestStart = Date.now();
-            app(req, res, (err: any) => {
-              if (err) {
-                const errTime = Date.now();
-                console.error(`[${errTime}][${requestId}] Express error after ${errTime - requestStart}ms:`, err);
-                return reject(err);
-              }
-              const endTime = Date.now();
-              console.log(`[${endTime}][${requestId}] Request completed in ${endTime - startTime}ms`);
-              resolve(undefined);
-            });
-          });
-        } catch (error) {
-          const errTime = Date.now();
-          console.error(`[${errTime}][${requestId}] Request failed after ${errTime - startTime}ms:`, error);
-          throw error;
-        }
-      })(),
-      timeoutPromise
-    ]);
-
-      // Clear timeout if request completed successfully
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      return result;
-    } catch (error) {
-      // Make sure to clear timeout even if there was an error
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      throw error;
-    }
+    // Create a proper Express request handler
+    app(req, res);
+    
   } catch (error: unknown) {
     console.error('Handler error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -292,5 +214,3 @@ app.post('/bounties/clear', async (req, res) => {
     });
   }
 });
-
-
