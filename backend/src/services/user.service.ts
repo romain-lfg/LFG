@@ -1,4 +1,4 @@
-import { supabase, User } from '../config/supabase';
+import { supabase, User } from '../config/supabase.js';
 
 /**
  * User service for handling user operations
@@ -21,9 +21,7 @@ export class UserService {
         .select('*')
         .eq('id', userData.id)
         .single();
-
-      const now = new Date().toISOString();
-
+      
       if (existingUser) {
         // Update existing user
         const { data: updatedUser, error } = await supabase
@@ -31,14 +29,18 @@ export class UserService {
           .update({
             wallet_address: userData.walletAddress || existingUser.wallet_address,
             email: userData.email || existingUser.email,
-            metadata: userData.metadata || existingUser.metadata,
-            updated_at: now
+            metadata: userData.metadata ? { ...existingUser.metadata, ...userData.metadata } : existingUser.metadata,
+            updated_at: new Date().toISOString()
           })
           .eq('id', userData.id)
           .select()
           .single();
-
-        if (error) throw error;
+        
+        if (error) {
+          console.error('Error updating user:', error);
+          return null;
+        }
+        
         return updatedUser;
       } else {
         // Create new user
@@ -46,96 +48,104 @@ export class UserService {
           .from('users')
           .insert({
             id: userData.id,
-            wallet_address: userData.walletAddress,
-            email: userData.email,
-            metadata: userData.metadata,
-            created_at: now,
-            updated_at: now
+            wallet_address: userData.walletAddress || null,
+            email: userData.email || null,
+            metadata: userData.metadata || {},
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           })
           .select()
           .single();
-
-        if (error) throw error;
+        
+        if (error) {
+          console.error('Error creating user:', error);
+          return null;
+        }
+        
         return newUser;
       }
     } catch (error) {
-      console.error('Error syncing user:', error);
+      console.error('Error in syncUser:', error);
       return null;
     }
   }
-
+  
   /**
    * Get user by ID
    */
   async getUserById(userId: string): Promise<User | null> {
     try {
-      const { data, error } = await supabase
+      const { data: user, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .single();
-
-      if (error) throw error;
-      return data;
+      
+      if (error) {
+        console.error('Error getting user by ID:', error);
+        return null;
+      }
+      
+      return user;
     } catch (error) {
-      console.error('Error getting user:', error);
+      console.error('Error in getUserById:', error);
       return null;
     }
   }
-
+  
   /**
    * Get user by wallet address
    */
   async getUserByWalletAddress(walletAddress: string): Promise<User | null> {
     try {
-      const { data, error } = await supabase
+      const { data: user, error } = await supabase
         .from('users')
         .select('*')
         .eq('wallet_address', walletAddress)
         .single();
-
-      if (error) throw error;
-      return data;
+      
+      if (error) {
+        console.error('Error getting user by wallet address:', error);
+        return null;
+      }
+      
+      return user;
     } catch (error) {
-      console.error('Error getting user by wallet address:', error);
+      console.error('Error in getUserByWalletAddress:', error);
       return null;
     }
   }
-
+  
   /**
-   * Update user metadata
+   * Update user data
    */
-  async updateUserMetadata(
-    userId: string, 
-    metadata: Record<string, any>
-  ): Promise<User | null> {
+  async updateUser(userData: {
+    id: string;
+    walletAddress?: string;
+    email?: string;
+    metadata?: Record<string, any>;
+  }): Promise<User | null> {
     try {
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('metadata')
-        .eq('id', userId)
-        .single();
-
-      // Merge existing metadata with new metadata
-      const updatedMetadata = {
-        ...(existingUser?.metadata || {}),
-        ...metadata
-      };
-
-      const { data, error } = await supabase
+      const { data: user, error } = await supabase
         .from('users')
         .update({
-          metadata: updatedMetadata,
+          wallet_address: userData.walletAddress,
+          email: userData.email,
+          metadata: userData.metadata,
           updated_at: new Date().toISOString()
         })
-        .eq('id', userId)
+        .eq('id', userData.id)
         .select()
         .single();
-
-      if (error) throw error;
-      return data;
+      
+      if (error) {
+        console.error('Error updating user:', error);
+        return null;
+      }
+      
+      return user;
     } catch (error) {
-      console.error('Error updating user metadata:', error);
+      console.error('Error in updateUser:', error);
       return null;
     }
   }

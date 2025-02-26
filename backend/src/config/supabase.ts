@@ -19,8 +19,8 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 export type User = {
   id: string;              // Privy user ID
   wallet_address?: string; // User's wallet address
-  email?: string;          // User's email if available
-  created_at: string;      // Timestamp of user creation
-  updated_at: string;      // Timestamp of last update
-  metadata?: Record<string, any>; // Additional user metadata
+  email?: string;          // User's email address
+  metadata?: any;          // Additional user metadata
+  created_at?: string;     // Creation timestamp
+  updated_at?: string;     // Last update timestamp
 };

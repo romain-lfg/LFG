@@ -2,21 +2,24 @@ import { Request, Response, NextFunction } from 'express';
 import { PrivyClient } from '@privy-io/server-auth';
 import dotenv from 'dotenv';
 
+// Load environment variables
 dotenv.config();
 
-// Initialize Privy client
+// Get environment variables
 const privyAppId = process.env.PRIVY_APP_ID;
 const privyAppSecret = process.env.PRIVY_APP_SECRET;
 const privyPublicKey = process.env.PRIVY_PUBLIC_KEY;
 
+// Validate environment variables
 if (!privyAppId || !privyPublicKey) {
-  throw new Error('Missing Privy environment variables. Please check your .env file.');
+  console.error('Missing Privy environment variables. Please check your .env file.');
+  process.exit(1);
 }
 
-// Initialize Privy client with app ID and app secret
+// Create Privy client
 const privyClient = new PrivyClient(
   privyAppId,
-  privyAppSecret || '' // App secret is optional for token verification
+  privyAppSecret || ''
 );
 
 // Extend Express Request type to include user information
@@ -27,74 +30,85 @@ declare global {
         id: string;
         walletAddress?: string;
         email?: string;
+        [key: string]: any;
       };
     }
   }
 }
 
 /**
- * Middleware to verify Privy authentication token
- * Extracts the token from the Authorization header and verifies it
- * Adds the user information to the request object
+ * Middleware to authenticate users using Privy token
+ * @param req Express request object
+ * @param res Express response object
+ * @param next Express next function
  */
-export const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
+export const authenticateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // Get token from Authorization header
+    // Get authorization header
     const authHeader = req.headers.authorization;
     
+    // Check if authorization header exists and has the correct format
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized: Missing or invalid token format' });
+      res.status(401).json({ error: 'Unauthorized: Missing or invalid token format' });
+      return;
     }
     
-    // Extract token
+    // Extract token from header
     const token = authHeader.split(' ')[1];
     
-    // Verify token - the second parameter should be a string, not an object
-    const verifiedClaims = await privyClient.verifyAuthToken(token, privyPublicKey);
-    
-    if (!verifiedClaims || !verifiedClaims.userId) {
-      return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    // Verify token
+    try {
+      const verifiedClaims = await privyClient.verifyAuthToken(token, privyPublicKey);
+      
+      // Add user information to request object
+      req.user = {
+        id: verifiedClaims.userId,
+        // Additional user information can be added here
+      };
+      
+      next();
+    } catch (error) {
+      console.error('Token verification error:', error);
+      res.status(401).json({ error: 'Unauthorized: Invalid token' });
     }
-    
-    // Add user info to request
-    req.user = {
-      id: verifiedClaims.userId,
-      // Additional user info will be populated from database in user routes
-    };
-    
-    next();
   } catch (error) {
     console.error('Authentication error:', error);
-    return res.status(401).json({ error: 'Unauthorized: Token verification failed' });
+    res.status(500).json({ error: 'Internal server error during authentication' });
   }
 };
 
 /**
- * Optional authentication middleware
- * Tries to authenticate the user but continues even if authentication fails
- * Useful for routes that can be accessed by both authenticated and unauthenticated users
+ * Middleware to check if user is authenticated
+ * @param req Express request object
+ * @param res Express response object
+ * @param next Express next function
  */
-export const optionalAuthentication = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return next(); // Continue without authentication
-    }
-    
-    const token = authHeader.split(' ')[1];
-    // Fix the verifyAuthToken call here as well - the second parameter should be a string
-    const verifiedClaims = await privyClient.verifyAuthToken(token, privyPublicKey);
-    
-    if (verifiedClaims && verifiedClaims.userId) {
-      req.user = {
-        id: verifiedClaims.userId,
-      };
-    }
-    
-    next();
-  } catch (error) {
-    // Continue without authentication if token verification fails
-    next();
+export const isAuthenticated = (req: Request, res: Response, next: NextFunction): void => {
+  if (!req.user) {
+    res.status(401).json({ error: 'Unauthorized: User not authenticated' });
+    return;
   }
+  
+  next();
+};
+
+/**
+ * Middleware to check if user has required role
+ * @param role Required role
+ * @returns Middleware function
+ */
+export const hasRole = (role: string) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized: User not authenticated' });
+      return;
+    }
+    
+    if (!req.user.roles || !req.user.roles.includes(role)) {
+      res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
+      return;
+    }
+    
+    next();
+  };
 };

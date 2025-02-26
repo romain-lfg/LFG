@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { UserService } from '../services/user.service';
+import { UserService } from '../services/user.service.js';
 
 const userService = new UserService();
 
@@ -19,76 +19,72 @@ export class UserController {
       }
 
       const { walletAddress, email, metadata } = req.body;
-
-      // Sync user data
-      const user = await userService.syncUser({
+      
+      // Sync user data with database
+      const userData = {
         id: req.user.id,
         walletAddress,
         email,
         metadata
-      });
-
-      if (!user) {
-        return res.status(500).json({ error: 'Failed to sync user data' });
-      }
-
+      };
+      
+      const user = await userService.syncUser(userData);
+      
       return res.status(200).json({ user });
     } catch (error) {
-      console.error('Error in syncUser controller:', error);
+      console.error('Error syncing user:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
   }
-
+  
   /**
-   * Get current user profile
+   * Get user profile
    */
-  async getCurrentUser(req: Request, res: Response) {
+  async getProfile(req: Request, res: Response) {
     try {
       // Ensure user is authenticated
       if (!req.user || !req.user.id) {
         return res.status(401).json({ error: 'Unauthorized: User not authenticated' });
       }
-
-      // Get user data
+      
       const user = await userService.getUserById(req.user.id);
-
+      
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-
+      
       return res.status(200).json({ user });
     } catch (error) {
-      console.error('Error in getCurrentUser controller:', error);
+      console.error('Error getting user profile:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
   }
-
+  
   /**
    * Update user profile
    */
-  async updateUserProfile(req: Request, res: Response) {
+  async updateProfile(req: Request, res: Response) {
     try {
       // Ensure user is authenticated
       if (!req.user || !req.user.id) {
         return res.status(401).json({ error: 'Unauthorized: User not authenticated' });
       }
-
-      const { metadata } = req.body;
-
-      if (!metadata) {
-        return res.status(400).json({ error: 'Metadata is required' });
-      }
-
-      // Update user metadata
-      const updatedUser = await userService.updateUserMetadata(req.user.id, metadata);
-
-      if (!updatedUser) {
-        return res.status(500).json({ error: 'Failed to update user profile' });
-      }
-
-      return res.status(200).json({ user: updatedUser });
+      
+      const { walletAddress, email, metadata } = req.body;
+      
+      // Update user data
+      const userData = {
+        id: req.user.id,
+        walletAddress,
+        email,
+        metadata
+      };
+      
+      const user = await userService.updateUser(userData);
+      
+      return res.status(200).json({ user });
     } catch (error) {
-      console.error('Error in updateUserProfile controller:', error);
+      console.error('Error updating user profile:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
   }
