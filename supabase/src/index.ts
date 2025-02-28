@@ -25,15 +25,30 @@ type UserProfile = {
     bounties_created_date: string[] | null;  // ARRAY type, nullable
     bounties_created_id: string[] | null;  // ARRAY type, nullable
     bounties_rewards_paid: number[] | null;  // ARRAY type, nullable
+    living_document: string[] | null;  // ARRAY type, nullable
+    telegram_id: number | null;  // ARRAY type, nullable
 }
 
 async function updateUserProfile(userAuthId: string, userData: Partial<UserProfile>) {
-    // Ensure we have a user_auth_id and created_at for new entries
+    // First check if user profile exists
+    const { data: existingProfile } = await supabase
+        .from('User_Profiles')
+        .select('*')
+        .eq('user_auth_id', userAuthId)
+        .single()
+
+    // Only include created_at if this is a new profile
+    console.log("existingProfile:", existingProfile);
     const dataToUpsert = {
         user_auth_id: userAuthId,
-        created_at: new Date().toISOString(),
-        ...userData
+        ...userData,
     }
+    if (existingProfile) {
+        dataToUpsert.created_at = existingProfile.created_at;
+    } else {
+        dataToUpsert.created_at = new Date().toISOString();
+    }
+
 
     const { data, error } = await supabase
         .from('User_Profiles')
@@ -52,7 +67,7 @@ async function updateUserProfile(userAuthId: string, userData: Partial<UserProfi
 
 async function main() {
 
-    //await testCreateUpdateBounty();
+    await testCreateUpdateBounty();
     const data = await queryUser("123e4567-e89b-12d3-a456-426614174000");//await queryTable('User_Profiles')
     console.log('Data:', data)
 }
@@ -61,12 +76,15 @@ async function testCreateUpdateBounty() {
     // Use a proper UUID format
     const userId = "123e4567-e89b-12d3-a456-426614174000" // Example UUID
     const userData: Partial<UserProfile> = {
+        created_at: "2025-02-28T01:49:39.021+00:00",
         bounties_accepted_date: ["2024-03-20T00:00:00Z"],  // Full ISO timestamp
         bounties_accepted_id: ["123e4567-e89b-12d3-a456-426614174001"], // Example UUID
-        bounties_rewards_received: [100],  // Regular number
+        bounties_rewards_received: [0.2],  // Regular number
         bounties_created_date: ["2024-03-15T00:00:00Z"],  // Full ISO timestamp
         bounties_created_id: ["123e4567-e89b-12d3-a456-426614174002"], // Example UUID
-        bounties_rewards_paid: [51]  // Regular number
+        bounties_rewards_paid: [0.3],
+        living_document: ["User knows typescript", "User knows python", "User knows solidity"],  // Regular number
+        telegram_id: 1234567890,
     }
 
     try {
