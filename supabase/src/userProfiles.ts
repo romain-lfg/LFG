@@ -21,7 +21,7 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 // Add this type definition at the top level of your file
-type UserProfile = {
+type UserProfileFormat = {
     user_auth_id: string | null;  // uuid maps to string, nullable
     created_at: string;  // timestamp with time zone maps to string (or Date)
     bounties_accepted_date: string[] | null;  // ARRAY type, nullable
@@ -34,7 +34,7 @@ type UserProfile = {
     telegram_id: number | null;  // ARRAY type, nullable
 }
 
-async function updateUserProfile(userAuthId: string, userData: Partial<UserProfile>) {
+async function createUpdateUserProfile(userAuthId: string, userData: Partial<UserProfileFormat>) {
     // First check if user profile exists
     const { data: existingProfile } = await supabase
         .from('User_Profiles')
@@ -72,15 +72,16 @@ async function updateUserProfile(userAuthId: string, userData: Partial<UserProfi
 
 async function main() {
 
-    // await testCreateUpdateBounty();
-    // const data = await queryUser("123e4567-e89b-12d3-a456-426614174000");//await queryTable('User_Profiles')
-    // console.log('Data:', data)
+    //await testCreateUpdateUserProfile();
+    //const data = await getSingleUserData("123e4567-e89b-12d3-a456-426614174000");//await queryTable('User_Profiles')
+    const data = await getUserData();
+    console.log('Data:', data)
 }
 
 async function testCreateUpdateUserProfile() {
     // Use a proper UUID format
     const userId = "123e4567-e89b-12d3-a456-426614174000" // Example UUID
-    const userData: Partial<UserProfile> = {
+    const userData: Partial<UserProfileFormat> = {
         created_at: "2025-02-28T01:49:39.021+00:00",
         bounties_accepted_date: ["2024-03-20T00:00:00Z"],  // Full ISO timestamp
         bounties_accepted_id: ["123e4567-e89b-12d3-a456-426614174001"], // Example UUID
@@ -93,26 +94,26 @@ async function testCreateUpdateUserProfile() {
     }
 
     try {
-        const result = await updateUserProfile(userId, userData)
+        const result = await createUpdateUserProfile(userId, userData)
         console.log('User profile updated successfully:', result)
     } catch (error) {
         console.error('Failed to update user profile:', error)
     }
 }
 
-async function queryTable(tableName: string) {
+async function getUserData() {
     const { data, error } = await supabase
-        .from(tableName)
+        .from("User_Profiles")
         .select('*')
 
     if (error) {
-        throw new Error(`Error querying table ${tableName}: ${error.message}`)
+        throw new Error(`Error querying table ${"User_Profiles"}: ${error.message}`)
     }
 
     return data
 }
 
-async function queryUser(userId: string) {
+async function getSingleUserData(userId: string) {
     const { data, error } = await supabase
         .from('User_Profiles')
         .select('*')
@@ -125,3 +126,6 @@ async function queryUser(userId: string) {
 
     return data
 }
+
+export { createUpdateUserProfile, getUserData, getSingleUserData }
+//main();
