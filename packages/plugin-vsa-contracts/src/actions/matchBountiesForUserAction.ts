@@ -12,28 +12,17 @@ import {
     ServiceType,
 } from "@elizaos/core";
 
+import {matchBountiesUser } from "@elizaos/nillion-core";
 import { LfgMarketService } from "../services/LfgMarketService";
 import { isAddress } from "@ethersproject/address";
 import { CompletedJobData, JobData } from "../type";
 
 import { createBounty } from "@elizaos/nillion-core";
-import { getBounties, updateCreateBounty, testFn } from "@elizaos/supabase";
 
 const Handlebars = require('handlebars');
 
 interface BountyData { //Placeholder for the user data TODO: replace with the actual user data
-    title: string;
     walletAddress: string;
-    description: string;
-    longDescription: string;
-    rewardAmount: string;
-    token: string;
-    chainId: string;
-    requiredSkills: string[];
-    datePosted: string;
-    dueDate: string;
-    state: string;
-    estimatedTime: string;
 }
 
 
@@ -43,13 +32,6 @@ const bountyDataTemplate = `Respond with a JSON markdown block containing only t
 Example response:
 \`\`\`json
 {
-    "title": "Build a DeFi Dashboard",
-    "description": "Create a dashboard to track DeFi positions",
-    "rewardAmount": "1000000000",
-    "token": "USDC",
-    "requiredSkills": ["React", "Web3.js", "TypeScript"],
-    "dueDate": "2024-02-15", 
-    "estimatedTime": "80",
     "walletAddress": "0x1234567890123456789012345678901234567890"
 }
 \`\`\`
@@ -58,13 +40,6 @@ Example response:
 
 Given the recent messages, extract the following information about the bounty: >>>(DO NOT RENAME THE KEYS)<<<
 >>>ONLY USE DATA FROM MESSAGES AFTER THE LAST TIME THE USER ASKED TO CREATE A BOUNTY, if you cannot find the information after the last time the user asked to create a bounty, use null<<<
-- title
-- description
-- rewardAmount
-- token
-- requiredSkills
-- dueDate
-- estimatedTime
 - walletAddress
 Respond with a JSON markdown block containing only the extracted values.`;
 
@@ -72,62 +47,46 @@ Respond with a JSON markdown block containing only the extracted values.`;
 function isBountyData(
     content: BountyData
 ): content is BountyData {
-    return true;
     return (
-        typeof content.title === "string" &&
-        typeof content.description === "string" &&
-        //typeof content.longDescription === "string" &&
-        typeof content.rewardAmount === "string" &&
-        typeof content.token === "string" &&
-        Array.isArray(content.requiredSkills) &&
-        content.requiredSkills.every(skill => typeof skill === "string") &&
-        //typeof content.datePosted === "string" &&
-        typeof content.dueDate === "string" && content.dueDate != "null" &&
-        typeof content.estimatedTime === "string" && content.estimatedTime != null &&
         typeof content.walletAddress === "string" && content.walletAddress != null &&
         isAddress(content.walletAddress)
     );
 }
 
-async function processBounty2(bountyData: BountyData, runtime: IAgentRuntime) {
-    console.log("Processing new Bounty creation:", bountyData);
+async function processMatchBounties(bountyData: BountyData, runtime: IAgentRuntime, callback?: HandlerCallback) {
+    console.log("Matching bounties");
+    const matches = await matchBountiesUser(bountyData.walletAddress);
+            console.log("Found matches:", matches);
+            let matchText = "Here are the bounties that match your skills:\n\n";
+            
+            for (const match of await matches) {
+                matchText += `Title: ${match.bounty.title}\n`;
+                matchText += `Bounty ID: ${match.bounty.bountyId}\n`;
+                matchText += `Description: ${match.bounty.longDescription}\n`;
+                matchText += `Skills Match: ${match.skillsMatch} out of ${match.bounty.requiredSkills.length} required skills\n`;
+                matchText += `Required Skills: ${match.bounty.requiredSkills.join(", ")}\n`;
+                matchText += `Reward: ${match.bounty.reward.amount} ${match.bounty.reward.token}\n`;
+                matchText += "-------------------\n";
+            }
 
-    const service = runtime.getService(ServiceType.LFG_MARKET) as LfgMarketService;
-    const tx = await service.market.createJob(bountyData.walletAddress, bountyData.description, 18000000000, bountyData.rewardAmount);
-    const id = await service.market.getJobCount()-1;
-    console.log("id:", id);
-    const numberId = Number(id).toString();
-    console.log("numberId:", numberId);
-    console.log("typeof numberId:", typeof numberId);
-    const bountyDataFormat = {
-        title: { $allot: bountyData.title },
-        owner: { $allot: bountyData.walletAddress },
-        requiredSkills: bountyData.requiredSkills.map(skill => ({ $allot: skill })),
-        datePosted: { $allot: (new Date().toISOString().split('T')[0]) },
-        dueDate: { $allot: bountyData.dueDate },
-        state: { $allot: "Open" },
-        estimatedTime: { $allot: bountyData.estimatedTime },
-        description: { $allot: bountyData.description },
-        longDescription: { $allot: bountyData.longDescription },
-        bountyId: { $allot: numberId},
-        reward: {
-          amount: { $allot: bountyData.rewardAmount },
-          token: { $allot: bountyData.token },
-          chainId: { $allot: "11192" },
-        },
-    };
-    console.log("bountyDataFormat:", bountyDataFormat);
-    await createBounty(bountyDataFormat);
-}
-async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
-    const bounties = await getBounties();
-    console.log("bounties:", bounties);
+            if ((matches).length === 0) {
+                matchText = "No bounties match your skills. Please try again with different skills or wait for new bounties to be posted.";
+            }
+
+            if (callback) {
+                callback({
+                    text: matchText,
+                    content: { matches: await matches }
+                });
+            }
+
 }
 
-export const createBountyAction: Action = {
-    name: "CREATE_BOUNTY",
-    description: "Create a new bounty",
-    similes: ["CREATE_BOUNTY", "NEW_BOUNTY", "BOUNTY_CREATION"],
+
+export const matchBountiesForUserAction: Action = {
+    name: "MATCH_BOUNTIES",
+    description: "Match bounties to a user",
+    similes: ["MATCH_BOUNTIES", "MATCH_BOUNTIES_FOR_USER", "MATCH_BOUNTIES_FOR_ME"],
     validate: async (_runtime: IAgentRuntime, _message: Memory) => {
         return true;
     },
@@ -163,7 +122,7 @@ export const createBountyAction: Action = {
             if (!isBountyData(content)) {
                 console.log("NOT IS USER DATA");
                 const bountyData = content;
-                const requiredParameters = ["title", "description", "rewardAmount", "token", "requiredSkills", "dueDate", "estimatedTime", "walletAddress"];
+                const requiredParameters = ["walletAddress"];
                 const confirmed = {};
                 const missing = [];
     
@@ -209,25 +168,14 @@ export const createBountyAction: Action = {
     
                 // Create user data
                 const bountyDataFilled: BountyData = {
-                    title: content.title,
-                    description: content.description,
-                    longDescription: "content.longDescription",
-                    rewardAmount: content.rewardAmount,
-                    token: content.token,
-                    chainId: content.chainId,
-                    requiredSkills: content.requiredSkills,
-                    datePosted: "content.datePosted",
-                    dueDate: content.dueDate,
-                    state: content.state,
-                    estimatedTime: content.estimatedTime,
                     walletAddress: content.walletAddress,
                 };
     
                 // Call the function to process the user profile
-                await processBounty(bountyDataFilled, runtime);
+                await processMatchBounties(bountyDataFilled, runtime, callback);
                 if (callback) {
                     callback({
-                        text: `Successfully created bounty`,
+                        text: `Successfully matched bounties`,
                         content: {
                             success: true,
                             bountyDataFilled,
@@ -240,7 +188,7 @@ export const createBountyAction: Action = {
                 console.log("USER DATA IS VALID");
                 if (callback) {
                     callback({
-                        text: `Successfully created bounty`,
+                        text: `Successfully matched bounties`,
                         content: {
                             success: true,
                             content,
@@ -248,7 +196,7 @@ export const createBountyAction: Action = {
                     });
 
                 }
-                processBounty(content, runtime);
+                processMatchBounties(content, runtime, callback);
                 return false;
             }
         } catch (error) {
@@ -267,14 +215,14 @@ export const createBountyAction: Action = {
             {
                 user: "{{user1}}",
                 content: {
-                    text: "I want to create a bounty",
+                    text: "I want to see which bounties match my skills",
                 },
             },
             {
                 user: "{{user2}}",
                 content: {
-                    text: "I will need some information to create a bounty",
-                    action: "CREATE_BOUNTY",
+                    text: "I will need your wallet address to match you with the best bounties",
+                    action: "MATCH_BOUNTIES",
                 },
             },
         ],

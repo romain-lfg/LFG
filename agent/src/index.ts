@@ -1227,10 +1227,6 @@ export async function createAgent(
                 : null,
             getSecret(character, "ZERO_EX_API_KEY") ? zxPlugin : null,
             getSecret(character, "DKG_PRIVATE_KEY") ? dkgPlugin : null,
-            getSecret(character, "PYTH_TESTNET_PROGRAM_KEY") ||
-            getSecret(character, "PYTH_MAINNET_PROGRAM_KEY")
-                ? pythDataPlugin
-                : null,
             getSecret(character, "LND_TLS_CERT") &&
             getSecret(character, "LND_MACAROON") &&
             getSecret(character, "LND_SOCKET")

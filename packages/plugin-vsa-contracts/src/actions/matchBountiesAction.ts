@@ -15,7 +15,7 @@ import {matchBountiesUser } from "@elizaos/nillion-core";
 
 const Handlebars = require('handlebars');
 
-const userAdress = "0xi29299100";
+const userAdress = "0x6942040b6d25D6207E98f8E26C6101755D67Ac89";
 
 export const matchBountiesAction: Action = {
     name: "MATCH_BOUNTIES",

@@ -1,17 +1,26 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "outputDirectory": ".vercel/output/functions",
   "builds": [
     {
-      "src": "dist/app.js",
+      "src": "api/**/*.ts",
       "use": "@vercel/node",
-      "config": { "includeFiles": ["dist/**"] }
+      "config": {
+        "maxLambdaSize": "10mb",
+        "memory": 1024,
+        "maxDuration": 10,
+        "includeFiles": [
+          "api/lib/nillion/**/*"
+        ]
+      }
     }
   ],
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "dist/app.js"
-    }
+    { "src": "/health|/favicon.ico", "dest": "/api/app.ts", "methods": ["GET"] },
+    { "src": "/(.*)", "dest": "/api/app.ts" }
   ],
   "env": {
     "NODE_ENV": "production"

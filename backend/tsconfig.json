@@ -2,11 +2,17 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "esnext",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
+    "moduleResolution": "node",
     "esModuleInterop": true,
-    "moduleResolution": "node"
+    "strict": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": ".vercel/output/functions",
+    "rootDir": "."
   },
-  "include": ["src/**/*"]
+  "include": ["api/**/*"],
+  "exclude": ["node_modules", "api/lib/nillion/**/*.js"]
 }

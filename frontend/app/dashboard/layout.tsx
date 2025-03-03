@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   IconHome,
   IconBriefcase,
@@ -11,6 +11,7 @@ import {
   IconChartBar
 } from '@tabler/icons-react';
 import CreateBountyModal from '@/components/bounties/CreateBountyModal';
+import { apiClient, Bounty } from '@/lib/api/client';
 
 const navigation = [
   { name: 'Overview', href: '/dashboard', icon: IconHome },
@@ -24,7 +25,18 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const handleCreateBounty = async (bounty: Bounty) => {
+    try {
+      await apiClient.createBounty(bounty);
+      setIsCreateModalOpen(false);
+      router.push('/bounties');
+    } catch (err) {
+      console.error('Failed to create bounty:', err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex">
@@ -103,6 +115,7 @@ export default function DashboardLayout({
       <CreateBountyModal 
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateBounty}
       />
     </div>
   );

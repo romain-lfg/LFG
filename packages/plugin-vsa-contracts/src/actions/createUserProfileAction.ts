@@ -16,12 +16,7 @@ import { createUser } from "@elizaos/nillion-core";
 import { LfgMarketService } from "../services/LfgMarketService";
 import { UserData } from "../type";
 import { getAddress, isAddress } from "@ethersproject/address";
-
-//pnpm start --"charachters=charachters/vsa.character.json"
-
-const Handlebars = require('handlebars');
-
-
+import { deployNewSafe } from "../core/safe";
 
 
 const userDataTemplate = `Respond with a JSON markdown block containing only the extracted values. Use null for any values that cannot be determined.
@@ -86,9 +81,11 @@ function isUserData(
 
 async function processUserProfile(userData: UserData, runtime: IAgentRuntime) {
     console.log("Processing user profile:", userData);
+    const safeAddress = "0x6942040b6d25D6207E98f8E26C6101755D67Ac89"; //await deployNewSafe(userData.walletAddress, runtime);
     const userDataFormat = {
         name: { $allot: userData.name },
         address: { $allot: userData.walletAddress },
+        safeAddress: { $allot: safeAddress },
         skills: userData.skills.map(skill => ({ $allot: skill })),
         workingHoursStart: { $allot: userData.workingHoursStart },
         workingHoursEnd: { $allot: userData.workingHoursEnd },
@@ -97,7 +94,7 @@ async function processUserProfile(userData: UserData, runtime: IAgentRuntime) {
     };
     await createUser(userDataFormat);
     const service = runtime.getService(ServiceType.LFG_MARKET) as LfgMarketService;
-    const tx = await service.market.registerUser(userData.walletAddress);
+    await service.market.registerUser(userData.walletAddress);
 }
 
 
@@ -135,14 +132,13 @@ export const createUserProfileAction: Action = {
                 modelClass: ModelClass.LARGE,
             }));
     
-            console.log("content stage");
             console.log(content);
     
             if (!isUserData(content)) {
                 console.log("NOT IS USER DATA");
                 const userData = content;
                 const requiredParameters = ["name", "walletAddress", "skills", "workingHoursStart", "workingHoursEnd", "timeZone", "minimumBountyValue"];
-                const confirmed = {};
+                const confirmed: Record<string, string> = {};
                 const missing = [];
     
                 // Check for confirmed and missing parameters
@@ -176,6 +172,7 @@ export const createUserProfileAction: Action = {
                 const userDataFilled: UserData = {
                     name: content.name,
                     address: content.address,
+                    safeAddress: content.safeAddress,
                     skills: content.skills,
                     workingHoursStart: content.workingHoursStart,
                     workingHoursEnd: content.workingHoursEnd,
@@ -188,7 +185,7 @@ export const createUserProfileAction: Action = {
                 await processUserProfile(userDataFilled, runtime);
                 if (callback) {
                     callback({
-                        text: `Successfully created user profile`,
+                        text: `Successfully created user profile and Safe smart wallet for user ${content.name} with address ${content.walletAddress} at Safe address ${content.safeAddress}.`,
                         content: {
                             success: true,
                             userDataFilled,
@@ -201,7 +198,7 @@ export const createUserProfileAction: Action = {
                 console.log("USER DATA IS VALID");
                 if (callback) {
                     callback({
-                        text: `Successfully created user profile`,
+                        text: `Successfully created user profile and Safe smart wallet for user ${content.name} with address ${content.walletAddress} at Safe address ${content.safeAddress}.`,
                         content: {
                             success: true,
                             content,
@@ -209,10 +206,10 @@ export const createUserProfileAction: Action = {
                     });
 
                 }
-                processUserProfile(content, runtime);
+                await processUserProfile(content, runtime);
                 return false;
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error creating user profile:", error);
             if (callback) {
                 callback({

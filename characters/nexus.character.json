@@ -1,8 +1,8 @@
 {
     "name": "Nexus",
     "username": "NexusAgentLFG",
-    "clients": [],
-    "modelProvider": "openai",
+    "clients": ["telegram"],
+    "modelProvider": "venice",
     "settings": {
         "secrets": {},
         "voice": {

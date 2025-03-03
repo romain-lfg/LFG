@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "Backend API for LFG platform",
   "type": "module",
-  "main": "dist/app.js",
+  "main": "api/app.js",
   "scripts": {
-    "dev": "NODE_OPTIONS='--loader ts-node/esm' ts-node src/app.ts",
-    "build": "tsc",
-    "start": "node dist/app.js"
+    "dev": "NODE_OPTIONS='--loader ts-node/esm' ts-node api/app.ts",
+    "build": "tsc --project tsconfig.build.json && cp -r api/lib/nillion .vercel/output/functions/api/lib/",
+    "start": "node .vercel/output/functions/api/app.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -16,6 +16,7 @@
     "nillion-sv-wrappers": "^1.0.9",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
+    "uuid": "^9.0.0",
     "winston": "^3.8.2",
     "zod": "^3.21.4"
   },

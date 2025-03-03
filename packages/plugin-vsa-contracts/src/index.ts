@@ -11,6 +11,7 @@ import { createBountyAction } from "./actions/createBountyAction";
 import { getBountiesAction } from "./actions/getBountiesAction";
 import { matchBountiesAction } from "./actions/matchBountiesAction";
 import { createUserProfileAction } from "./actions/createUserProfileAction";
+import { matchBountiesForUserAction } from "./actions/matchBountiesForUserAction";
 // Create a single instance of the service
 
 const lfgMarketService = new LfgMarketService();
@@ -28,8 +29,8 @@ export const vsaContractsPlugin: Plugin = {
         getJobDetailsAction,
         createBountyAction,
         getBountiesAction,
-        matchBountiesAction,
-        createUserProfileAction
+        createUserProfileAction,
+        matchBountiesForUserAction
     ],
     services: [lfgMarketService]
 };

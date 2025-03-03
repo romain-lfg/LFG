@@ -1,6 +1,6 @@
 import { LocalSecretVault } from './LocalSecretVault.js';
 import { v4 as uuidv4 } from 'uuid';
-import { orgConfig } from '../nillionOrgConfig.js';
+import { orgConfig } from './nillionOrgConfig.js';
 
 const SCHEMA_ID_USER = '541a7214-7a50-4af8-98f7-7c0d7980175e';
 const SCHEMA_ID_BOUNTY = '023c30b6-3ba0-495b-a235-cb853263ca1e';
@@ -194,10 +194,11 @@ export const storeUserData = async (data, SCHEMA_ID) => {
     // Write collection data to nodes encrypting the specified fields ahead of time
     
     const dataWritten = await collection.writeToNodes([data]);
+    // Log the data written to nodes with pretty-printing (2 space indent)
     // console.log(
-    //     '👀 Data written to nodes:',
-    //     JSON.stringify(dataWritten, null, 2)
-    //   );
+    //   '👀 Data written to nodes:',
+    //   JSON.stringify(dataWritten, null, 2)
+    // );
 
 
     // Get the ids of the SecretVault records created
@@ -348,41 +349,14 @@ export const matchBountiesUser = async (userId) => {
     //console.log("Match Score:", match.skillsMatch);
     //console.log("---");
   });
-  console.log("matches:", matches.length);
   return matches;
 
 }
 
-if (isMainModule) {
-    // Call the async function and handle the promise
-    if (false) {
-        const bountiesRetrieved = await getBountyList();
-        console.log("Total bounties:", bountiesRetrieved.length);
-        bountiesRetrieved.map(bounty => {
-            console.log("Bounty:", bounty);
-            //console.log("Bounty title:", bounty.title);
-            //console.log("Bounty reward token:", bounty.reward.token);
-            console.log("Bounty owner:", bounty.owner);
-            //console.log("Bounty required skills:", bounty.requiredSkills);
-            //console.log("Bounty datePosted:", bounty.datePosted);
-            //console.log("Bounty dueDate:", bounty.dueDate);
-            //console.log("Bounty state:", bounty.state);
-            //console.log("Bounty estimatedTime:", bounty.estimatedTime);
-        });
-    } else {
-      clearUsers();
-      //createUser(userDataFormat);
-      //storeUserData(userFormat, SCHEMA_ID_USER);
-      //getUserList();
-      //getBountyList();
-      //matchBountiesOwner("owner2");
-      //matchBountiesUser("0x6942040b6d25D6207E98f8E26C6101755D67Ac89");
-      //storeUserData({users: [userDataFormat]}, SCHEMA_ID_USER);
-      //storeUserData(bountyFormat, SCHEMA_ID_BOUNTY);
-      clearBounties();
-      //createBounty(bountyDataFormat, SCHEMA_ID_BOUNTY);
-      //console.log(new Date().toISOString().split('T')[0]);
-    }
+//export { storeUserData, retrieveUserData, getCollection, testFn } from './storage.js';
+
+async function main() {
+  console.log("Nillion Loaded");
 }
 
-
+main();

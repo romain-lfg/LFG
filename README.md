@@ -1,7 +1,7 @@
 # LFG Bounty Marketplace 🏋️‍♀️
 
 <div align="center">
-  <img src="./docs/static/img/lfg.jpg" alt="Eliza Banner" width="100%" />
+  <img src="./docs/static/img/lfg_banner.jpg" alt="Eliza Banner" width="100%" />
 </div>
 
 <div align="left">
@@ -9,12 +9,17 @@
 ## 🚩 Overview
 
 - 🕵️‍♀️ Nexus represents devs on the job marketplace, offloading relationship and matchmaking to AI
+- 🧠 Safe smart wallet deployed with dev as owner and NexusAgent as executor
 - 🛠️ Smart Contract for Escrow and managing bounty originators and devs
-- 🔗 Stores data about users in Nillion
+- 🔗 Stores bounty and user metadata in Nillion
 - 👥 Signed git hash signature recovery for job completion proof of work
-- 📦 Contract deployed on Arbitrum Sepolia at https://sepolia.arbiscan.io/address/0xcabac2acd4f89e48ce9f31ee0af437bd45b064ba
-- 🐬 Agent deployed on Autonome at https://autonome.alt.technology/lfg-qbnnaf
-      username: lfg password: YYeufTWaYP
+- 📦 Contract deployed on Arbitrum Sepolia at https://sepolia.arbiscan.io/address/0xCabaC2ACD4f89e48ce9F31eE0af437Bd45b064ba
+- 🍦 Contract deployed on Gelato ABC testnet at https://explorer.abc.t.raas.gelato.cloud/address/0x8db664cfE7A51302CA03895418B42D3ABd565ECa?tab=read_write_contract
+- ❄️ Contract deployed on Avalanche Fuji testnet at https://subnets-test.avax.network/c-chain/address/0xCabaC2ACD4f89e48ce9F31eE0af437Bd45b064ba?tab=code&contractTab=read
+- 💬 Telegram bot deployed at https://t.me/NexusAgent_Bot
+- 📊 Frontend deployed at https://lfg-platform.vercel.app/
+- 🐬 Agent hosted on GCP
+- 🏝️ Venice AI API for model inference
 
 ## 📁 Project Structure
 
@@ -25,11 +30,12 @@
 - `client/` - Chatbot client interface
 - `characters/`
   - `nexus.character.json` - Agent personality and plugin configuration
+- model - Venice AI via staked VVV/VCU token
 
 #### Packages
-- `plugin-vsa-contracts/` - Smart contract interaction layer
+- `plugin-vsa-contracts/` - Agent interaction layer
   - **Actions/**
-    - `createUserProfileAction.ts` - User profile creation
+    - `createUserProfileAction.ts` - User profile creation and Safe smart wallet deployment
     - `createBountyAction.ts` - Bounty creation
     - `acceptJobAction.ts` - Bounty acceptance
     - `completeJobAction.ts` - Bounty completion with git hash signed for proof of work
@@ -38,7 +44,7 @@
     - `getUserReputationAction.ts` - Get user reputation
     - `getJobDetailsAction.ts` - Get bounty details
     - `initiateDisputeAction.ts` - Dispute initiation if dev underperforms
-    - `matchBountiesAction.ts` - Skill-based bounty matching
+    - `matchBountiesForUserAction.ts` - Skill-based bounty matching
   - **In Development:**
     - Improved arbitration
     - Payment from user to agent
@@ -107,7 +113,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/Okulon/LFG.git
+git clone https://github.com/romain-lfg/LFG
 ```
 
 #### Edit the .env file
@@ -120,11 +126,11 @@ cp .env.example .env
 
 Add the following to the .env file:
 ```
-OPENAI_API_KEY=         # OpenAI API key, starting with sk-
+VENICE_API_KEY=         # generate from venice settings https://venice.ai/settings/api
 
-VSA_CONTRACTS_ETHEREUM_WS_URL=                  # WebSocket URL for Ethereum node connection
-VSA_CONTRACTS_EVM_PROVIDER_URL=                 # RPC URL for Ethereum node connection (if WS not available)
-VSA_CONTRACTS_EVM_PRIVATE_KEY=                  # Private key for the wallet executing arbitrage transactions
+VSA_CONTRACTS_ETHEREUM_WS_URL=    # WebSocket URL for Ethereum node connection (alchemy or infura)
+VSA_CONTRACTS_EVM_PROVIDER_URL=   # RPC URL for Ethereum node connection (if WS not available)
+VSA_CONTRACTS_EVM_PRIVATE_KEY=    # Private key for the wallet executing arbitrage transactions (generate new private key and fund with testnet coin)
 ```
 
 Make sure to fund your agent's wallet with some Arbitrum SepoliaETH

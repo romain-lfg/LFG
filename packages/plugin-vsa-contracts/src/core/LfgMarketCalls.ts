@@ -5,13 +5,32 @@ import { ethers, Signer, Wallet } from "ethers";
 import { LFG_MARKET_ABI } from "./abi";
 import { LFG_MARKET_ADDRESS_ARBITRUM_SEPOLIA } from "./addresses";
 import { JobDetails } from "../type";
+import Safe from "@safe-global/protocol-kit";
+import { IAgentRuntime } from "@elizaos/core";
 
 export class LfgMarketCalls {
   wallet: Wallet;
-
-  constructor(wallet: Wallet) {
+  preExistingSafe!: Safe;
+  runtime: IAgentRuntime;
+  
+  constructor(wallet: Wallet, runtime: IAgentRuntime) {
     this.wallet = wallet;
+    this.runtime = runtime;
   }
+
+  async init() {
+    this.preExistingSafe = await this.getPreExistingSafe();
+    return this;
+  }
+
+  async getPreExistingSafe(): Promise<Safe> {
+    return await Safe.init({
+      provider: this.runtime.getSetting("VSA_CONTRACTS_EVM_PROVIDER_URL") as string,
+      signer: this.runtime.getSetting("VSA_CONTRACTS_AGENT_PRIVATE_KEY") as string,
+      safeAddress: this.runtime.getSetting("SAFE_ADDRESS") as string,
+    })
+  };
+
   
   async registerUserCall(user: string): Promise<ethers.ContractTransaction> {
     try {
