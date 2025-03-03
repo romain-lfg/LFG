@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { createBounty, getBountyList, clearBounties, matchBountiesUser } from './lib/nillion/index.js';
 import userRoutes from '../src/routes/user.routes.js';
+import authRoutes from '../src/routes/auth.routes.js';
 
 // Create Express app
 const app = express();
@@ -26,6 +27,7 @@ app.use(express.json());
 
 // Register routes
 app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
 
 // Initialize Nillion only once
 let nillionInitialized = false;

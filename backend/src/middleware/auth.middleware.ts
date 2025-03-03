@@ -49,31 +49,81 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     
     // Check if authorization header exists and has the correct format
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'Unauthorized: Missing or invalid token format' });
+      res.status(401).json({ 
+        error: 'Unauthorized: Missing or invalid token format',
+        message: 'Authentication token is missing or has an invalid format',
+        code: 'AUTH_TOKEN_MISSING'
+      });
       return;
     }
     
     // Extract token from header
     const token = authHeader.split(' ')[1];
     
+    if (!token || token.trim() === '') {
+      res.status(401).json({ 
+        error: 'Unauthorized: Empty token',
+        message: 'Authentication token cannot be empty',
+        code: 'AUTH_TOKEN_EMPTY'
+      });
+      return;
+    }
+    
     // Verify token
     try {
-      const verifiedClaims = await privyClient.verifyAuthToken(token, privyPublicKey);
+      const verifiedClaims = await privyClient.verifyAuthToken(token, { verificationKey: privyPublicKey });
+      
+      if (!verifiedClaims || !verifiedClaims.userId) {
+        res.status(401).json({ 
+          error: 'Unauthorized: Invalid token claims',
+          message: 'Token verification failed: missing user ID in claims',
+          code: 'AUTH_INVALID_CLAIMS'
+        });
+        return;
+      }
       
       // Add user information to request object
       req.user = {
         id: verifiedClaims.userId,
-        // Additional user information can be added here
+        // Add additional claims if available
+        walletAddress: verifiedClaims.wallet?.address,
+        email: verifiedClaims.email?.address,
+        // Store the full claims for potential use in other middleware/routes
+        claims: verifiedClaims
       };
       
       next();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Token verification error:', error);
-      res.status(401).json({ error: 'Unauthorized: Invalid token' });
+      
+      // Provide more specific error messages based on the error type
+      if (error.message && error.message.includes('expired')) {
+        res.status(401).json({ 
+          error: 'Unauthorized: Token expired',
+          message: 'Your authentication session has expired. Please log in again.',
+          code: 'AUTH_TOKEN_EXPIRED'
+        });
+      } else if (error.message && error.message.includes('signature')) {
+        res.status(401).json({ 
+          error: 'Unauthorized: Invalid token signature',
+          message: 'Token has an invalid signature',
+          code: 'AUTH_INVALID_SIGNATURE'
+        });
+      } else {
+        res.status(401).json({ 
+          error: 'Unauthorized: Invalid token',
+          message: 'Authentication failed due to an invalid token',
+          code: 'AUTH_INVALID_TOKEN'
+        });
+      }
     }
   } catch (error) {
     console.error('Authentication error:', error);
-    res.status(500).json({ error: 'Internal server error during authentication' });
+    res.status(500).json({ 
+      error: 'Internal server error during authentication',
+      message: 'An unexpected error occurred during authentication',
+      code: 'AUTH_SERVER_ERROR'
+    });
   }
 };
 
