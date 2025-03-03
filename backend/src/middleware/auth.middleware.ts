@@ -99,17 +99,19 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
       };
       
       next();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Token verification error:', error);
       
       // Provide more specific error messages based on the error type
-      if (error.message && error.message.includes('expired')) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      if (error instanceof Error && errorMessage.includes('expired')) {
         res.status(401).json({ 
           error: 'Unauthorized: Token expired',
           message: 'Your authentication session has expired. Please log in again.',
           code: 'AUTH_TOKEN_EXPIRED'
         });
-      } else if (error.message && error.message.includes('signature')) {
+      } else if (error instanceof Error && errorMessage.includes('signature')) {
         res.status(401).json({ 
           error: 'Unauthorized: Invalid token signature',
           message: 'Token has an invalid signature',
@@ -123,8 +125,9 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
         });
       }
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Authentication error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({ 
       error: 'Internal server error during authentication',
       message: 'An unexpected error occurred during authentication',

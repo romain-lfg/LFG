@@ -1,20 +1,10 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { Request, Response, NextFunction } from 'express';
+// Import the middleware to ensure the Request interface extension is available
+import '../middleware/auth.middleware';
 
-// Extend Express Request to include user property
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        email?: string;
-        walletAddress?: string;
-        claims?: any;
-      };
-    }
-  }
-}
+// The user property is already extended in auth.middleware.ts
 
 // Define interfaces for our test
 interface VerifiedClaims {
