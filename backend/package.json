@@ -8,7 +8,7 @@
     "dev": "NODE_OPTIONS='--loader ts-node/esm' ts-node api/app.ts",
     "build": "tsc --project tsconfig.build.json && cp -r api/lib/nillion .vercel/output/functions/api/lib/",
     "start": "node .vercel/output/functions/api/app.js",
-    "test": "mocha --require ts-node/register src/tests/**/*.test.ts"
+    "test": "NODE_OPTIONS='--loader ts-node/esm' mocha"
   },
   "dependencies": {
     "@privy-io/server-auth": "^1.18.9",
@@ -30,6 +30,7 @@
     "@types/jest": "^29.5.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "^18.15.11",
+    "@types/proxyquire": "^1.3.31",
     "@types/sinon": "^17.0.4",
     "@types/supertest": "^2.0.12",
     "@types/swagger-jsdoc": "^6.0.1",
@@ -47,6 +48,7 @@
     "mocha": "^11.1.0",
     "nodemon": "^3.1.9",
     "prettier": "^2.8.7",
+    "proxyquire": "^2.1.3",
     "sinon": "^19.0.2",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.0",
