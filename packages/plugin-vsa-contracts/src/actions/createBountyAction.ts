@@ -17,6 +17,7 @@ import { isAddress } from "@ethersproject/address";
 import { CompletedJobData, JobData } from "../type";
 
 import { createBounty } from "@elizaos/nillion-core";
+import { updateCreateBounty, testFn } from "@elizaos/supabase";
 
 const Handlebars = require('handlebars');
 
@@ -75,6 +76,7 @@ Respond with a JSON markdown block containing only the extracted values.`;
 function isBountyData(
     content: BountyData
 ): content is BountyData {
+    return true;
     return (
         typeof content.title === "string" &&
         typeof content.description === "string" &&
@@ -91,7 +93,7 @@ function isBountyData(
     );
 }
 
-async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
+async function processBounty2(bountyData: BountyData, runtime: IAgentRuntime) {
     console.log("Processing new Bounty creation:", bountyData);
 
     const service = runtime.getService(ServiceType.LFG_MARKET) as LfgMarketService;
@@ -121,7 +123,9 @@ async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
     console.log("bountyDataFormat:", bountyDataFormat);
     await createBounty(bountyDataFormat);
 }
-
+async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
+    await testFn();
+}
 
 export const createBountyAction: Action = {
     name: "CREATE_BOUNTY",
@@ -157,7 +161,7 @@ export const createBountyAction: Action = {
                 modelClass: ModelClass.LARGE,
             }));
     
-            console.log("content stage mate");
+            console.log("content stage");
             console.log(content);
     
             if (!isBountyData(content)) {
