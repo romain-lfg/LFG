@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrivyClient } from '@privy-io/server-auth';
 import dotenv from 'dotenv';
+import { AuthService } from '../services/auth.service';
 
 // Load environment variables
 dotenv.config();
@@ -71,7 +72,8 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     
     // Verify token
     try {
-      const verifiedClaims = await privyClient.verifyAuthToken(token, { verificationKey: privyPublicKey });
+      // According to Privy docs, verifyAuthToken accepts a string as the second parameter, not an object
+      const verifiedClaims = await privyClient.verifyAuthToken(token, privyPublicKey || '');
       
       if (!verifiedClaims || !verifiedClaims.userId) {
         res.status(401).json({ 
@@ -82,12 +84,16 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
         return;
       }
       
+      // Get user details from Privy to access wallet and email information
+      const authService = new AuthService();
+      const userDetails = await authService.getUserDetails(verifiedClaims.userId);
+      
       // Add user information to request object
       req.user = {
         id: verifiedClaims.userId,
-        // Add additional claims if available
-        walletAddress: verifiedClaims.wallet?.address,
-        email: verifiedClaims.email?.address,
+        // Add additional user details if available
+        walletAddress: userDetails?.wallet?.address,
+        email: userDetails?.email?.address,
         // Store the full claims for potential use in other middleware/routes
         claims: verifiedClaims
       };

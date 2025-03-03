@@ -36,10 +36,26 @@ export class AuthService {
    */
   async verifyToken(token: string) {
     try {
-      const verifiedClaims = await privyClient.verifyAuthToken(token, { verificationKey: privyPublicKey });
+      // According to Privy docs, verifyAuthToken accepts a string as the second parameter, not an object
+      const verifiedClaims = await privyClient.verifyAuthToken(token, privyPublicKey || '');
       return verifiedClaims;
     } catch (error) {
       console.error('Token verification error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get user details from Privy
+   * @param userId The Privy user ID
+   * @returns User object or null if not found
+   */
+  async getUserDetails(userId: string) {
+    try {
+      const user = await privyClient.getUser(userId);
+      return user;
+    } catch (error) {
+      console.error('Error fetching user details:', error);
       return null;
     }
   }
