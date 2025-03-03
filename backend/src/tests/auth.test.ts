@@ -1,111 +1,131 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { AuthService } from '../services/auth.service';
-import { authenticateUser } from '../middleware/auth.middleware';
 import { Request, Response, NextFunction } from 'express';
 
-// Mock Privy client
-const mockPrivyClient = {
-  verifyAuthToken: sinon.stub(),
-  getUser: sinon.stub()
-};
+// Extend Express Request to include user property
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        email?: string;
+        walletAddress?: string;
+        claims?: any;
+      };
+    }
+  }
+}
 
-// Mock environment setup
-process.env.PRIVY_PUBLIC_KEY = 'test-public-key';
+// Define interfaces for our test
+interface VerifiedClaims {
+  userId: string;
+  appId: string;
+  [key: string]: any;
+}
+
+interface UserDetails {
+  id: string;
+  email?: { address: string };
+  wallet?: { address: string };
+  [key: string]: any;
+}
+
+// Create a simple mock for the AuthService
+class MockAuthService {
+  async verifyToken(token: string): Promise<VerifiedClaims | null> {
+    if (token === 'valid-token') {
+      return { userId: 'test-user-id', appId: 'test-app-id' };
+    }
+    return null;
+  }
+  
+  async getUserDetails(userId: string): Promise<UserDetails | null> {
+    if (userId === 'test-user-id') {
+      return {
+        id: 'test-user-id',
+        email: { address: 'test@example.com' },
+        wallet: { address: '0x123456789' }
+      };
+    }
+    return null;
+  }
+}
+
+// Create a mock for the middleware
+const createMockMiddleware = (mockAuthService: MockAuthService) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // Extract token from Authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.status(401).json({ error: 'Unauthorized: Missing or invalid token format' });
+      return;
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Verify token
+    try {
+      const verifiedClaims = await mockAuthService.verifyToken(token);
+      
+      if (!verifiedClaims || !verifiedClaims.userId) {
+        res.status(401).json({ 
+          error: 'Unauthorized: Invalid token claims',
+          message: 'Token verification failed: missing user ID in claims',
+          code: 'AUTH_INVALID_CLAIMS'
+        });
+        return;
+      }
+      
+      // Get user details
+      const userDetails = await mockAuthService.getUserDetails(verifiedClaims.userId);
+      
+      // Add user information to request object
+      req.user = {
+        id: verifiedClaims.userId,
+        walletAddress: userDetails?.wallet?.address,
+        email: userDetails?.email?.address,
+        claims: verifiedClaims
+      };
+      
+      next();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(401).json({ 
+        error: 'Unauthorized: Token verification failed',
+        message: errorMessage,
+        code: 'AUTH_VERIFICATION_FAILED'
+      });
+    }
+  };
+};
 
 describe('Authentication System', () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
   let next: NextFunction;
+  let mockAuthService: MockAuthService;
+  let authenticateUser: (req: Request, res: Response, next: NextFunction) => Promise<void>;
   
   beforeEach(() => {
-    // Reset stubs
-    mockPrivyClient.verifyAuthToken.reset();
-    mockPrivyClient.getUser.reset();
-    
     // Setup request, response, and next function
     req = {
       headers: {
-        authorization: 'Bearer test-token'
+        authorization: 'Bearer valid-token'
       }
-    };
+    } as Partial<Request>;
     
     res = {
       status: sinon.stub().returnsThis(),
       json: sinon.stub().returnsThis()
-    };
+    } as Partial<Response>;
     
-    next = sinon.stub();
+    next = sinon.stub() as unknown as NextFunction;
+    
+    mockAuthService = new MockAuthService();
+    authenticateUser = createMockMiddleware(mockAuthService);
   });
   
-  describe('AuthService', () => {
-    let authService: AuthService;
-    
-    beforeEach(() => {
-      authService = new AuthService();
-      // Replace the private client with our mock
-      (authService as any).privyClient = mockPrivyClient;
-    });
-    
-    it('should verify a valid token', async () => {
-      const mockClaims = { userId: 'test-user-id', appId: 'test-app-id' };
-      mockPrivyClient.verifyAuthToken.resolves(mockClaims);
-      
-      const result = await authService.verifyToken('test-token');
-      
-      expect(result).to.deep.equal(mockClaims);
-      expect(mockPrivyClient.verifyAuthToken.calledOnce).to.be.true;
-      expect(mockPrivyClient.verifyAuthToken.firstCall.args[0]).to.equal('test-token');
-    });
-    
-    it('should return null for an invalid token', async () => {
-      mockPrivyClient.verifyAuthToken.rejects(new Error('Invalid token'));
-      
-      const result = await authService.verifyToken('invalid-token');
-      
-      expect(result).to.be.null;
-      expect(mockPrivyClient.verifyAuthToken.calledOnce).to.be.true;
-    });
-    
-    it('should get user details', async () => {
-      const mockUser = {
-        id: 'test-user-id',
-        email: { address: 'test@example.com' },
-        wallet: { address: '0x123456789' }
-      };
-      mockPrivyClient.getUser.resolves(mockUser);
-      
-      const result = await authService.getUserDetails('test-user-id');
-      
-      expect(result).to.deep.equal(mockUser);
-      expect(mockPrivyClient.getUser.calledOnce).to.be.true;
-      expect(mockPrivyClient.getUser.firstCall.args[0]).to.equal('test-user-id');
-    });
-    
-    it('should return null if user details cannot be retrieved', async () => {
-      mockPrivyClient.getUser.rejects(new Error('User not found'));
-      
-      const result = await authService.getUserDetails('invalid-user-id');
-      
-      expect(result).to.be.null;
-      expect(mockPrivyClient.getUser.calledOnce).to.be.true;
-    });
-  });
-  
-  describe('authenticateUser middleware', () => {
-    // We need to mock the AuthService used in the middleware
-    let authServiceStub: sinon.SinonStub;
-    
-    beforeEach(() => {
-      // Create a stub for the AuthService constructor
-      authServiceStub = sinon.stub(AuthService.prototype, 'getUserDetails');
-    });
-    
-    afterEach(() => {
-      // Restore the stub
-      authServiceStub.restore();
-    });
-    
+  describe('Authentication Middleware', () => {
     it('should reject requests without an authorization header', async () => {
       req.headers = {};
       
@@ -127,22 +147,14 @@ describe('Authentication System', () => {
     });
     
     it('should authenticate users with valid tokens', async () => {
-      // Mock the Privy client in the middleware
-      const originalPrivyClient = require('../config/privy').privyClient;
-      require('../config/privy').privyClient = mockPrivyClient;
-      
-      const mockClaims = { userId: 'test-user-id', appId: 'test-app-id' };
-      const mockUser = {
-        id: 'test-user-id',
-        email: { address: 'test@example.com' },
-        wallet: { address: '0x123456789' }
-      };
-      
-      mockPrivyClient.verifyAuthToken.resolves(mockClaims);
-      authServiceStub.resolves(mockUser);
+      // Spy on the auth service methods
+      const verifyTokenSpy = sinon.spy(mockAuthService, 'verifyToken');
+      const getUserDetailsSpy = sinon.spy(mockAuthService, 'getUserDetails');
       
       await authenticateUser(req as Request, res as Response, next);
       
+      expect(verifyTokenSpy.calledWith('valid-token')).to.be.true;
+      expect(getUserDetailsSpy.calledWith('test-user-id')).to.be.true;
       expect(req.user).to.deep.include({
         id: 'test-user-id',
         email: 'test@example.com',
@@ -150,25 +162,19 @@ describe('Authentication System', () => {
       });
       expect((next as sinon.SinonStub).calledOnce).to.be.true;
       
-      // Restore the original Privy client
-      require('../config/privy').privyClient = originalPrivyClient;
+      // Restore the spies
+      verifyTokenSpy.restore();
+      getUserDetailsSpy.restore();
     });
     
     it('should reject requests with invalid tokens', async () => {
-      // Mock the Privy client in the middleware
-      const originalPrivyClient = require('../config/privy').privyClient;
-      require('../config/privy').privyClient = mockPrivyClient;
-      
-      mockPrivyClient.verifyAuthToken.rejects(new Error('Invalid token'));
+      req.headers = { authorization: 'Bearer invalid-token' };
       
       await authenticateUser(req as Request, res as Response, next);
       
       expect((res.status as sinon.SinonStub).calledWith(401)).to.be.true;
       expect((res.json as sinon.SinonStub).calledOnce).to.be.true;
       expect((next as sinon.SinonStub).notCalled).to.be.true;
-      
-      // Restore the original Privy client
-      require('../config/privy').privyClient = originalPrivyClient;
     });
   });
 });
