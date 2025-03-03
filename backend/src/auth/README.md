@@ -49,6 +49,29 @@ Located in `src/routes/auth.routes.ts`, these routes:
 
 - `POST /api/auth/verify`: Verifies a token and returns authentication status
 - `GET /api/auth/session`: Returns current session information
+- `POST /api/auth/logout`: Logs out the current user
+- `POST /api/users/sync`: Synchronizes user data with the database
+- `GET /api/users/me`: Returns the current user's profile
+
+## Wallet Management
+
+The authentication system integrates with Privy's wallet management features, allowing users to:
+
+1. **Connect Existing Wallets**: Users can connect their existing wallets from various providers
+2. **Create Embedded Wallets**: New users can create embedded wallets through Privy
+3. **Synchronize Wallet Data**: Wallet addresses are synchronized with our database and Nillion
+
+Wallet operations are handled by the frontend using Privy's React SDK, and the backend stores wallet addresses in the PostgreSQL database.
+
+## Nillion Integration
+
+The authentication system integrates with Nillion for secure data storage and computation:
+
+1. **User Data Synchronization**: User data is synchronized with Nillion when updated
+2. **Secure Computation**: Nillion is used for secure computation on sensitive data
+3. **Bounty Matching**: Nillion is used to match users with bounties based on their skills and preferences
+
+Nillion integration is handled by the `NillionService` in `src/services/nillion.service.ts` and exposed through API endpoints in `src/routes/nillion.routes.ts`.
 - `POST /api/auth/logout`: Handles user logout
 
 ## Environment Variables
@@ -58,6 +81,15 @@ The authentication system requires the following environment variables:
 - `PRIVY_APP_ID`: Your Privy application ID
 - `PRIVY_APP_SECRET`: Your Privy application secret
 - `PRIVY_PUBLIC_KEY`: Your Privy public verification key
+
+Additional environment variables for Nillion integration:
+
+- `NILLION_API_KEY`: Your Nillion API key
+- `NILLION_ENVIRONMENT`: The Nillion environment to use (e.g., 'production', 'development')
+
+For logging configuration:
+
+- `LOG_LEVEL`: The log level to use (ERROR, WARN, INFO, or DEBUG)
 
 ## Testing
 

@@ -3,6 +3,9 @@ import cors from 'cors';
 import { createBounty, getBountyList, clearBounties, matchBountiesUser } from './lib/nillion/index.js';
 import userRoutes from '../src/routes/user.routes.js';
 import authRoutes from '../src/routes/auth.routes.js';
+import nillionRoutes from '../src/routes/nillion.routes.js';
+import { monitoringMiddleware } from '../src/middleware/monitoring.middleware';
+import { monitoring } from '../src/utils/monitoring';
 
 // Create Express app
 const app = express();
@@ -24,10 +27,15 @@ const corsOptions = {
 // Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(monitoringMiddleware);
+
+// Initialize monitoring
+monitoring.initialize();
 
 // Register routes
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/nillion', nillionRoutes);
 
 // Initialize Nillion only once
 let nillionInitialized = false;

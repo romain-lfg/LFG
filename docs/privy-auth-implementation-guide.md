@@ -413,15 +413,17 @@ export const Dashboard = () => {
 
 Use the provided test scripts to verify the authentication system:
 
-1. **Authentication Flow Test**: Tests the complete authentication flow
+1. **Authentication Tests**: Tests the authentication middleware and service
    ```bash
-   node test/auth-flow-test.js
+   cd backend && npm test
    ```
 
-2. **User Routes Test**: Tests the user-related API endpoints
-   ```bash
-   node test-user-routes.js
-   ```
+The tests verify the following functionality:
+
+- Token extraction and validation from request headers
+- User authentication with valid tokens
+- Proper error handling for missing or invalid tokens
+- User details retrieval after successful authentication
 
 ### Frontend Testing
 

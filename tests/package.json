@@ -1,0 +1,12 @@
+{
+  "name": "lfg-tests",
+  "version": "1.0.0",
+  "description": "End-to-end tests for LFG platform",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}

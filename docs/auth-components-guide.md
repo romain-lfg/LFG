@@ -388,3 +388,93 @@ The authentication system integrates with the backend through the following endp
 - `GET /api/auth/verify` - Verifies the authentication token
 
 For more information on the backend authentication implementation, see the [Privy Auth Implementation Guide](/docs/privy-auth-implementation-guide.md).
+
+## Wallet Management
+
+### Overview
+
+Wallet management is a critical component of the LFG authentication system, allowing users to connect existing wallets or create new embedded wallets. The wallet address is synchronized with our backend and used for various operations.
+
+### Implementation Details
+
+The wallet management system is implemented using Privy's wallet management API, which provides a seamless way to create and connect wallets. The implementation includes:
+
+1. **Wallet Creation**: Users can create an embedded wallet directly within the application, without needing to install any external wallet software.
+
+2. **Wallet Connection**: Users can connect existing wallets from various providers, including MetaMask, WalletConnect, and Coinbase Wallet.
+
+3. **Wallet Synchronization**: Wallet addresses are synchronized with the backend and stored in the database for future reference.
+
+4. **Error Handling**: Comprehensive error handling for wallet operations, ensuring a smooth user experience even when errors occur.
+
+### Components
+
+#### WalletConnection
+
+A component for managing wallet connections, allowing users to connect existing wallets or create new embedded wallets.
+
+```tsx
+import { WalletConnection } from '@/components/auth';
+
+const MyComponent = () => {
+  return (
+    <WalletConnection onComplete={() => console.log('Wallet operation completed')} />
+  );
+};
+```
+
+### Wallet Operations
+
+1. **Connect Existing Wallet**:
+   - Uses Privy's `linkWallet()` method
+   - Supports multiple wallet providers
+   - Wallet address is synchronized with backend
+
+2. **Create New Wallet**:
+   - Uses Privy's `createWallet()` method
+   - Creates an embedded wallet for the user
+   - Wallet address is synchronized with backend
+
+3. **Wallet Synchronization**:
+   - Wallet address is stored in PostgreSQL
+   - Wallet address is stored in Nillion for secure operations
+   - User profile is updated with wallet information
+
+## Nillion Integration
+
+### Overview
+
+LFG integrates with Nillion for secure data storage and computation, particularly for sensitive user data and bounty matching operations. Nillion provides a secure environment for performing computations on encrypted data without exposing the underlying data.
+
+### Key Components
+
+1. **NillionService**:
+   - Handles interaction with Nillion API
+   - Provides methods for storing and retrieving data
+   - Manages bounty matching operations
+
+2. **Data Flow**:
+   - User data is synchronized with Nillion when updated
+   - Bounty data is stored in Nillion for secure matching
+   - Matching operations are performed in Nillion's secure environment
+
+3. **API Endpoints**:
+   - `/api/nillion/bounties`: Get all bounties or create a new bounty
+   - `/api/nillion/user/bounties`: Get bounties owned by the authenticated user
+   - `/api/nillion/user/matches`: Match the authenticated user with bounties
+
+### Usage Example
+
+```typescript
+// Match user with bounties
+const matchBounties = async () => {
+  const token = await getAccessToken();
+  const response = await fetch(`${API_URL}/api/nillion/user/matches`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  const data = await response.json();
+  return data.matches;
+};
+```

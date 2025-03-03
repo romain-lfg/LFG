@@ -1,9 +1,15 @@
 import { supabase, User } from '../config/supabase.js';
+import { NillionService } from './nillion.service';
 
 /**
  * User service for handling user operations
  */
 export class UserService {
+  private nillionService: NillionService;
+
+  constructor() {
+    this.nillionService = new NillionService();
+  }
   /**
    * Sync user data with the database
    * Creates a new user if they don't exist, updates if they do
@@ -41,6 +47,19 @@ export class UserService {
           return null;
         }
         
+        // Sync with Nillion
+        try {
+          await this.nillionService.storeUserData({
+            id: updatedUser.id,
+            walletAddress: updatedUser.wallet_address,
+            email: updatedUser.email,
+            metadata: updatedUser.metadata
+          });
+        } catch (nillionError) {
+          console.error('Error syncing user with Nillion (non-blocking):', nillionError);
+          // Continue even if Nillion sync fails
+        }
+        
         return updatedUser;
       } else {
         // Create new user
@@ -60,6 +79,19 @@ export class UserService {
         if (error) {
           console.error('Error creating user:', error);
           return null;
+        }
+        
+        // Sync with Nillion
+        try {
+          await this.nillionService.storeUserData({
+            id: newUser.id,
+            walletAddress: newUser.wallet_address,
+            email: newUser.email,
+            metadata: newUser.metadata
+          });
+        } catch (nillionError) {
+          console.error('Error syncing user with Nillion (non-blocking):', nillionError);
+          // Continue even if Nillion sync fails
         }
         
         return newUser;
