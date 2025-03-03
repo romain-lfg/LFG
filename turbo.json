@@ -70,6 +70,9 @@
         },
         "@elizaos/nillion-core#build": {
             "outputs": ["dist/**"]
+        },
+        "@elizaos/supabase#build": {
+            "outputs": ["dist/**"]
         }
     }
 }

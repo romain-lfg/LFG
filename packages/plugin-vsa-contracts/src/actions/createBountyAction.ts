@@ -17,6 +17,7 @@ import { isAddress } from "@ethersproject/address";
 import { CompletedJobData, JobData } from "../type";
 
 import { createBounty } from "@elizaos/nillion-core";
+import { getBounties, updateCreateBounty, testFn } from "@elizaos/supabase";
 
 const Handlebars = require('handlebars');
 
@@ -71,6 +72,7 @@ Respond with a JSON markdown block containing only the extracted values.`;
 function isBountyData(
     content: BountyData
 ): content is BountyData {
+    return true;
     return (
         typeof content.title === "string" &&
         typeof content.description === "string" &&
@@ -87,12 +89,16 @@ function isBountyData(
     );
 }
 
-async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
+async function processBounty2(bountyData: BountyData, runtime: IAgentRuntime) {
     console.log("Processing new Bounty creation:", bountyData);
 
     const service = runtime.getService(ServiceType.LFG_MARKET) as LfgMarketService;
     const tx = await service.market.createJob(bountyData.walletAddress, bountyData.description, 18000000000, bountyData.rewardAmount);
     const id = await service.market.getJobCount()-1;
+    console.log("id:", id);
+    const numberId = Number(id).toString();
+    console.log("numberId:", numberId);
+    console.log("typeof numberId:", typeof numberId);
     const bountyDataFormat = {
         title: { $allot: bountyData.title },
         owner: { $allot: bountyData.walletAddress },
@@ -103,16 +109,20 @@ async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
         estimatedTime: { $allot: bountyData.estimatedTime },
         description: { $allot: bountyData.description },
         longDescription: { $allot: bountyData.longDescription },
-        bountyId: { $allot: id.toString()},
+        bountyId: { $allot: numberId},
         reward: {
           amount: { $allot: bountyData.rewardAmount },
           token: { $allot: bountyData.token },
           chainId: { $allot: "11192" },
         },
     };
+    console.log("bountyDataFormat:", bountyDataFormat);
     await createBounty(bountyDataFormat);
 }
-
+async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
+    const bounties = await getBounties();
+    console.log("bounties:", bounties);
+}
 
 export const createBountyAction: Action = {
     name: "CREATE_BOUNTY",

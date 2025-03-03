@@ -24,6 +24,7 @@
         "@elizaos/adapter-sqlite": "^0.1.8",
         "@elizaos/core": "workspace:*",
         "@elizaos/nillion-core": "workspace:*",
+        "@elizaos/supabase": "workspace:*",
         "@ethersproject/abi": "^5.7.0",
         "@ethersproject/abstract-provider": "^5.7.0",
         "@ethersproject/address": "^5.7.0",
