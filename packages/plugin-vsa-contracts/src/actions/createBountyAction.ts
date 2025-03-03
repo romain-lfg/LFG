@@ -17,7 +17,7 @@ import { isAddress } from "@ethersproject/address";
 import { CompletedJobData, JobData } from "../type";
 
 import { createBounty } from "@elizaos/nillion-core";
-import { updateCreateBounty, testFn } from "@elizaos/supabase";
+import { getBounties, updateCreateBounty, testFn } from "@elizaos/supabase";
 
 const Handlebars = require('handlebars');
 
@@ -124,7 +124,8 @@ async function processBounty2(bountyData: BountyData, runtime: IAgentRuntime) {
     await createBounty(bountyDataFormat);
 }
 async function processBounty(bountyData: BountyData, runtime: IAgentRuntime) {
-    await testFn();
+    const bounties = await getBounties();
+    console.log("bounties:", bounties);
 }
 
 export const createBountyAction: Action = {
