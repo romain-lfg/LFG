@@ -17,21 +17,40 @@ const createMockPrivyHooks = () => {
   };
 };
 
-// Conditionally import Privy hooks
-let usePrivy, useWallets;
+// Create safe versions of hooks that won't throw errors
+const createSafeHooks = () => {
+  try {
+    // Only attempt to import if we're on the client
+    if (typeof window !== 'undefined') {
+      const privyAuth = require('@privy-io/react-auth');
+      return {
+        usePrivy: () => {
+          try {
+            return privyAuth.usePrivy();
+          } catch (e) {
+            console.warn('Error using Privy hook:', e);
+            return createMockPrivyHooks().usePrivy();
+          }
+        },
+        useWallets: () => {
+          try {
+            return privyAuth.useWallets();
+          } catch (e) {
+            console.warn('Error using wallets hook:', e);
+            return createMockPrivyHooks().useWallets();
+          }
+        }
+      };
+    }
+  } catch (e) {
+    console.warn('Failed to import Privy hooks:', e);
+  }
+  
+  return createMockPrivyHooks();
+};
 
-// Only import Privy hooks on the client side
-if (typeof window !== 'undefined') {
-  // This will only execute on the client
-  const privyAuth = require('@privy-io/react-auth');
-  usePrivy = privyAuth.usePrivy;
-  useWallets = privyAuth.useWallets;
-} else {
-  // Use mock implementations during SSR
-  const mockHooks = createMockPrivyHooks();
-  usePrivy = mockHooks.usePrivy;
-  useWallets = mockHooks.useWallets;
-}
+// Get the appropriate hooks based on environment
+const { usePrivy, useWallets } = createSafeHooks();
 
 export type UserProfile = {
   id: string;
