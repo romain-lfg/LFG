@@ -11,7 +11,7 @@ cd "$(dirname "$0")/../frontend" || exit 1
 # Deploy with custom build command that skips problematic pages
 vercel --prod \
   -e NEXT_PUBLIC_PRIVY_APP_ID=cm7eswoga03ez13eq3mwawy9t \
-  -e NEXT_PUBLIC_API_URL=https://lfg-backend-api-staging-o5uiv00gc-lfg-5fd382da.vercel.app \
+  -e NEXT_PUBLIC_API_URL=https://lfg-backend-api-staging-89gizfkl8-lfg-5fd382da.vercel.app \
   -e NEXT_PUBLIC_ENVIRONMENT=staging \
   -e NEXT_PUBLIC_NETWORK=sepolia \
   -e NEXT_PUBLIC_IPFS_GATEWAY=https://ipfs.io/ipfs/ \
