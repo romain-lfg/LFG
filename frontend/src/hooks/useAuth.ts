@@ -1,7 +1,37 @@
 'use client';
 
-import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { useCallback, useEffect, useState } from 'react';
+
+// Create mock implementations for server-side rendering
+const createMockPrivyHooks = () => {
+  return {
+    usePrivy: () => ({
+      login: () => {},
+      logout: () => {},
+      authenticated: false,
+      user: null,
+      ready: true,
+      getAccessToken: async () => null,
+    }),
+    useWallets: () => ({ wallets: [] }),
+  };
+};
+
+// Conditionally import Privy hooks
+let usePrivy, useWallets;
+
+// Only import Privy hooks on the client side
+if (typeof window !== 'undefined') {
+  // This will only execute on the client
+  const privyAuth = require('@privy-io/react-auth');
+  usePrivy = privyAuth.usePrivy;
+  useWallets = privyAuth.useWallets;
+} else {
+  // Use mock implementations during SSR
+  const mockHooks = createMockPrivyHooks();
+  usePrivy = mockHooks.usePrivy;
+  useWallets = mockHooks.useWallets;
+}
 
 export type UserProfile = {
   id: string;
@@ -51,8 +81,8 @@ export const useAuth = () => {
           walletAddress: activeWallet.address,
           email: user.email?.address,
           metadata: {
-            name: user.name,
-            avatar: user.avatar,
+            // Use only available properties from the user object
+            userId: user.id,
             // Add any other user metadata you want to store
           }
         }),
