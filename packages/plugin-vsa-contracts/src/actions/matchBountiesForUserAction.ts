@@ -190,7 +190,7 @@ export const matchBountiesForUserAction: Action = {
             {
                 user: "{{user2}}",
                 content: {
-                    text: "I will need your wallet address to match you with the best bounties",
+                    text: "I will see which bounties i can find that match your skills",
                     action: "MATCH_BOUNTIES",
                 },
             },
