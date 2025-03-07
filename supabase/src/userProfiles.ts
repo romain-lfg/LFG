@@ -74,8 +74,13 @@ async function main() {
 
     //await testCreateUpdateUserProfile();
     //const data = await getSingleUserData("123e4567-e89b-12d3-a456-426614174000");//await queryTable('User_Profiles')
-    const data = await getUserData();
-    console.log('Data:', data)
+    //const data = await getUserData();
+    //console.log('Data:', data)
+    // var data = await getLivingDocument("123e4567-e89b-12d3-a456-426614174000");
+    // console.log('living document:', data)
+    // const updatedData = await updateLivingDocument("123e4567-e89b-12d3-a456-426614174000", ["User knows typescript", "User knows python", "User knows solidity", "User knows rust"])
+    //const data = await getLivingDocument("123e4567-e89b-12d3-a456-426614174000");
+    //console.log('living document:', data)
 }
 
 async function testCreateUpdateUserProfile() {
@@ -127,5 +132,32 @@ async function getSingleUserData(userId: string) {
     return data
 }
 
-export { createUpdateUserProfile, getUserData, getSingleUserData }
-//main();
+async function getLivingDocument(userId: string) {
+    const { data, error } = await supabase
+        .from('User_Profiles')
+        .select('living_document')
+        .eq('user_auth_id', userId)
+        .single()
+
+    if (error) {
+        throw new Error(`Error querying living document for user ${userId}: ${error.message}`)
+    }
+
+    return data
+}
+
+async function updateLivingDocument(userId: string, livingDocument: string[]) {
+    const { data, error } = await supabase
+        .from('User_Profiles')
+        .update({ living_document: livingDocument })
+        .eq('user_auth_id', userId)
+
+    if (error) {
+        throw new Error(`Error updating living document for user ${userId}: ${error.message}`)
+    }
+
+    return data
+}
+
+export { createUpdateUserProfile, getUserData, getSingleUserData, getLivingDocument, updateLivingDocument }
+main();

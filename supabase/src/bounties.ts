@@ -50,8 +50,38 @@ const testBounty: BountyFormat = {
     state: "OPEN"
 }
 
+const testBounty2: BountyFormat = {
+    user_auth_id: "111e4567-e89b-12d3-a456-426614174000", // Example UUID
+    created_at: new Date().toISOString(),
+    title: "Build a Smart Contract Testing Framework",
+    description: "Create a website to help people find jobs",
+    required_skills: ["Javascript", "React"],
+    owner_address: "0x1234567890123456789012345678901234567890",
+    date_due: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+    estimated_time: 40.5, // hours
+    id: 2,
+    reward_amount: 0.5, // ETH
+    state: "OPEN"
+}
+
+const testBounty3: BountyFormat = {
+    user_auth_id: "222e4567-e89b-12d3-a456-426614174000", // Example UUID
+    created_at: new Date().toISOString(),
+    title: "Build a Smart Contract Testing Framework",
+    description: "Fix a bug in a Rust program",
+    required_skills: ["Rust"],
+    owner_address: "0x1234567890123456789012345678901234567890",
+    date_due: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+    estimated_time: 40.5, // hours
+    id: 3,
+    reward_amount: 1.5, // ETH
+    state: "OPEN"
+}
+
 async function main() {
     await updateCreateBounty(testBounty.id!, testBounty)
+    await updateCreateBounty(testBounty2.id!, testBounty2)
+    await updateCreateBounty(testBounty3.id!, testBounty3)
     const bounties = await getBounties()
     console.log("bounties:", bounties)
 }
@@ -68,7 +98,25 @@ async function getBounties() {
 }
 
 async function updateCreateBounty(bountyId: number, bountyData: Partial<BountyFormat>) {
-    // First check if bounty exists
+    // First check if user exists
+    const { data: existingUser } = await supabase
+        .from('User_Profiles')
+        .select('*')
+        .eq('user_auth_id', bountyData.user_auth_id)
+        .single();
+
+    // If user doesn't exist, create them first
+    if (!existingUser) {
+        const { error: userError } = await supabase
+            .from('User_Profiles')
+            .insert({ user_auth_id: bountyData.user_auth_id });
+        
+        if (userError) {
+            throw new Error(`Error creating user: ${userError.message}`);
+        }
+    }
+
+    // Then proceed with bounty creation/update
     console.log("checking for bounty with id:", bountyId);
     const { data: existingBounty } = await supabase
         .from('Bounties')
@@ -107,6 +155,6 @@ async function testFn() {
     console.log("testFn")
 }
 
-//main();
+main();
 
 export { getBounties, updateCreateBounty, testFn }
