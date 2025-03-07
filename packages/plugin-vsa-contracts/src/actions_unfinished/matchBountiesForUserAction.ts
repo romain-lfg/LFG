@@ -18,14 +18,31 @@ import { isAddress } from "@ethersproject/address";
 import { CompletedJobData, JobData } from "../type";
 
 import { createBounty } from "@elizaos/nillion-core";
-import { getLivingDocument, updateLivingDocument, getBounties } from "@elizaos/supabase";
-const userAuthId = "123e4567-e89b-12d3-a456-426614174000";
 
 const Handlebars = require('handlebars');
 
 interface BountyData { //Placeholder for the user data TODO: replace with the actual user data
     walletAddress: string;
 }
+
+
+
+const bountyDataTemplate = `Respond with a JSON markdown block containing only the extracted values. Use null for any values that cannot be determined.
+
+Example response:
+\`\`\`json
+{
+    "walletAddress": "0x1234567890123456789012345678901234567890"
+}
+\`\`\`
+
+{{recentMessages}}
+
+Given the recent messages, extract the following information about the bounty: >>>(DO NOT RENAME THE KEYS)<<<
+>>>ONLY USE DATA FROM MESSAGES AFTER THE LAST TIME THE USER ASKED TO CREATE A BOUNTY, if you cannot find the information after the last time the user asked to create a bounty, use null<<<
+- walletAddress
+Respond with a JSON markdown block containing only the extracted values.`;
+
 
 function isBountyData(
     content: BountyData
@@ -86,54 +103,12 @@ export const matchBountiesForUserAction: Action = {
             state = await runtime.updateRecentMessageState(state);
         }
     
-        console.log("Match bounties for user action handler called");
+        console.log("Create bounty action handler called");
     
         try {
-
-            const bounties = await getBounties();
-            let bountiesText = "";
-            for (const bounty of bounties) {
-                bountiesText += `User Auth ID: ${bounty.user_auth_id}\n`;
-                bountiesText += `Created At: ${bounty.created_at}\n`;
-                bountiesText += `Title: ${bounty.title}\n`;
-                bountiesText += `Description: ${bounty.description}\n`;
-                bountiesText += `Required Skills: ${bounty.required_skills.join(", ")}\n`;
-                bountiesText += `Owner Address: ${bounty.owner_address}\n`;
-                bountiesText += `Due Date: ${bounty.date_due}\n`;
-                bountiesText += `Estimated Time: ${bounty.estimated_time} hours\n`;
-                bountiesText += `ID: ${bounty.id}\n`;
-                bountiesText += `Reward Amount: ${bounty.reward_amount} ETH\n`;
-                bountiesText += `State: ${bounty.state}\n`;
-                bountiesText += "----END OF BOUNTY----\n\n";
-            }
-            console.log("Available bounties:", bountiesText);
-
-            const livingDocument = await getLivingDocument(userAuthId);
-            console.log("Living document:", livingDocument);
-
-            const matchmakingTemplate = `
-                {{recentMessages}}
-
-                compare each bounty in ${bountiesText} with the user's available data in ${livingDocument}
-                For each bounty, calculate a score between 0 and 100 based on how well the user fits the bounty requirements and the user's skills and interests
-                also take into account the recent messages.
-                
-                Respond with a JSON markdown block
-            
-                Example response:
-                \`\`\`json
-                {
-                    "matches": "[
-                        {bountyId: 1
-                         score: 4,
-                         reason: "good fit because X"}
-                    ]"
-                }
-                \`\`\``;
-
             const context = composeContext({
                 state,
-                template: matchmakingTemplate,
+                template: bountyDataTemplate,
             });
     
             const content = (await generateObjectDeprecated({
@@ -143,31 +118,87 @@ export const matchBountiesForUserAction: Action = {
             }));
     
             console.log(content);
-            // Sort matches by score in descending order
-            content.matches.sort((a, b) => parseInt(b.score) - parseInt(a.score));
+    
+            if (!isBountyData(content)) {
+                console.log("NOT IS USER DATA");
+                const bountyData = content;
+                const requiredParameters = ["walletAddress"];
+                const confirmed = {};
+                const missing = [];
+    
+                // Check for confirmed and missing parameters
+                for (const param of requiredParameters) {
+                    if (bountyData[param] != null && bountyData[param] != "null") {
+                        console.log("bountyData. " + param + " = " + bountyData[param]);
+                        confirmed[param] = bountyData[param];
+                    } else {
+                        missing.push(param);
+                    }
+                }
+                const missingUserDataTemplate = `Here are the user data parameters I have confirmed:
 
-            if (callback) {
-                let matchText = "Here are the bounties that match your skills, sorted by best match:\n\n";
+                {{#each confirmed}}
+                - {{@key}}: {{this}}
+                {{/each}}
                 
-                for (const match of content.matches) {
-                    matchText += `Bounty ID: ${match.bountyId}\n`;
-                    matchText += `Match Score: ${match.score}%\n`;
-                    matchText += `Reason: ${match.reason}\n`;
-                    matchText += "-------------------\n";
-                }
+                The following required parameters are missing:
+                {{#each missing}}
+                - {{this}}
+                {{/each}}
+                
+                Please provide values for the missing parameters to proceed with the user profile creation.`;
 
-                if (content.matches.length === 0) {
-                    matchText = "No bounties currently match your skills. Please try again later as new bounties are posted.";
+                //TODO add a correct context composition for the missing user data
+                // If there are missing parameters, ask the user for them a
+                if (missing.length > 0) {
+                    const missingParamsList = missing.join(", ");
+                    const promptMessage = `Please provide the following missing information: ${missingParamsList}.`;
+    
+                    if (callback) {
+                        callback({
+                            text: "Please provide the following missing information: " + missingParamsList, //promptMessage,
+                            content: {
+                                success: false,
+                                error: "Missing required token parameters",
+                            },
+                        });
+                    }
+                    return false; // Exit the handler to avoid looping
                 }
+    
+                // Create user data
+                const bountyDataFilled: BountyData = {
+                    walletAddress: content.walletAddress,
+                };
+    
+                // Call the function to process the user profile
+                await processMatchBounties(bountyDataFilled, runtime, callback);
+                if (callback) {
+                    callback({
+                        text: `Successfully matched bounties`,
+                        content: {
+                            success: true,
+                            bountyDataFilled,
+                        },
+                    });
+                }
+    
+                return true;
+            } else {
+                console.log("USER DATA IS VALID");
+                if (callback) {
+                    callback({
+                        text: `Successfully matched bounties`,
+                        content: {
+                            success: true,
+                            content,
+                        },
+                    });
 
-                callback({
-                    text: matchText,
-                    content: { matches: content.matches }
-                });
+                }
+                processMatchBounties(content, runtime, callback);
+                return false;
             }
-
-            return true;
-           
         } catch (error) {
             console.error("Error creating bounty:", error);
             if (callback) {
