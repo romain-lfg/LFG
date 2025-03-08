@@ -171,6 +171,7 @@ const testPrivyTokenVerification = async () => {
   const privyAppId = process.env.PRIVY_APP_ID;
   const privyAppSecret = process.env.PRIVY_APP_SECRET;
   const privyPublicKey = process.env.PRIVY_PUBLIC_KEY;
+  const testToken = process.env.TEST_TOKEN;
   
   if (!privyAppId || !privyAppSecret || !privyPublicKey) {
     console.log(chalk.yellow('⚠️  Skipping Privy token verification test due to missing environment variables'));
@@ -188,8 +189,25 @@ const testPrivyTokenVerification = async () => {
     const privyClient = new PrivyClient(privyAppId, privyAppSecret);
     
     console.log(chalk.green('✅ Successfully initialized Privy client'));
-    console.log(chalk.yellow('⚠️  Note: This does not verify that your credentials are correct, only that the SDK can be initialized'));
-    console.log(chalk.yellow('⚠️  To fully verify your Privy credentials, you need to test with a real token'));
+    
+    // If a test token is available, try to verify it
+    if (testToken) {
+      console.log(chalk.blue('🔑 Test token found. Attempting to verify...'));
+      try {
+        const verifiedClaims = await privyClient.verifyAuthToken(testToken, privyPublicKey);
+        console.log(chalk.green('✅ Token verification successful!'));
+        console.log(chalk.blue('📋 Token claims:'));
+        console.log(JSON.stringify(verifiedClaims, null, 2));
+      } catch (tokenError) {
+        console.log(chalk.red(`❌ Token verification failed: ${tokenError.message}`));
+        console.log(chalk.yellow('⚠️  Your token may be expired or invalid'));
+      }
+    } else {
+      console.log(chalk.yellow('⚠️  No test token found in environment variables'));
+      console.log(chalk.yellow('⚠️  To fully verify your Privy credentials, set the TEST_TOKEN environment variable'));
+      console.log(chalk.yellow('⚠️  You can extract a token using the instructions in scripts/extract-token-instructions.md'));
+    }
+    
     console.log();
   } catch (error) {
     console.log(chalk.red(`❌ Error initializing Privy client: ${error.message}`));
