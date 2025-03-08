@@ -18,8 +18,10 @@
     "express": "^4.18.2",
     "jwks-rsa": "^3.1.0",
     "nillion-sv-wrappers": "^1.0.9",
+    "node-fetch": "^3.3.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
+    "viem": "^2.23.8",
     "winston": "^3.8.2",
     "zod": "^3.21.4"
   },

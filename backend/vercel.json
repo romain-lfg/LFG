@@ -6,23 +6,57 @@
   "outputDirectory": ".vercel/output/functions",
   "builds": [
     {
-      "src": "api/**/*.ts",
+      "src": "api/**/*.{js,ts,cjs}",
       "use": "@vercel/node",
       "config": {
         "maxLambdaSize": "10mb",
         "memory": 1024,
         "maxDuration": 10,
         "includeFiles": [
-          "api/lib/nillion/**/*"
+          "api/lib/nillion/**/*",
+          "src/**/*"
         ]
       }
     }
   ],
   "routes": [
     { "src": "/health|/favicon.ico", "dest": "/api/app.ts", "methods": ["GET"] },
+    { "src": "/api/simple-diagnostic", "dest": "/api/simple-diagnostic.js", "methods": ["GET", "OPTIONS"] },
+    { "src": "/api/commonjs-diagnostic", "dest": "/api/commonjs-diagnostic.cjs", "methods": ["GET", "OPTIONS"] },
+    { "src": "/api/auth-health", "dest": "/api/auth-health.js", "methods": ["GET", "OPTIONS"] },
+    { "src": "/api/diagnostic", "dest": "/api/diagnostic.js", "methods": ["GET", "OPTIONS"] },
+    { 
+      "src": "/api/users/sync", 
+      "dest": "/api/app.ts", 
+      "methods": ["POST", "OPTIONS"],
+      "continue": true,
+      "headers": { 
+        "Access-Control-Allow-Origin": "*", 
+        "Access-Control-Allow-Methods": "POST, OPTIONS", 
+        "Access-Control-Allow-Headers": "Content-Type, Authorization" 
+      }
+    },
+    { "src": "/api/users/test-db-connection", "dest": "/api/app.ts", "methods": ["GET"], "headers": { "Access-Control-Allow-Origin": "*" } },
+    { "src": "/api/health", "dest": "/api/app.ts", "methods": ["GET"], "headers": { "Access-Control-Allow-Origin": "*" } },
     { "src": "/(.*)", "dest": "/api/app.ts" }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "staging",
+    "LOG_LEVEL": "debug",
+    "PORT": "8080",
+    "FRONTEND_URL": "https://lfg-frontend-staging-3vhlp0568-lfg-5fd382da.vercel.app",
+    "CORS_ORIGIN": "https://lfg-frontend-staging-3vhlp0568-lfg-5fd382da.vercel.app",
+    "SUPABASE_URL": "https://kkkwputcwjkuzniuuehq.supabase.co"
+  },
+  "git": {
+    "deploymentEnabled": {
+      "main": false,
+      "staging": true,
+      "production": false
+    }
+  },
+  "github": {
+    "enabled": true,
+    "silent": false
   }
 }
