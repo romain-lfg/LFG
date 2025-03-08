@@ -36,8 +36,43 @@ export class AuthService {
    */
   async verifyToken(token: string) {
     try {
-      // According to Privy docs, verifyAuthToken accepts a string as the second parameter, not an object
-      const verifiedClaims = await privyClient.verifyAuthToken(token, privyPublicKey || '');
+      // Format the public key correctly if it's not already in the right format
+      let formattedPublicKey = privyPublicKey || '';
+      
+      // Ensure the key has the correct header and footer
+      if (!formattedPublicKey.includes('-----BEGIN PUBLIC KEY-----')) {
+        formattedPublicKey = '-----BEGIN PUBLIC KEY-----\n' + formattedPublicKey;
+      }
+      if (!formattedPublicKey.includes('-----END PUBLIC KEY-----')) {
+        formattedPublicKey = formattedPublicKey + '\n-----END PUBLIC KEY-----';
+      }
+      
+      // Ensure there are newlines after the header and before the footer
+      formattedPublicKey = formattedPublicKey.replace('-----BEGIN PUBLIC KEY-----', '-----BEGIN PUBLIC KEY-----\n');
+      formattedPublicKey = formattedPublicKey.replace('-----END PUBLIC KEY-----', '\n-----END PUBLIC KEY-----');
+      
+      // Add newlines every 64 characters in the base64 part if they're not already there
+      const headerIndex = formattedPublicKey.indexOf('-----BEGIN PUBLIC KEY-----\n');
+      const footerIndex = formattedPublicKey.indexOf('\n-----END PUBLIC KEY-----');
+      
+      if (headerIndex !== -1 && footerIndex !== -1) {
+        const base64Part = formattedPublicKey.substring(headerIndex + 28, footerIndex);
+        
+        // If the base64 part doesn't have newlines, add them every 64 characters
+        if (!base64Part.includes('\n')) {
+          let formattedBase64 = '';
+          for (let i = 0; i < base64Part.length; i += 64) {
+            formattedBase64 += base64Part.substring(i, Math.min(i + 64, base64Part.length)) + '\n';
+          }
+          
+          formattedPublicKey = '-----BEGIN PUBLIC KEY-----\n' + formattedBase64 + '-----END PUBLIC KEY-----';
+        }
+      }
+      
+      console.log('Using formatted public key for verification');
+      
+      // Verify the token with the formatted public key
+      const verifiedClaims = await privyClient.verifyAuthToken(token, formattedPublicKey);
       return verifiedClaims;
     } catch (error) {
       console.error('Token verification error:', error);
