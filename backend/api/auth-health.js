@@ -40,7 +40,14 @@ export default async function handler(req, res) {
     const envCheck = {
       hasPrivyAppId: !!privyAppId,
       hasPrivyAppSecret: !!privyAppSecret,
-      hasPrivyPublicKey: !!privyPublicKey
+      hasPrivyPublicKey: !!privyPublicKey,
+      publicKeyFormat: privyPublicKey ? {
+        length: privyPublicKey.length,
+        startsWithHeader: privyPublicKey.includes('-----BEGIN PUBLIC KEY-----'),
+        endsWithFooter: privyPublicKey.includes('-----END PUBLIC KEY-----'),
+        containsNewlines: privyPublicKey.includes('\n'),
+        preview: privyPublicKey.substring(0, 20) + '...' + privyPublicKey.substring(privyPublicKey.length - 20)
+      } : 'not available'
     };
     
     console.log('🔑 Privy environment check:', envCheck);
