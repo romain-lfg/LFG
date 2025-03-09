@@ -1,6 +1,15 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service.js';
 
+// Define the AuthTokenClaims interface to match the structure of Privy token claims
+interface AuthTokenClaims {
+  userId: string;
+  wallet?: { address?: string };
+  email?: { address?: string };
+  name?: string;
+  [key: string]: any;
+}
+
 /**
  * Authentication controller for handling auth-related API endpoints
  */

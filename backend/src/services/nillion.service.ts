@@ -1,4 +1,4 @@
-import { createUser, getUserList, createBounty, getBountyList, matchBountiesUser, matchBountiesOwner } from '../../api/lib/nillion';
+import { createUser, getUserList, createBounty, getBountyList, matchBountiesUser, matchBountiesOwner } from '../../api/lib/nillion.js';
 import { logger } from '../utils/logger';
 
 export interface NillionUserData {

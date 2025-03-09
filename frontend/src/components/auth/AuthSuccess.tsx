@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { CheckCircle } from 'lucide-react';
 
 interface AuthSuccessProps {
   title?: string;
@@ -24,7 +23,22 @@ export const AuthSuccess: React.FC<AuthSuccessProps> = ({
     <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 my-4">
       <div className="flex items-start">
         <div className="flex-shrink-0">
-          <CheckCircle className="h-5 w-5 text-green-500" />
+          {/* Simple check circle SVG instead of lucide component */}
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="20" 
+            height="20" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            className="text-green-500"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9 12l2 2 4-4"></path>
+          </svg>
         </div>
         <div className="ml-3">
           <h3 className="text-sm font-medium text-green-800 dark:text-green-300">{title}</h3>

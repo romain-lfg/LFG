@@ -4,8 +4,11 @@ import { createBounty, getBountyList, clearBounties, matchBountiesUser } from '.
 import userRoutes from '../src/routes/user.routes.js';
 import authRoutes from '../src/routes/auth.routes.js';
 import nillionRoutes from '../src/routes/nillion.routes.js';
-import { monitoringMiddleware } from '../src/middleware/monitoring.middleware';
-import { monitoring } from '../src/utils/monitoring';
+import { supabase } from '../src/config/supabase.js';
+import { UserController } from '../src/controllers/user.controller.js';
+// Monitoring middleware imports commented out for now as they don't exist
+// import { monitoringMiddleware } from '../src/middleware/monitoring.middleware';
+// import { monitoring } from '../src/utils/monitoring';
 
 // Create Express app
 const app = express();
@@ -17,6 +20,12 @@ const corsOptions = {
         'https://lfg-platform.vercel.app',  // Production frontend
         'http://localhost:3000',  // Allow local frontend to access production API
       ]
+    : process.env.NODE_ENV === 'staging'
+    ? [
+        'https://lfg-frontend-staging.vercel.app',  // Staging frontend
+        'https://lfg-frontend-staging-m217qrtsi-lfg-5fd382da.vercel.app', // Deployment-specific staging URL
+        'http://localhost:3000',  // Allow local frontend to access staging API
+      ]
     : 'http://localhost:3000',  // Development
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -24,13 +33,37 @@ const corsOptions = {
   maxAge: 86400  // Cache preflight requests for 24 hours
 };
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`📥 Request: ${req.method} ${req.url}`, {
+    headers: req.headers,
+    body: req.body,
+    path: req.path,
+    originalUrl: req.originalUrl
+  });
+  next();
+});
+
 // Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(monitoringMiddleware);
+
+// Add OPTIONS handling for CORS preflight requests
+app.options('*', cors(corsOptions));
+
+// Debug route to test POST requests
+app.post('/api/debug/test-post', (req, res) => {
+  console.log('Debug test POST received:', {
+    body: req.body,
+    headers: req.headers
+  });
+  res.status(200).json({ success: true, message: 'POST request received successfully' });
+});
+
+// app.use(monitoringMiddleware); // Commented out as middleware doesn't exist yet
 
 // Initialize monitoring
-monitoring.initialize();
+// monitoring.initialize(); // Commented out as monitoring utility doesn't exist yet
 
 // Register routes
 app.use('/api/users', userRoutes);
@@ -125,7 +158,41 @@ if (process.env.NODE_ENV !== 'production') {
 // Export a request handler function for Vercel
 export default async function handler(req: any, res: any) {
   try {
+    console.log(`🔄 Handler received request: ${req.method} ${req.url}`, {
+      path: req.path,
+      originalUrl: req.originalUrl,
+      headers: req.headers
+    });
+    
     await waitForNillionInit();
+    
+    // Special handling for /api/users/sync endpoint
+    if (req.url === '/api/users/sync' && req.method === 'POST') {
+      console.log('🔍 Direct handling of /api/users/sync POST request');
+      
+      // Parse the request body if it hasn't been parsed yet
+      if (typeof req.body === 'string' || !req.body) {
+        try {
+          req.body = typeof req.body === 'string' ? JSON.parse(req.body) : {};
+        } catch (e) {
+          console.error('Error parsing request body:', e);
+          req.body = {};
+        }
+      }
+      
+      // Directly call the controller method
+      const userController = new UserController();
+      return userController.syncUser(req, res);
+    }
+    
+    // Special handling for OPTIONS requests to enable CORS
+    if (req.method === 'OPTIONS') {
+      console.log('🔍 Handling OPTIONS request with CORS headers');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      return res.status(200).end();
+    }
     
     // Create a proper Express request handler
     app(req, res);
@@ -140,8 +207,42 @@ export default async function handler(req: any, res: any) {
 }
 
 // Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+app.get('/health', async (req, res) => {
+  try {
+    // Add CORS headers to ensure this endpoint can be called from any origin
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    
+    // Check database connection if supabase is available
+    let dbStatus = 'unknown';
+    let dbResponseTime = null;
+    
+    if (typeof supabase !== 'undefined') {
+      const startTime = Date.now();
+      try {
+        const { error } = await supabase.from('users').select('count').limit(1);
+        dbStatus = error ? 'error' : 'connected';
+        dbResponseTime = Date.now() - startTime;
+      } catch (error) {
+        dbStatus = 'error';
+        console.error('Database connection error:', error);
+      }
+    }
+    
+    res.json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      database: {
+        status: dbStatus,
+        responseTime: dbResponseTime
+      }
+    });
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(500).json({ status: 'error', error: 'Health check failed' });
+  }
 });
 
 // Create a bounty

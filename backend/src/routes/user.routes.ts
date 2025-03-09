@@ -54,7 +54,7 @@ router.post('/sync', authenticateUser, userController.syncUser.bind(userControll
  *       500:
  *         description: Internal server error
  */
-router.get('/me', authenticateUser, userController.getCurrentUser.bind(userController));
+router.get('/me', authenticateUser, userController.getProfile.bind(userController));
 
 /**
  * @swagger
@@ -84,6 +84,20 @@ router.get('/me', authenticateUser, userController.getCurrentUser.bind(userContr
  *       500:
  *         description: Internal server error
  */
-router.put('/profile', authenticateUser, userController.updateUserProfile.bind(userController));
+router.put('/profile', authenticateUser, userController.updateProfile.bind(userController));
+
+/**
+ * @swagger
+ * /api/users/test-db-connection:
+ *   get:
+ *     summary: Test database connection
+ *     description: Verifies that the Supabase database connection is working correctly
+ *     responses:
+ *       200:
+ *         description: Database connection successful
+ *       500:
+ *         description: Database connection failed
+ */
+router.get('/test-db-connection', userController.testDatabaseConnection.bind(userController));
 
 export default router;

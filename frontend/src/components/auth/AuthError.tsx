@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { AlertCircle } from 'lucide-react';
 
 interface AuthErrorProps {
   title?: string;
@@ -22,7 +21,23 @@ export const AuthError: React.FC<AuthErrorProps> = ({
     <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 my-4">
       <div className="flex items-start">
         <div className="flex-shrink-0">
-          <AlertCircle className="h-5 w-5 text-red-500" />
+          {/* Simple alert circle SVG instead of lucide component */}
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="20" 
+            height="20" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            className="text-red-500"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
         </div>
         <div className="ml-3">
           <h3 className="text-sm font-medium text-red-800 dark:text-red-300">{title}</h3>

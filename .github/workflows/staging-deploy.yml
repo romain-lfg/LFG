@@ -1,0 +1,115 @@
+name: Staging Deployment
+
+on:
+  push:
+    branches: [ staging ]
+  workflow_dispatch:
+
+jobs:
+  deploy-backend-staging:
+    name: Deploy Backend to Staging
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      
+      - name: Deploy to Vercel
+        run: |
+          cd backend
+          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_BACKEND_PROJECT_ID }}
+          # Backend environment variables
+          NODE_ENV: staging
+          PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
+          PRIVY_APP_SECRET: ${{ secrets.PRIVY_APP_SECRET }}
+          PRIVY_PUBLIC_KEY: ${{ secrets.PRIVY_PUBLIC_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+  deploy-frontend-staging:
+    name: Deploy Frontend to Staging
+    needs: [deploy-backend-staging]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      
+      - name: Deploy to Vercel
+        run: |
+          cd frontend
+          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          # Set special environment variables for build
+          echo "NEXT_PUBLIC_SKIP_AUTH_DURING_BUILD=true" >> .vercel/.env.preview.local
+          vercel build --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
+          # Frontend environment variables
+          NEXT_PUBLIC_ENVIRONMENT: staging
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_PRIVY_APP_ID: ${{ secrets.NEXT_PUBLIC_PRIVY_APP_ID }}
+          NEXT_PUBLIC_SKIP_AUTH_DURING_BUILD: "true"
+
+  basic-verification:
+    name: Basic Deployment Check
+    needs: [deploy-backend-staging, deploy-frontend-staging]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check Backend Health
+        run: |
+          BACKEND_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+          echo "Checking backend at $BACKEND_URL/health"
+          response=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/health)
+          
+          if [ "$response" = "200" ]; then
+            echo "✅ Backend is up!"
+          else
+            echo "❌ Backend check failed with status code: $response"
+            exit 1
+          fi
+
+      - name: Check Frontend
+        run: |
+          FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          echo "Checking frontend at $FRONTEND_URL"
+          response=$(curl -s -o /dev/null -w "%{http_code}" $FRONTEND_URL)
+          
+          if [ "$response" = "200" ]; then
+            echo "✅ Frontend is up!"
+          else
+            echo "❌ Frontend check failed with status code: $response"
+            exit 1
+          fi
+          if [ "${{ needs.deploy-backend-staging.result }}" == "success" ] && [ "${{ needs.deploy-frontend-staging.result }}" == "success" ]; then
+            echo "Deployment successful! 🎉"
+            echo "Backend URL: ${{ secrets.NEXT_PUBLIC_API_URL }}"
+            echo "Frontend URL: ${{ secrets.FRONTEND_URL }}"
+          else
+            echo "Deployment failed! ❌"
+            echo "Please check the logs for more information."
+          fi

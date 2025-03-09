@@ -1,6 +1,6 @@
 import express from 'express';
-import { NillionController } from '../controllers/nillion.controller';
-import { authenticateToken } from '../middleware/auth.middleware';
+import { NillionController } from '../controllers/nillion.controller.js';
+import { authenticateUser } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 const nillionController = new NillionController();
@@ -19,7 +19,7 @@ router.get('/bounties', async (req, res) => {
  * @desc    Create a new bounty
  * @access  Private
  */
-router.post('/bounties', authenticateToken, async (req, res) => {
+router.post('/bounties', authenticateUser, async (req, res) => {
   await nillionController.createBounty(req, res);
 });
 
@@ -28,7 +28,7 @@ router.post('/bounties', authenticateToken, async (req, res) => {
  * @desc    Get all bounties owned by the authenticated user
  * @access  Private
  */
-router.get('/user/bounties', authenticateToken, async (req, res) => {
+router.get('/user/bounties', authenticateUser, async (req, res) => {
   await nillionController.getUserBounties(req, res);
 });
 
@@ -37,7 +37,7 @@ router.get('/user/bounties', authenticateToken, async (req, res) => {
  * @desc    Match the authenticated user with bounties
  * @access  Private
  */
-router.get('/user/matches', authenticateToken, async (req, res) => {
+router.get('/user/matches', authenticateUser, async (req, res) => {
   await nillionController.matchUserWithBounties(req, res);
 });
 

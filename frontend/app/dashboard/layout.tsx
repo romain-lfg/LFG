@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { 
   IconHome,
   IconBriefcase,
@@ -10,9 +10,6 @@ import {
   IconPlus,
   IconChartBar
 } from '@tabler/icons-react';
-import CreateBountyModal from '@/components/bounties/CreateBountyModal';
-import { apiClient, Bounty } from '@/lib/api/client';
-import { useAuth } from '@/context/AuthContext';
 
 const navigation = [
   { name: 'Overview', href: '/dashboard', icon: IconHome },
@@ -26,29 +23,15 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const { isAuthenticated, isLoading, activeWallet } = useAuth();
-
-  // Redirect to home if not authenticated
+  const [isMounted, setIsMounted] = useState(false);
+  
+  // Only render on client-side
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/');
-    }
-  }, [isAuthenticated, isLoading, router]);
+    setIsMounted(true);
+  }, []);
 
-  const handleCreateBounty = async (bounty: Bounty) => {
-    try {
-      await apiClient.createBounty(bounty);
-      setIsCreateModalOpen(false);
-      router.push('/bounties');
-    } catch (err) {
-      console.error('Failed to create bounty:', err);
-    }
-  };
-
-  // Show loading state while checking authentication
-  if (isLoading) {
+  // Show loading state during SSR
+  if (!isMounted) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-400"></div>
@@ -56,92 +39,54 @@ export default function DashboardLayout({
     );
   }
 
-  // Only render dashboard if authenticated
-  if (!isAuthenticated) {
-    return null; // Will redirect in useEffect
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex">
-      {/* Side Navigation */}
-      <nav className="fixed inset-y-0 left-0 w-64 z-50 bg-gray-900/50 backdrop-blur-xl border-r border-white/[0.05] flex flex-col">
-        <div className="flex h-16 shrink-0 items-center px-4 border-b border-white/[0.05]">
-          <div className="container">
-            <Link 
-              href="/"
-              className="flex items-center text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-500 text-transparent bg-clip-text hover:from-indigo-300 hover:to-purple-400 transition-all"
-            >
-              LFG
-            </Link>
-          </div>
-        </div>
-        <div className="px-2 py-4">
-          {navigation.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`
-                  group relative flex items-center gap-x-3 rounded-lg p-2 text-sm font-semibold leading-6 mb-1
-                  ${isActive 
-                    ? 'text-white bg-white/[0.06]' 
-                    : 'text-gray-300 hover:text-white hover:bg-white/[0.06]'
-                  }
-                `}
-              >
-                <Icon 
-                  className={`h-5 w-5 shrink-0 ${isActive ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white'}`} 
-                  aria-hidden="true" 
-                />
-                {item.name}
-              </Link>
-            );
-          })}
-        </div>
-        <div className="absolute bottom-4 left-0 right-0 px-4">
-          <button 
-            onClick={() => setIsCreateModalOpen(true)}
-            className="navbar-button w-full flex items-center justify-center gap-x-2"
-          >
-            <IconPlus className="h-5 w-5" />
-            Create Bounty
-          </button>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="flex-1 pl-64">
-        <div className="sticky top-0 z-40 h-16 bg-gray-900/50 backdrop-blur-xl border-b border-white/[0.05]">
-          <div className="flex h-16 items-center justify-between px-6">
-            <h1 className="text-lg font-semibold text-white">
-              {navigation.find((item) => item.href === pathname)?.name || 'Dashboard'}
-            </h1>
-            <div className="flex items-center gap-x-4">
-              <div className="flex items-center gap-x-2">
-                <div className="h-2 w-2 rounded-full bg-emerald-400"></div>
-                <span className="text-sm text-gray-300">VSA Active</span>
-              </div>
-              <div className="text-sm text-gray-300">
-                {activeWallet?.address ? 
-                  `${activeWallet.address.substring(0, 6)}...${activeWallet.address.substring(activeWallet.address.length - 4)}` : 
-                  '0x742...3ab4'}
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
+      <div className="flex h-screen overflow-hidden">
+        {/* Sidebar */}
+        <div className="hidden md:flex md:flex-shrink-0">
+          <div className="flex flex-col w-64">
+            <div className="flex flex-col h-0 flex-1 border-r border-white/[0.05] bg-black/30 backdrop-blur-xl">
+              <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+                <div className="flex items-center flex-shrink-0 px-4">
+                  <span className="text-xl font-bold text-white">LFG Dashboard</span>
+                </div>
+                <nav className="mt-8 flex-1 px-2 space-y-1">
+                  {navigation.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = pathname === item.href;
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={`group flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
+                          isActive
+                            ? 'bg-white/[0.08] text-white'
+                            : 'text-gray-300 hover:bg-white/[0.04] hover:text-white'
+                        }`}
+                      >
+                        <Icon
+                          className={`mr-3 h-5 w-5 ${
+                            isActive ? 'text-indigo-400' : 'text-gray-400 group-hover:text-indigo-400'
+                          }`}
+                          aria-hidden="true"
+                        />
+                        {item.name}
+                      </Link>
+                    );
+                  })}
+                </nav>
               </div>
             </div>
           </div>
         </div>
-        <div className="p-6">
-          {children}
-        </div>
-      </main>
 
-      {/* Create Bounty Modal */}
-      <CreateBountyModal 
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleCreateBounty}
-      />
+        {/* Main content */}
+        <div className="flex flex-col w-0 flex-1 overflow-hidden">
+          <main className="flex-1 relative overflow-y-auto focus:outline-none p-6">
+            {children}
+          </main>
+        </div>
+      </div>
     </div>
   );
 }

@@ -7,6 +7,34 @@ const authController = new AuthController();
 
 /**
  * @swagger
+ * /api/auth/health:
+ *   get:
+ *     summary: Check auth service health
+ *     description: Public endpoint to check if the auth service is running
+ *     responses:
+ *       200:
+ *         description: Auth service is healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ */
+router.get('/health', (req, res) => {
+  console.log('Auth health check requested');
+  return res.status(200).json({
+    status: 'ok',
+    message: 'Auth service is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+/**
+ * @swagger
  * /api/auth/verify:
  *   post:
  *     summary: Verify authentication token

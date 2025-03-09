@@ -45,11 +45,24 @@ declare global {
  */
 export const authenticateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // Always allow OPTIONS requests to pass through for CORS preflight
+    if (req.method === 'OPTIONS') {
+      console.log('🔑 Auth middleware: Allowing OPTIONS request to pass through');
+      return next();
+    }
+
+    console.log('🔑 Auth middleware: Processing authentication request', {
+      path: req.path,
+      method: req.method,
+      hasAuthHeader: !!req.headers.authorization
+    });
+
     // Get authorization header
     const authHeader = req.headers.authorization;
     
     // Check if authorization header exists and has the correct format
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.warn('🔑 Auth middleware: Missing or invalid token format');
       res.status(401).json({ 
         error: 'Unauthorized: Missing or invalid token format',
         message: 'Authentication token is missing or has an invalid format',
@@ -60,8 +73,10 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     
     // Extract token from header
     const token = authHeader.split(' ')[1];
+    console.log('🔑 Auth middleware: Token extracted from header');
     
     if (!token || token.trim() === '') {
+      console.warn('🔑 Auth middleware: Empty token');
       res.status(401).json({ 
         error: 'Unauthorized: Empty token',
         message: 'Authentication token cannot be empty',
@@ -72,10 +87,21 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     
     // Verify token
     try {
+      console.log('🔑 Auth middleware: Verifying token with Privy', {
+        tokenLength: token.length,
+        hasPrivyPublicKey: !!privyPublicKey
+      });
+
       // According to Privy docs, verifyAuthToken accepts a string as the second parameter, not an object
       const verifiedClaims = await privyClient.verifyAuthToken(token, privyPublicKey || '');
       
+      console.log('🔑 Auth middleware: Token verification result', {
+        success: !!verifiedClaims,
+        hasUserId: !!verifiedClaims?.userId
+      });
+
       if (!verifiedClaims || !verifiedClaims.userId) {
+        console.warn('🔑 Auth middleware: Invalid token claims');
         res.status(401).json({ 
           error: 'Unauthorized: Invalid token claims',
           message: 'Token verification failed: missing user ID in claims',
@@ -85,9 +111,19 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
       }
       
       // Get user details from Privy to access wallet and email information
+      console.log('🔑 Auth middleware: Getting user details from Privy', {
+        userId: verifiedClaims.userId
+      });
+
       const authService = new AuthService();
       const userDetails = await authService.getUserDetails(verifiedClaims.userId);
       
+      console.log('🔑 Auth middleware: User details retrieved', {
+        hasWallet: !!userDetails?.wallet,
+        hasEmail: !!userDetails?.email,
+        userId: verifiedClaims.userId
+      });
+
       // Add user information to request object
       req.user = {
         id: verifiedClaims.userId,
@@ -98,26 +134,36 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
         claims: verifiedClaims
       };
       
+      console.log('🔑 Auth middleware: Authentication successful', {
+        userId: req.user.id,
+        hasWalletAddress: !!req.user.walletAddress,
+        hasEmail: !!req.user.email
+      });
+
       next();
     } catch (error: unknown) {
-      console.error('Token verification error:', error);
+      console.error('🔑 Auth middleware: Token verification error:', error);
       
       // Provide more specific error messages based on the error type
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.log('🔑 Auth middleware: Token error details', { errorMessage });
       
       if (error instanceof Error && errorMessage.includes('expired')) {
+        console.warn('🔑 Auth middleware: Token expired');
         res.status(401).json({ 
           error: 'Unauthorized: Token expired',
           message: 'Your authentication session has expired. Please log in again.',
           code: 'AUTH_TOKEN_EXPIRED'
         });
       } else if (error instanceof Error && errorMessage.includes('signature')) {
+        console.warn('🔑 Auth middleware: Invalid token signature');
         res.status(401).json({ 
           error: 'Unauthorized: Invalid token signature',
           message: 'Token has an invalid signature',
           code: 'AUTH_INVALID_SIGNATURE'
         });
       } else {
+        console.warn('🔑 Auth middleware: General token verification failure');
         res.status(401).json({ 
           error: 'Unauthorized: Invalid token',
           message: 'Authentication failed due to an invalid token',
@@ -126,8 +172,9 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
       }
     }
   } catch (error: unknown) {
-    console.error('Authentication error:', error);
+    console.error('🔑 Auth middleware: Authentication error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.log('🔑 Auth middleware: General auth error details', { errorMessage });
     res.status(500).json({ 
       error: 'Internal server error during authentication',
       message: 'An unexpected error occurred during authentication',

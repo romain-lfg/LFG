@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { NillionService } from '../services/nillion.service';
+import { NillionService } from '../services/nillion.service.js';
 import { logger } from '../utils/logger';
 
 /**

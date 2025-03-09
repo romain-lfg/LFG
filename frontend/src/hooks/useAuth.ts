@@ -77,9 +77,21 @@ export const useAuth = () => {
 
   // Sync user data with our backend when authentication state changes
   const syncUserWithBackend = useCallback(async () => {
-    if (!authenticated || !user || !wallets.length) return;
+    if (!authenticated || !user || !wallets.length) {
+      console.log('Not syncing user: missing auth, user, or wallet', { 
+        authenticated, 
+        user: !!user, 
+        wallets: wallets.length 
+      });
+      return;
+    }
 
     try {
+      console.log('Starting user sync with backend', {
+        userId: user.id,
+        email: user.email?.address,
+        walletsCount: wallets.length
+      });
       setIsSyncing(true);
       const activeWallet = wallets[0]; // Use the first wallet as the active one
       const token = await getAccessToken();
@@ -90,27 +102,41 @@ export const useAuth = () => {
         return;
       }
 
+      console.log('Got token from Privy, sending to backend', { 
+        userId: user.id, 
+        wallet: activeWallet.address,
+        apiUrl: process.env.NEXT_PUBLIC_API_URL
+      });
+
+      const userData = {
+        walletAddress: activeWallet.address,
+        email: user.email?.address,
+        metadata: {
+          // Use only available properties from the user object
+          userId: user.id,
+          // Add any other user metadata you want to store
+        }
+      };
+      
+      console.log('User data being sent to backend:', userData);
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/sync`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          walletAddress: activeWallet.address,
-          email: user.email?.address,
-          metadata: {
-            // Use only available properties from the user object
-            userId: user.id,
-            // Add any other user metadata you want to store
-          }
-        }),
+        body: JSON.stringify(userData),
       });
 
+      console.log('Backend response status:', response.status);
+      
       if (!response.ok) {
-        console.error('Failed to sync user with backend');
+        const errorText = await response.text();
+        console.error('Failed to sync user with backend', { status: response.status, error: errorText });
       } else {
         const data = await response.json();
+        console.log('User synced successfully', data);
         setUserProfile(data.user);
       }
     } catch (error) {
@@ -122,17 +148,23 @@ export const useAuth = () => {
 
   // Fetch user profile from backend
   const fetchUserProfile = useCallback(async () => {
-    if (!authenticated) return;
+    if (!authenticated) {
+      console.log('Not fetching profile: user not authenticated');
+      return;
+    }
     
     try {
+      console.log('Fetching user profile from backend');
       setIsSyncing(true);
       const token = await getAccessToken();
       
       if (!token) {
-        console.error('No access token available');
+        console.error('No access token available for profile fetch');
         setIsSyncing(false);
         return;
       }
+
+      console.log('Got token, fetching profile from', process.env.NEXT_PUBLIC_API_URL);
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
         headers: {
@@ -140,9 +172,15 @@ export const useAuth = () => {
         },
       });
 
+      console.log('Profile fetch response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('User profile fetched successfully', data);
         setUserProfile(data.user);
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to fetch user profile', { status: response.status, error: errorText });
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
