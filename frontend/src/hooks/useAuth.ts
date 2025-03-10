@@ -140,10 +140,16 @@ export const useAuth = () => {
         body: JSON.stringify(userData),
       });
 
+      // Create a simple object with key response headers instead of using entries() iterator
+      const headerObj: Record<string, string> = {};
+      response.headers.forEach((value, key) => {
+        headerObj[key] = value;
+      });
+      
       console.log('Backend sync response received', {
         status: response.status,
         statusText: response.statusText,
-        headers: Object.fromEntries([...response.headers.entries()]),
+        headers: headerObj,
         ok: response.ok
       });
       
@@ -218,10 +224,16 @@ export const useAuth = () => {
         },
       });
 
+      // Create a simple object with key response headers instead of using entries() iterator
+      const headerObj: Record<string, string> = {};
+      response.headers.forEach((value, key) => {
+        headerObj[key] = value;
+      });
+      
       console.log('Profile fetch response received', {
         status: response.status,
         statusText: response.statusText,
-        headers: Object.fromEntries([...response.headers.entries()]),
+        headers: headerObj,
         ok: response.ok
       });
 
