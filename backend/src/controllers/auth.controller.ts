@@ -82,9 +82,9 @@ export class AuthController {
         // Include safe claims (don't expose sensitive information)
         claims: {
           userId: session.claims.userId,
-          walletAddress: session.claims.wallet?.address,
-          email: session.claims.email?.address,
-          name: session.claims.name
+          walletAddress: (session.claims as any).wallet?.address,
+          email: (session.claims as any).email?.address,
+          name: (session.claims as any).name
         }
       });
     } catch (error) {
