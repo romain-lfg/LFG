@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrivyClient } from '@privy-io/server-auth';
 import dotenv from 'dotenv';
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '../services/auth.service.js';
 
 // Load environment variables
 dotenv.config();

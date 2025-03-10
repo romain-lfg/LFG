@@ -14,7 +14,12 @@
         "maxDuration": 10,
         "includeFiles": [
           "api/lib/nillion/**/*",
-          "src/**/*"
+          "src/**/*",
+          "dist/**/*"
+        ],
+        "bundle": true,
+        "nodeModules": [
+          "@privy-io/server-auth"
         ]
       }
     }

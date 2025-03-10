@@ -6,7 +6,7 @@
   "main": "api/app.js",
   "scripts": {
     "dev": "NODE_OPTIONS='--loader ts-node/esm' ts-node api/app.ts",
-    "build": "tsc --project tsconfig.build.json && cp -r api/lib/nillion .vercel/output/functions/api/lib/",
+    "build": "tsc --project tsconfig.build.json && cp -r api/lib/nillion .vercel/output/functions/api/lib/ && mkdir -p .vercel/output/functions/src/services && cp -r dist/src/services/* .vercel/output/functions/src/services/",
     "start": "node .vercel/output/functions/api/app.js",
     "test": "NODE_OPTIONS='--loader ts-node/esm --no-warnings' TS_NODE_PROJECT=tsconfig.test.json mocha"
   },
