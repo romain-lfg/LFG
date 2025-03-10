@@ -15,7 +15,9 @@
         "includeFiles": [
           "api/lib/nillion/**/*",
           "src/**/*",
-          "dist/**/*"
+          "dist/**/*",
+          "src/utils/**/*",
+          "dist/src/utils/**/*"
         ],
         "bundle": true,
         "nodeModules": [

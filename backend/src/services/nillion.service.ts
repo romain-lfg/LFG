@@ -1,5 +1,5 @@
 import { createUser, getUserList, createBounty, getBountyList, matchBountiesUser, matchBountiesOwner } from '../../api/lib/nillion.js';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 import dotenv from 'dotenv';
 
 // Load environment variables
