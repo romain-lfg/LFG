@@ -1,10 +1,32 @@
+# Dependencies
 node_modules
 /out
 
+# Environment files - root level
 .env
-.env.production
-.env.local
-.env_main
+.env.*
+!.env.example
+
+# Environment files - backend
+backend/.env
+backend/.env.*
+!backend/.env.example
+!backend/.env.production.template
+
+# Environment files - frontend
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+!frontend/.env.production.template
+
+# Environment files - packages
+packages/**/.env
+packages/**/.env.*
+!packages/**/.env.example
+
+# Scripts with sensitive data
+scripts/**/*key*.js
+scripts/**/*secret*.js
 concatenated-output.ts
 embedding-cache.json
 packages/plugin-buttplug/intiface-engine
