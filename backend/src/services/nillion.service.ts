@@ -1,5 +1,12 @@
 import { createUser, getUserList, createBounty, getBountyList, matchBountiesUser, matchBountiesOwner } from '../../api/lib/nillion.js';
 import { logger } from '../utils/logger';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+// Get environment
+const nodeEnv = process.env.NODE_ENV || 'development';
 
 export interface NillionUserData {
   id: string;
@@ -33,6 +40,8 @@ export class NillionService {
    */
   async storeUserData(userData: NillionUserData): Promise<void> {
     try {
+      logger.info(`🔒 NillionService: Storing user data in Nillion for user ${userData.id} (wallet: ${!!userData.walletAddress}, email: ${!!userData.email}, env: ${nodeEnv})`);
+      
       // Format data for Nillion
       const nillionData = {
         id: userData.id,
@@ -43,10 +52,19 @@ export class NillionService {
         updated_at: new Date().toISOString()
       };
 
+      logger.info(`🔒 NillionService: Calling Nillion createUser function for user ${userData.id} (env: ${nodeEnv})`);
+      
       await createUser(nillionData);
-      logger.info(`User data stored in Nillion for user ${userData.id}`);
+      
+      logger.info(`🔒 NillionService: User data stored in Nillion successfully for user ${userData.id} (env: ${nodeEnv})`);
     } catch (error) {
-      logger.error('Error storing user data in Nillion:', error);
+      logger.error('🔒 NillionService: Error storing user data in Nillion:', error);
+      
+      // Log detailed error information
+      if (error instanceof Error) {
+        logger.error(`🔒 NillionService: Error details - Name: ${error.name}, Message: ${error.message}, Env: ${nodeEnv}`);
+      }
+      
       throw new Error('Failed to store user data in Nillion');
     }
   }
@@ -56,10 +74,21 @@ export class NillionService {
    */
   async getAllUsers(): Promise<any[]> {
     try {
+      logger.info(`🔒 NillionService: Getting all users from Nillion (env: ${nodeEnv})`);
+      
       const users = await getUserList();
+      
+      logger.info(`🔒 NillionService: Retrieved ${users.length} users from Nillion (env: ${nodeEnv})`);
+      
       return users;
     } catch (error) {
-      logger.error('Error getting users from Nillion:', error);
+      logger.error('🔒 NillionService: Error getting users from Nillion:', error);
+      
+      // Log detailed error information
+      if (error instanceof Error) {
+        logger.error(`🔒 NillionService: Error details - Name: ${error.name}, Message: ${error.message}, Env: ${nodeEnv}`);
+      }
+      
       throw new Error('Failed to get users from Nillion');
     }
   }
@@ -99,10 +128,22 @@ export class NillionService {
    */
   async getAllBounties(): Promise<any[]> {
     try {
+      logger.info(`🔒 NillionService: Getting all bounties from Nillion (env: ${nodeEnv})`);
+      
       const bounties = await getBountyList();
+      
+      const sampleInfo = bounties.length > 0 ? ` Sample: ID=${bounties[0].id}, Title=${bounties[0].title}, Status=${bounties[0].status}` : '';
+      logger.info(`🔒 NillionService: Retrieved ${bounties.length} bounties from Nillion (env: ${nodeEnv}).${sampleInfo}`);
+      
       return bounties;
     } catch (error) {
-      logger.error('Error getting bounties from Nillion:', error);
+      logger.error('🔒 NillionService: Error getting bounties from Nillion:', error);
+      
+      // Log detailed error information
+      if (error instanceof Error) {
+        logger.error(`🔒 NillionService: Error details - Name: ${error.name}, Message: ${error.message}, Env: ${nodeEnv}`);
+      }
+      
       throw new Error('Failed to get bounties from Nillion');
     }
   }
@@ -113,10 +154,28 @@ export class NillionService {
    */
   async matchUserWithBounties(userId: string): Promise<any[]> {
     try {
+      logger.info(`🔒 NillionService: Matching user with bounties for user ${userId} (env: ${nodeEnv})`);
+      
       const matches = await matchBountiesUser(userId);
+      
+      const sampleMatchInfo = matches.length > 0 ? ` Sample: ID=${matches[0].id}, Title=${matches[0].title}, Score=${matches[0].matchScore || 'N/A'}` : '';
+      logger.info(`🔒 NillionService: Found ${matches.length} matching bounties for user ${userId} (env: ${nodeEnv}).${sampleMatchInfo}`);
+      
       return matches;
     } catch (error) {
-      logger.error(`Error matching user ${userId} with bounties:`, error);
+      logger.error(`🔒 NillionService: Error matching user ${userId} with bounties:`, error);
+      
+      // Log detailed error information
+      if (error instanceof Error) {
+        logger.error('🔒 NillionService: Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          userId,
+          environment: nodeEnv
+        });
+      }
+      
       throw new Error('Failed to match user with bounties');
     }
   }
@@ -127,10 +186,28 @@ export class NillionService {
    */
   async getBountiesByOwner(userId: string): Promise<any[]> {
     try {
+      logger.info(`🔒 NillionService: Getting bounties for owner ${userId} (env: ${nodeEnv})`);
+      
       const bounties = await matchBountiesOwner(userId);
+      
+      const sampleOwnerInfo = bounties.length > 0 ? ` Sample: ID=${bounties[0].id}, Title=${bounties[0].title}, Status=${bounties[0].status}` : '';
+      logger.info(`🔒 NillionService: Retrieved ${bounties.length} bounties for owner ${userId} (env: ${nodeEnv}).${sampleOwnerInfo}`);
+      
       return bounties;
     } catch (error) {
-      logger.error(`Error getting bounties for owner ${userId}:`, error);
+      logger.error(`🔒 NillionService: Error getting bounties for owner ${userId}:`, error);
+      
+      // Log detailed error information
+      if (error instanceof Error) {
+        logger.error('🔒 NillionService: Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          userId,
+          environment: nodeEnv
+        });
+      }
+      
       throw new Error('Failed to get bounties by owner');
     }
   }

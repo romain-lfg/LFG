@@ -10,6 +10,17 @@ dotenv.config();
 const privyAppId = process.env.PRIVY_APP_ID;
 const privyAppSecret = process.env.PRIVY_APP_SECRET;
 const privyPublicKey = process.env.PRIVY_PUBLIC_KEY;
+const nodeEnv = process.env.NODE_ENV || 'development';
+
+// Log environment information
+console.log('🔑 Auth middleware: Environment configuration', {
+  environment: nodeEnv,
+  hasPrivyAppId: !!privyAppId,
+  hasPrivyAppSecret: !!privyAppSecret,
+  hasPrivyPublicKey: !!privyPublicKey,
+  privyPublicKeyLength: privyPublicKey ? privyPublicKey.length : 0,
+  privyPublicKeyFormat: privyPublicKey ? (privyPublicKey.includes('BEGIN PUBLIC KEY') ? 'PEM format' : 'Raw format') : 'None'
+});
 
 // Validate environment variables
 if (!privyAppId || !privyPublicKey) {
@@ -87,17 +98,38 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     
     // Verify token
     try {
+      // Log token details (safely)
       console.log('🔑 Auth middleware: Verifying token with Privy', {
         tokenLength: token.length,
-        hasPrivyPublicKey: !!privyPublicKey
+        tokenPrefix: token.substring(0, 10) + '...',
+        hasPrivyPublicKey: !!privyPublicKey,
+        privyPublicKeyLength: privyPublicKey ? privyPublicKey.length : 0,
+        privyPublicKeyFormat: privyPublicKey ? (privyPublicKey.includes('BEGIN PUBLIC KEY') ? 'PEM format' : 'Raw format') : 'None',
+        environment: nodeEnv
+      });
+
+      // Log the exact format of the public key being used
+      console.log('🔑 Auth middleware: Public key format check', {
+        startsWithHeader: privyPublicKey ? privyPublicKey.startsWith('-----BEGIN PUBLIC KEY-----') : false,
+        endsWithFooter: privyPublicKey ? privyPublicKey.endsWith('-----END PUBLIC KEY-----') : false,
+        containsNewlines: privyPublicKey ? privyPublicKey.includes('\n') : false,
+        // Log a safe version of the key for debugging
+        safeKeyPreview: privyPublicKey ? `${privyPublicKey.substring(0, 20)}...${privyPublicKey.substring(privyPublicKey.length - 20)}` : 'None'
       });
 
       // According to Privy docs, verifyAuthToken accepts a string as the second parameter, not an object
+      console.log('🔑 Auth middleware: Calling Privy verifyAuthToken method');
       const verifiedClaims = await privyClient.verifyAuthToken(token, privyPublicKey || '');
       
       console.log('🔑 Auth middleware: Token verification result', {
         success: !!verifiedClaims,
-        hasUserId: !!verifiedClaims?.userId
+        hasUserId: !!verifiedClaims?.userId,
+        claims: verifiedClaims ? {
+          userId: verifiedClaims.userId,
+          appId: verifiedClaims.appId,
+          // Add other non-sensitive claims as needed
+          hasAdditionalClaims: Object.keys(verifiedClaims).length > 2
+        } : null
       });
 
       if (!verifiedClaims || !verifiedClaims.userId) {
@@ -146,7 +178,19 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
       
       // Provide more specific error messages based on the error type
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.log('🔑 Auth middleware: Token error details', { errorMessage });
+      console.log('🔑 Auth middleware: Token error details', { 
+        errorMessage,
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorStack: error instanceof Error ? error.stack : 'No stack trace',
+        environment: nodeEnv
+      });
+      
+      // Log additional debugging information
+      console.log('🔑 Auth middleware: Verification context', {
+        tokenLength: token.length,
+        tokenPrefix: token.substring(0, 10) + '...',
+        publicKeyFormat: privyPublicKey ? (privyPublicKey.includes('BEGIN PUBLIC KEY') ? 'PEM format' : 'Raw format') : 'None'
+      });
       
       if (error instanceof Error && errorMessage.includes('expired')) {
         console.warn('🔑 Auth middleware: Token expired');

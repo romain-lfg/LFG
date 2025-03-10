@@ -90,29 +90,40 @@ export const useAuth = () => {
       console.log('Starting user sync with backend', {
         userId: user.id,
         email: user.email?.address,
-        walletsCount: wallets.length
+        walletsCount: wallets.length,
+        environment: process.env.NEXT_PUBLIC_ENVIRONMENT // Log the environment
       });
       setIsSyncing(true);
       const activeWallet = wallets[0]; // Use the first wallet as the active one
+      
+      console.log('Requesting access token from Privy...');
       const token = await getAccessToken();
       
       if (!token) {
-        console.error('No access token available');
+        console.error('No access token available for user sync');
         setIsSyncing(false);
         return;
       }
 
-      console.log('Got token from Privy, sending to backend', { 
+      // Log token details (safely)
+      console.log('Got token from Privy', { 
+        tokenReceived: !!token,
+        tokenLength: token.length,
+        tokenPrefix: token.substring(0, 10) + '...' // Only log prefix for security
+      });
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      console.log('Preparing to send user data to backend', { 
         userId: user.id, 
         wallet: activeWallet.address,
-        apiUrl: process.env.NEXT_PUBLIC_API_URL
+        apiUrl: apiUrl,
+        endpoint: `${apiUrl}/api/users/sync`
       });
 
       const userData = {
         walletAddress: activeWallet.address,
         email: user.email?.address,
         metadata: {
-          // Use only available properties from the user object
           userId: user.id,
           // Add any other user metadata you want to store
         }
@@ -120,7 +131,7 @@ export const useAuth = () => {
       
       console.log('User data being sent to backend:', userData);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/sync`, {
+      const response = await fetch(`${apiUrl}/api/users/sync`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,18 +140,38 @@ export const useAuth = () => {
         body: JSON.stringify(userData),
       });
 
-      console.log('Backend response status:', response.status);
+      console.log('Backend sync response received', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries([...response.headers.entries()]),
+        ok: response.ok
+      });
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Failed to sync user with backend', { status: response.status, error: errorText });
+        console.error('Failed to sync user with backend', { 
+          status: response.status, 
+          statusText: response.statusText,
+          error: errorText 
+        });
       } else {
         const data = await response.json();
-        console.log('User synced successfully', data);
+        console.log('User synced successfully', {
+          userData: data,
+          userProfile: data.user
+        });
         setUserProfile(data.user);
       }
     } catch (error) {
       console.error('Error syncing user with backend:', error);
+      // Log more details about the error
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+      }
     } finally {
       setIsSyncing(false);
     }
@@ -154,8 +185,12 @@ export const useAuth = () => {
     }
     
     try {
-      console.log('Fetching user profile from backend');
+      console.log('Fetching user profile from backend', {
+        environment: process.env.NEXT_PUBLIC_ENVIRONMENT
+      });
       setIsSyncing(true);
+      
+      console.log('Requesting access token from Privy for profile fetch...');
       const token = await getAccessToken();
       
       if (!token) {
@@ -164,26 +199,57 @@ export const useAuth = () => {
         return;
       }
 
-      console.log('Got token, fetching profile from', process.env.NEXT_PUBLIC_API_URL);
+      // Log token details (safely)
+      console.log('Got token for profile fetch', { 
+        tokenReceived: !!token,
+        tokenLength: token.length,
+        tokenPrefix: token.substring(0, 10) + '...' // Only log prefix for security
+      });
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      console.log('Fetching profile from API', {
+        apiUrl: apiUrl,
+        endpoint: `${apiUrl}/api/users/me`
+      });
+
+      const response = await fetch(`${apiUrl}/api/users/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
 
-      console.log('Profile fetch response status:', response.status);
+      console.log('Profile fetch response received', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries([...response.headers.entries()]),
+        ok: response.ok
+      });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('User profile fetched successfully', data);
+        console.log('User profile fetched successfully', {
+          profileData: data,
+          user: data.user
+        });
         setUserProfile(data.user);
       } else {
         const errorText = await response.text();
-        console.error('Failed to fetch user profile', { status: response.status, error: errorText });
+        console.error('Failed to fetch user profile', { 
+          status: response.status, 
+          statusText: response.statusText,
+          error: errorText 
+        });
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
+      // Log more details about the error
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+      }
     } finally {
       setIsSyncing(false);
     }

@@ -1,5 +1,12 @@
 import { supabase, User } from '../config/supabase.js';
 import { NillionService } from './nillion.service.js';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+// Get environment
+const nodeEnv = process.env.NODE_ENV || 'development';
 
 /**
  * User service for handling user operations
@@ -25,11 +32,24 @@ export class UserService {
         userId: userData.id,
         hasWalletAddress: !!userData.walletAddress,
         hasEmail: !!userData.email,
-        hasMetadata: !!userData.metadata
+        hasMetadata: !!userData.metadata,
+        environment: nodeEnv
       });
+      
+      // Log wallet address safely if present
+      if (userData.walletAddress) {
+        console.log('👤 UserService: Wallet address details', {
+          prefix: userData.walletAddress.substring(0, 6) + '...',
+          length: userData.walletAddress.length
+        });
+      }
 
       // Check if user exists
-      console.log('👤 UserService: Checking if user exists in database', { userId: userData.id });
+      console.log('👤 UserService: Checking if user exists in database', { 
+        userId: userData.id,
+        environment: nodeEnv,
+        database: 'supabase'
+      });
       const { data: existingUser } = await supabase
         .from('users')
         .select('*')
@@ -37,7 +57,12 @@ export class UserService {
         .single();
       
       if (existingUser) {
-        console.log('👤 UserService: User exists, updating record', { userId: userData.id });
+        console.log('👤 UserService: User exists, updating record', { 
+          userId: userData.id,
+          existingWalletAddress: existingUser.wallet_address ? 'Present' : 'None',
+          existingEmail: existingUser.email ? 'Present' : 'None',
+          environment: nodeEnv
+        });
         // Update existing user
         const { data: updatedUser, error } = await supabase
           .from('users')
@@ -53,18 +78,30 @@ export class UserService {
         
         if (error) {
           console.error('👤 UserService: Error updating user:', error);
+          console.error('👤 UserService: Supabase error details:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            environment: nodeEnv
+          });
           return null;
         }
         
         console.log('👤 UserService: User updated successfully', {
           userId: updatedUser.id,
           hasWalletAddress: !!updatedUser.wallet_address,
-          hasEmail: !!updatedUser.email
+          hasEmail: !!updatedUser.email,
+          environment: nodeEnv,
+          timestamp: new Date().toISOString()
         });
 
         // Sync with Nillion
         try {
-          console.log('👤 UserService: Syncing updated user with Nillion');
+          console.log('👤 UserService: Syncing updated user with Nillion', {
+            userId: updatedUser.id,
+            environment: nodeEnv
+          });
           await this.nillionService.storeUserData({
             id: updatedUser.id,
             walletAddress: updatedUser.wallet_address,
@@ -74,12 +111,24 @@ export class UserService {
           console.log('👤 UserService: Nillion sync successful');
         } catch (nillionError) {
           console.error('👤 UserService: Error syncing user with Nillion (non-blocking):', nillionError);
+          if (nillionError instanceof Error) {
+            console.error('👤 UserService: Nillion error details:', {
+              name: nillionError.name,
+              message: nillionError.message,
+              stack: nillionError.stack,
+              environment: nodeEnv
+            });
+          }
           // Continue even if Nillion sync fails
         }
         
         return updatedUser;
       } else {
-        console.log('👤 UserService: User does not exist, creating new user', { userId: userData.id });
+        console.log('👤 UserService: User does not exist, creating new user', { 
+          userId: userData.id,
+          environment: nodeEnv,
+          timestamp: new Date().toISOString()
+        });
         // Create new user
         const { data: newUser, error } = await supabase
           .from('users')
@@ -96,6 +145,13 @@ export class UserService {
         
         if (error) {
           console.error('👤 UserService: Error creating user:', error);
+          console.error('👤 UserService: Supabase error details:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            environment: nodeEnv
+          });
           return null;
         }
         
@@ -124,6 +180,14 @@ export class UserService {
       }
     } catch (error) {
       console.error('👤 UserService: Error in syncUser:', error);
+      if (error instanceof Error) {
+        console.error('👤 UserService: Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          environment: nodeEnv
+        });
+      }
       return null;
     }
   }
@@ -133,7 +197,11 @@ export class UserService {
    */
   async getUserById(userId: string): Promise<User | null> {
     try {
-      console.log('👤 UserService: Getting user by ID', { userId });
+      console.log('👤 UserService: Getting user by ID', { 
+        userId,
+        environment: nodeEnv,
+        database: 'supabase'
+      });
       const { data: user, error } = await supabase
         .from('users')
         .select('*')
@@ -142,6 +210,13 @@ export class UserService {
       
       if (error) {
         console.error('👤 UserService: Error getting user by ID:', error);
+        console.error('👤 UserService: Supabase error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          environment: nodeEnv
+        });
         return null;
       }
       
@@ -154,7 +229,15 @@ export class UserService {
       
       return user;
     } catch (error) {
-      console.error('Error in getUserById:', error);
+      console.error('👤 UserService: Error in getUserById:', error);
+      if (error instanceof Error) {
+        console.error('👤 UserService: Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          environment: nodeEnv
+        });
+      }
       return null;
     }
   }
