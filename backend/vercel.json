@@ -32,7 +32,7 @@
     { "src": "/api/commonjs-diagnostic", "dest": "/api/commonjs-diagnostic.cjs", "methods": ["GET", "OPTIONS"] },
     { "src": "/api/auth-health", "dest": "/api/auth-health.js", "methods": ["GET", "OPTIONS"] },
     { "src": "/api/diagnostic", "dest": "/api/diagnostic.js", "methods": ["GET", "OPTIONS"] },
-    { "src": "/api/supabase-diagnostic", "dest": "/api/supabase-diagnostic.ts", "methods": ["GET", "OPTIONS"] },
+    { "src": "/api/supabase-diagnostic", "dest": "/api/supabase-diagnostic.js", "methods": ["GET", "OPTIONS"] },
     { 
       "src": "/api/users/sync", 
       "dest": "/api/app.ts", 
