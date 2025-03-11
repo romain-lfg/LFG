@@ -133,14 +133,8 @@ async function initializeNillion() {
   return initializationPromise;
 }
 
-// Initial initialization attempt with error handling
-try {
-  initializeNillion().catch(error => {
-    console.error('Nillion initialization failed but application will continue:', error);
-  });
-} catch (error) {
-  console.error('Error during Nillion initialization attempt but application will continue:', error);
-}
+// Initial initialization attempt
+initializeNillion();
 
 // Wait for Nillion to initialize
 async function waitForNillionInit() {
@@ -173,17 +167,7 @@ export default async function handler(req: any, res: any) {
       headers: req.headers
     });
     
-    // Try to wait for Nillion to initialize, but don't block the request if it fails or takes too long
-    try {
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Nillion initialization timed out')), 2000);
-      });
-      
-      await Promise.race([waitForNillionInit(), timeoutPromise]);
-    } catch (error) {
-      console.error('Nillion initialization failed or timed out during request handling:', error);
-      // Continue processing the request even if Nillion fails
-    }
+    await waitForNillionInit();
     
     // Special handling for /api/users/sync endpoint
     if (req.url === '/api/users/sync' && req.method === 'POST') {
