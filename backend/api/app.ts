@@ -155,6 +155,9 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
+// Export the Express app for tests and other modules
+export { app };
+
 // Export a request handler function for Vercel
 export default async function handler(req: any, res: any) {
   try {
@@ -205,6 +208,22 @@ export default async function handler(req: any, res: any) {
     }
   }
 }
+
+// Root path handler
+app.get('/', (req, res) => {
+  res.status(200).json({
+    name: 'LFG API',
+    version: '1.0.0',
+    status: 'online',
+    environment: process.env.NODE_ENV || 'development',
+    endpoints: [
+      '/api/users',
+      '/api/auth',
+      '/api/nillion',
+      '/health'
+    ]
+  });
+});
 
 // Health check
 app.get('/health', async (req, res) => {
