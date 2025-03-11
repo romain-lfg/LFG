@@ -24,6 +24,9 @@ export default async function handler(req, res) {
       PRIVY_APP_ID: process.env.PRIVY_APP_ID ? 'set' : 'not set',
       PRIVY_APP_SECRET: process.env.PRIVY_APP_SECRET ? 'set' : 'not set',
       PRIVY_PUBLIC_KEY: process.env.PRIVY_PUBLIC_KEY ? 'set' : 'not set',
+      // Supabase environment variables
+      SUPABASE_URL: process.env.SUPABASE_URL || 'not set',
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ? `set (${process.env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 10)}...)` : 'not set',
       // Add other relevant environment variables
       VERCEL: process.env.VERCEL || 'not set',
       VERCEL_ENV: process.env.VERCEL_ENV || 'not set',
