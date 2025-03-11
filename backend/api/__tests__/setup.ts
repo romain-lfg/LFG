@@ -1,6 +1,6 @@
 import { Express } from 'express';
 import request from 'supertest';
-import app from '../app.js';
+import { app } from '../app.js';
 import { Server } from 'http';
 
 process.env.NODE_ENV = 'test';
