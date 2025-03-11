@@ -1,6 +1,22 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { createBounty, getBountyList, clearBounties, matchBountiesUser } from './lib/nillion/index.js';
+// Try to import Nillion functions, fall back to mock implementation if it fails
+let createBounty, getBountyList, clearBounties, matchBountiesUser;
+try {
+  const nillionModule = await import('./lib/nillion/index.js');
+  createBounty = nillionModule.createBounty;
+  getBountyList = nillionModule.getBountyList;
+  clearBounties = nillionModule.clearBounties;
+  matchBountiesUser = nillionModule.matchBountiesUser;
+  console.log('Successfully imported Nillion module');
+} catch (error) {
+  console.error('Failed to import Nillion module, using fallback implementation:', error);
+  const fallbackModule = await import('./lib/nillion/fallback.js');
+  createBounty = fallbackModule.createBounty;
+  getBountyList = fallbackModule.getBountyList;
+  clearBounties = fallbackModule.clearBounties;
+  matchBountiesUser = fallbackModule.matchBountiesUser;
+}
 import userRoutes from '../src/routes/user.routes.js';
 import authRoutes from '../src/routes/auth.routes.js';
 import nillionRoutes from '../src/routes/nillion.routes.js';
@@ -133,17 +149,56 @@ async function initializeNillion() {
   return initializationPromise;
 }
 
-// Initial initialization attempt
-initializeNillion();
+// Initial initialization attempt with error handling
+try {
+  initializeNillion().catch(error => {
+    console.error('Nillion initialization failed but application will continue:', error);
+    // Mark as initialized anyway to prevent blocking the application
+    nillionInitialized = true;
+  });
+} catch (error) {
+  console.error('Error during Nillion initialization attempt but application will continue:', error);
+  // Mark as initialized anyway to prevent blocking the application
+  nillionInitialized = true;
+}
 
-// Wait for Nillion to initialize
+// Wait for Nillion to initialize with timeout
 async function waitForNillionInit() {
   if (nillionInitialized) return;
   
   if (initializationPromise) {
-    await initializationPromise;
+    try {
+      // Add a timeout to prevent hanging if Nillion initialization takes too long
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          console.warn('Nillion initialization timed out, continuing without it');
+          nillionInitialized = true; // Mark as initialized to prevent future waits
+          reject(new Error('Nillion initialization timed out'));
+        }, 2000); // 2 second timeout
+      });
+      
+      await Promise.race([initializationPromise, timeoutPromise]);
+    } catch (error) {
+      console.error('Error waiting for Nillion initialization:', error);
+      // Mark as initialized anyway to prevent blocking future requests
+      nillionInitialized = true;
+    }
   } else {
-    await initializeNillion();
+    try {
+      // Add a timeout for the initialization as well
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          console.warn('Nillion initialization timed out, continuing without it');
+          nillionInitialized = true;
+          reject(new Error('Nillion initialization timed out'));
+        }, 2000);
+      });
+      
+      await Promise.race([initializeNillion(), timeoutPromise]);
+    } catch (error) {
+      console.error('Error initializing Nillion:', error);
+      nillionInitialized = true;
+    }
   }
 }
 
@@ -167,7 +222,21 @@ export default async function handler(req: any, res: any) {
       headers: req.headers
     });
     
-    await waitForNillionInit();
+    // Try to wait for Nillion to initialize, but don't block the request if it fails or takes too long
+    try {
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          console.warn('Nillion initialization timed out during request handling, continuing without it');
+          nillionInitialized = true; // Mark as initialized to prevent future waits
+          reject(new Error('Nillion initialization timed out during request handling'));
+        }, 1000); // 1 second timeout during request handling
+      });
+      
+      await Promise.race([waitForNillionInit(), timeoutPromise]);
+    } catch (error) {
+      console.error('Nillion initialization failed or timed out during request handling:', error);
+      // Continue processing the request even if Nillion fails
+    }
     
     // Special handling for /api/users/sync endpoint
     if (req.url === '/api/users/sync' && req.method === 'POST') {
