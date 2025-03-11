@@ -1,9 +1,9 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { Request, Response } from 'express';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: Request, res: Response) {
   try {
     // Check Supabase environment variables
     const supabaseUrl = process.env.SUPABASE_URL;
