@@ -4,6 +4,9 @@ export const publicActionDocumentation = `
 
     Create Bounty:
     - Create a bounty for a new user
+
+    Match Bounties:
+    - Match bounties to a user based on their skills and interests
 `;
 
 export const privateActionDocumentation = `

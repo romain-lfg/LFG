@@ -37,7 +37,7 @@ type UserProfileFormat = {
 async function createUpdateUserProfile(userAuthId: string, userData: Partial<UserProfileFormat>) {
     // First check if user profile exists
     const { data: existingProfile } = await supabase
-        .from('User_Profiles')
+        .from('user_profiles')
         .select('*')
         .eq('user_auth_id', userAuthId)
         .single()
@@ -56,7 +56,7 @@ async function createUpdateUserProfile(userAuthId: string, userData: Partial<Use
 
 
     const { data, error } = await supabase
-        .from('User_Profiles')
+        .from('user_profiles')
         .upsert(dataToUpsert, {
             onConflict: 'user_auth_id',  // specify the unique constraint
             ignoreDuplicates: false      // update if exists
@@ -108,7 +108,7 @@ async function testCreateUpdateUserProfile() {
 
 async function getUserData() {
     const { data, error } = await supabase
-        .from("User_Profiles")
+        .from("user_profiles")
         .select('*')
 
     if (error) {
@@ -134,7 +134,7 @@ async function getSingleUserData(userId: string) {
 
 async function getLivingDocument(userId: string) {
     const { data, error } = await supabase
-        .from('User_Profiles')
+        .from('user_profiles')
         .select('living_document')
         .eq('user_auth_id', userId)
         .single()
@@ -148,7 +148,7 @@ async function getLivingDocument(userId: string) {
 
 async function updateLivingDocument(userId: string, livingDocument: string[]) {
     const { data, error } = await supabase
-        .from('User_Profiles')
+        .from('user_profiles')
         .update({ living_document: livingDocument })
         .eq('user_auth_id', userId)
 

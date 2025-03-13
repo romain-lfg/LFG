@@ -27,6 +27,7 @@ export const helpAction: Action = {
     name: "AVAILABLE_ACTIONS",
     description: "Get help with the current action",
     similes: ["ACTIONS", "GET_HELP", "HELP", "HELP_ME", "AVAILABLE_ACTIONS", "HELP_WITH_ACTIONS"],
+    suppressInitialMessage: true,
     validate: async (_runtime: IAgentRuntime, _message: Memory) => {
         return true;
     },
