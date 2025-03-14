@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { ensureAbsoluteUrl } from '@/utils/url';
 
 // Create mock implementations for server-side rendering
 const createMockPrivyHooks = () => {
@@ -112,12 +113,22 @@ export const useAuth = () => {
         tokenPrefix: token.substring(0, 10) + '...' // Only log prefix for security
       });
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      // Construct the API URL directly to avoid any issues with URL construction
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+      if (!apiBaseUrl) {
+        console.error('NEXT_PUBLIC_API_URL is not set in environment variables');
+        setIsSyncing(false);
+        return;
+      }
+      
+      // Ensure we have a properly formatted URL
+      const baseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl;
+      const endpointUrl = `${baseUrl}/api/users/sync`;
+      
       console.log('Preparing to send user data to backend', { 
         userId: user.id, 
         wallet: activeWallet.address,
-        apiUrl: apiUrl,
-        endpoint: `${apiUrl}/api/users/sync`
+        endpoint: endpointUrl
       });
 
       const userData = {
@@ -131,7 +142,7 @@ export const useAuth = () => {
       
       console.log('User data being sent to backend:', userData);
 
-      const response = await fetch(`${apiUrl}/api/users/sync`, {
+      const response = await fetch(endpointUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -212,13 +223,13 @@ export const useAuth = () => {
         tokenPrefix: token.substring(0, 10) + '...' // Only log prefix for security
       });
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      // Use the utility function to ensure we have an absolute URL
+      const endpointUrl = ensureAbsoluteUrl('/api/users/me');
       console.log('Fetching profile from API', {
-        apiUrl: apiUrl,
-        endpoint: `${apiUrl}/api/users/me`
+        endpoint: endpointUrl
       });
 
-      const response = await fetch(`${apiUrl}/api/users/me`, {
+      const response = await fetch(endpointUrl, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
