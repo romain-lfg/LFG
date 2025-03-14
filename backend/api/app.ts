@@ -238,7 +238,8 @@ export default async function handler(req: any, res: any) {
     }
     
     // Special handling for /api/users/sync endpoint
-    if (req.url === '/api/users/sync' && req.method === 'POST') {
+    if ((req.url === '/api/users/sync' || req.path === '/api/users/sync' || req.originalUrl === '/api/users/sync' || req.url.endsWith('/api/users/sync')) && req.method === 'POST') {
+      console.log('URL details:', { url: req.url, path: req.path, originalUrl: req.originalUrl });
       console.log('🔍 Direct handling of /api/users/sync POST request');
       
       // Parse the request body if it hasn't been parsed yet
@@ -251,6 +252,13 @@ export default async function handler(req: any, res: any) {
         }
       }
       
+      // Add CORS headers to the response
+      const origin = req.headers.origin || '*';
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      
       // Directly call the controller method
       const userController = new UserController();
       return userController.syncUser(req, res);
@@ -259,9 +267,17 @@ export default async function handler(req: any, res: any) {
     // Special handling for OPTIONS requests to enable CORS
     if (req.method === 'OPTIONS') {
       console.log('🔍 Handling OPTIONS request with CORS headers');
-      res.setHeader('Access-Control-Allow-Origin', '*');
+      
+      // Get the origin from the request
+      const origin = req.headers.origin || '*';
+      
+      // Set CORS headers
+      res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+      
       return res.status(200).end();
     }
     
