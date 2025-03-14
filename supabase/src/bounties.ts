@@ -87,7 +87,7 @@ async function main() {
 }
 async function getBounties() {
     const { data, error } = await supabase
-        .from('Bounties')
+        .from('bounties')
         .select('*')
 
     if (error) {
@@ -119,7 +119,7 @@ async function updateCreateBounty(bountyId: number, bountyData: Partial<BountyFo
     // Then proceed with bounty creation/update
     console.log("checking for bounty with id:", bountyId);
     const { data: existingBounty } = await supabase
-        .from('Bounties')
+        .from('bounties')
         .select('*')
         .eq('id', bountyId)
         .single()
@@ -137,7 +137,7 @@ async function updateCreateBounty(bountyId: number, bountyData: Partial<BountyFo
     }
 
     const { data, error } = await supabase
-        .from('Bounties')
+        .from('bounties')
         .upsert(dataToUpsert, {
             onConflict: 'id',  // specify the unique constraint
             ignoreDuplicates: false      // update if exists
@@ -155,6 +155,6 @@ async function testFn() {
     console.log("testFn")
 }
 
-main();
+//main();
 
 export { getBounties, updateCreateBounty, testFn }

@@ -70,6 +70,7 @@ export const matchBountiesForUserAction: Action = {
     name: "MATCH_BOUNTIES",
     description: "Match bounties to a user",
     similes: ["MATCH_BOUNTIES", "MATCH_BOUNTIES_FOR_USER", "MATCH_BOUNTIES_FOR_ME"],
+    suppressInitialMessage: true,
     validate: async (_runtime: IAgentRuntime, _message: Memory) => {
         return true;
     },
@@ -109,24 +110,33 @@ export const matchBountiesForUserAction: Action = {
             console.log("Available bounties:", bountiesText);
 
             const livingDocument = await getLivingDocument(userAuthId);
+            const livingDocumentString = JSON.stringify(livingDocument, null, 2);
             console.log("Living document:", livingDocument);
 
             const matchmakingTemplate = `
-                {{recentMessages}}
+                
 
-                compare each bounty in ${bountiesText} with the user's available data in ${livingDocument}
+                compare each bounty in the following document :::${bountiesText}::: with the user's available data in the following document :::${livingDocumentString}:::
                 For each bounty, calculate a score between 0 and 100 based on how well the user fits the bounty requirements and the user's skills and interests
                 also take into account the recent messages.
+
+                If the user mentions that he is bad at something, that should be taken into account.
                 
-                Respond with a JSON markdown block
+                Respond with a JSON markdown block, make sure to include the bounty id, score, description, and reason for the score.
+                For the description, only include the bounty description, not the user's data.
+
+                MAKE ABSOLUTELY SURE THAT YOU INCLUDE EACH BOUNTIES DESCRIPTION IN THE RESPONSE.
             
                 Example response:
                 \`\`\`json
                 {
                     "matches": "[
-                        {bountyId: 1
-                         score: 4,
-                         reason: "good fit because X"}
+                        {
+                            bountyId: 1,
+                            score: 40%,
+                            description: "bounty description",
+                            reason: "good fit because X"
+                        }
                     ]"
                 }
                 \`\`\``;
@@ -152,11 +162,12 @@ export const matchBountiesForUserAction: Action = {
                 for (const match of content.matches) {
                     matchText += `Bounty ID: ${match.bountyId}\n`;
                     matchText += `Match Score: ${match.score}%\n`;
+                    matchText += `Description: ${match.description}\n`;
                     matchText += `Reason: ${match.reason}\n`;
                     matchText += "-------------------\n";
                 }
 
-                if (content.matches.length === 0) {
+                if (content.matches.length === 0 || content.matches[0].score < 50) {
                     matchText = "No bounties currently match your skills. Please try again later as new bounties are posted.";
                 }
 
