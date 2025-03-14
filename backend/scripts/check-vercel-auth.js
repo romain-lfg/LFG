@@ -11,7 +11,7 @@ import fetch from 'node-fetch';
 import chalk from 'chalk';
 
 // Configuration
-const API_URL = process.env.API_URL || 'https://lfg-backend-api-staging-omgv0xo9l-lfg-5fd382da.vercel.app';
+const API_URL = process.env.API_URL || 'https://lfg-backend-api-staging.vercel.app';
 
 async function checkVercelTeamAuth() {
   console.log(chalk.blue(`🔍 Checking if ${API_URL} has Vercel team authentication enabled...`));

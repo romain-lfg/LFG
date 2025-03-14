@@ -2,7 +2,7 @@
 import fetch from 'node-fetch';
 
 // Configuration
-const API_URL = process.env.API_URL || 'https://lfg-backend-api-staging-ncgphhpt0-lfg-5fd382da.vercel.app';
+const API_URL = process.env.API_URL || 'https://lfg-backend-api-staging.vercel.app';
 const TEST_TOKEN = process.env.TEST_TOKEN || 'your-test-token-here'; // Replace with a valid token
 
 async function testOptionsRequest() {

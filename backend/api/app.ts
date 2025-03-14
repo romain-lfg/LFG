@@ -39,7 +39,6 @@ const corsOptions = {
     : process.env.NODE_ENV === 'staging'
     ? [
         'https://lfg-frontend-staging.vercel.app',  // Staging frontend
-        'https://lfg-frontend-staging-m217qrtsi-lfg-5fd382da.vercel.app', // Deployment-specific staging URL
         'http://localhost:3000',  // Allow local frontend to access staging API
       ]
     : 'http://localhost:3000',  // Development

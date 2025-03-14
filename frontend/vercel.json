@@ -36,7 +36,7 @@
   },
   "env": {
     "NEXT_PUBLIC_ENVIRONMENT": "staging",
-    "NEXT_PUBLIC_API_URL": "https://lfg-backend-api-staging-q4x8h0d0d-lfg-5fd382da.vercel.app",
+    "NEXT_PUBLIC_API_URL": "https://lfg-backend-api-staging.vercel.app",
     "NEXT_PUBLIC_LOG_LEVEL": "debug",
     "NEXT_PUBLIC_ENABLE_NILLION": "true",
     "NEXT_PUBLIC_NETWORK": "sepolia",

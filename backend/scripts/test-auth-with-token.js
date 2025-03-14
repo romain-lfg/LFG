@@ -27,7 +27,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '..', '.env') });
 
 // Configuration
-const API_URL = process.env.API_URL || 'https://lfg-backend-api-staging-59jdnh4z5-lfg-5fd382da.vercel.app';
+const API_URL = process.env.API_URL || 'https://lfg-backend-api-staging.vercel.app';
 
 /**
  * Test token verification with Privy SDK

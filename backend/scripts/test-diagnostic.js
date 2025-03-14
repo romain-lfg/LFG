@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 
 // Configuration
-const API_URL = process.env.API_URL || 'https://lfg-backend-api-staging-q5lvsmk7v-lfg-5fd382da.vercel.app';
+const API_URL = process.env.API_URL || 'https://lfg-backend-api-staging.vercel.app';
 
 async function testDiagnostic() {
   console.log('🔍 Testing diagnostic endpoint...');
