@@ -111,6 +111,13 @@ const parseCookies = (cookieHeader: string | undefined): PrivyTokens => {
  * @param next Express next function
  */
 export const authenticateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  // Log entry point
+  console.log('🔑 Auth middleware: Starting authentication', {
+    method: req.method,
+    path: req.path,
+    hasAuthHeader: !!req.headers.authorization,
+    hasCookies: !!req.headers.cookie
+  });
   try {
     // Always allow OPTIONS requests to pass through for CORS preflight
     if (req.method === 'OPTIONS') {
@@ -347,6 +354,14 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
         email,
         claims: verifiedClaims
       };
+
+      // Log successful user object creation
+      console.log('🔑 Auth middleware: User object created', {
+        userId: req.user.id,
+        hasWallet: !!req.user.walletAddress,
+        hasEmail: !!req.user.email,
+        path: req.path
+      });
       
       console.log('🔑 Auth middleware: Authentication successful', {
         userId: req.user.id,
@@ -354,6 +369,7 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
         hasEmail: !!req.user.email
       });
 
+      console.log('🔑 Auth middleware: Authentication successful, calling next()');
       next();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
