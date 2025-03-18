@@ -298,7 +298,7 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
       const claims = verifiedClaims as any;
       
       // Log token verification details
-      console.log('🔑 Auth middleware: Verified claims', {
+      console.log('🔑 Auth middleware: Processing verified claims', {
         userId: verifiedClaims.userId,
         appId: verifiedClaims.appId,
         hasLinkedAccounts: !!claims.linkedAccounts,
@@ -307,19 +307,6 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
       
       // Extract user information safely
       let walletAddress: string | undefined;
-      
-      // Attach the verified user to the request
-      req.user = {
-        id: verifiedClaims.userId,
-        claims: verifiedClaims
-      };
-      
-      // Log successful authentication
-      console.log('🔑 Auth middleware: User authenticated', {
-        userId: req.user.id,
-        hasUser: !!req.user,
-        requestPath: req.path
-      });
       let email: string | undefined;
       
       // Try to extract wallet address and email from the claims
@@ -334,9 +321,15 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
           
           walletAddress = walletAccount?.address;
           email = emailAccount?.address;
+          
+          console.log('🔑 Auth middleware: Extracted user details', {
+            hasWallet: !!walletAddress,
+            hasEmail: !!email,
+            walletType: walletAccount?.type
+          });
         }
       } catch (err) {
-        console.log('🔑 Auth middleware: Error extracting user details from claims', err);
+        console.error('🔑 Auth middleware: Error extracting user details from claims', err);
       }
       
       // Set the privy-token cookie if it wasn't present
@@ -347,6 +340,7 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
         ]);
       }
       
+      // Create the complete user object with all information
       req.user = {
         id: verifiedClaims.userId,
         walletAddress,
