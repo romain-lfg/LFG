@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrivyClient } from '@privy-io/server-auth';
 import dotenv from 'dotenv';
-import { AuthService } from '../services/auth.service.js';
 
 // Load environment variables
 dotenv.config();
@@ -12,19 +11,29 @@ const privyAppSecret = process.env.PRIVY_APP_SECRET;
 const privyPublicKey = process.env.PRIVY_PUBLIC_KEY;
 const nodeEnv = process.env.NODE_ENV || 'development';
 
-// Log environment information
+// Log environment information with detailed key information
 console.log('🔑 Auth middleware: Environment configuration', {
   environment: nodeEnv,
   hasPrivyAppId: !!privyAppId,
   hasPrivyAppSecret: !!privyAppSecret,
   hasPrivyPublicKey: !!privyPublicKey,
   privyPublicKeyLength: privyPublicKey ? privyPublicKey.length : 0,
-  privyPublicKeyFormat: privyPublicKey ? (privyPublicKey.includes('BEGIN PUBLIC KEY') ? 'PEM format' : 'Raw format') : 'None'
+  privyPublicKeyFirstChars: privyPublicKey ? privyPublicKey.substring(0, 10) + '...' : 'none',
+  // Log more environment details
+  frontendUrl: process.env.FRONTEND_URL,
+  nodeVersion: process.version,
+  // Log key format details
+  keyFormat: privyPublicKey ? {
+    containsHeaders: privyPublicKey.includes('BEGIN') || privyPublicKey.includes('END'),
+    containsNewlines: privyPublicKey.includes('\n'),
+    isBase64: /^[A-Za-z0-9+/=]+$/.test(privyPublicKey.trim()),
+    length: privyPublicKey.length
+  } : null
 });
 
 // Validate environment variables
-if (!privyAppId || !privyPublicKey) {
-  console.error('Missing Privy environment variables. Please check your .env file.');
+if (!privyAppId) {
+  console.error('Missing PRIVY_APP_ID environment variable. Please check your .env file.');
   process.exit(1);
 }
 
@@ -34,6 +43,15 @@ const privyClient = new PrivyClient(
   privyAppSecret || ''
 );
 
+// Log initialization details
+console.log('🔑 Auth middleware: Initializing with config', {
+  hasAppId: !!privyAppId,
+  hasAppSecret: !!privyAppSecret,
+  hasPublicKey: !!privyPublicKey,
+  publicKeyLength: privyPublicKey?.length,
+  environment: process.env.NODE_ENV
+});
+
 // Extend Express Request type to include user information
 declare global {
   namespace Express {
@@ -42,14 +60,52 @@ declare global {
         id: string;
         walletAddress?: string;
         email?: string;
+        claims?: any;
         [key: string]: any;
       };
     }
   }
 }
 
+interface PrivyTokens {
+  'privy-token'?: string;
+  'privy-session'?: string;
+}
+
+/**
+ * Parse cookies from request header with detailed logging
+ */
+const parseCookies = (cookieHeader: string | undefined): PrivyTokens => {
+  if (!cookieHeader) {
+    console.log('🔑 Auth middleware: No cookies found in request');
+    return {};
+  }
+  
+  const cookies = cookieHeader.split(';').reduce((cookies: PrivyTokens, cookie) => {
+    const [key, value] = cookie.trim().split('=');
+    if (key === 'privy-token' || key === 'privy-session') {
+      cookies[key] = value;
+      console.log(`🔑 Auth middleware: Found ${key} cookie`, {
+        length: value?.length || 0,
+        firstChars: value ? value.substring(0, 10) + '...' : 'none'
+      });
+    }
+    return cookies;
+  }, {});
+
+  // Log cookie parsing results
+  console.log('🔑 Auth middleware: Cookie parsing complete', {
+    foundPrivyToken: !!cookies['privy-token'],
+    foundPrivySession: !!cookies['privy-session'],
+    cookieHeaderLength: cookieHeader.length
+  });
+
+  return cookies;
+};
+
 /**
  * Middleware to authenticate users using Privy token
+ * Simplified implementation based on Privy documentation
  * @param req Express request object
  * @param res Express response object
  * @param next Express next function
@@ -58,111 +114,243 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
   try {
     // Always allow OPTIONS requests to pass through for CORS preflight
     if (req.method === 'OPTIONS') {
-      console.log('🔑 Auth middleware: Allowing OPTIONS request to pass through');
       return next();
     }
 
-    console.log('🔑 Auth middleware: Processing authentication request', {
-      path: req.path,
-      method: req.method,
-      hasAuthHeader: !!req.headers.authorization
-    });
-
-    // Get authorization header
-    const authHeader = req.headers.authorization;
+    // Parse cookies from request
+    const cookies = parseCookies(req.headers.cookie);
     
-    // Check if authorization header exists and has the correct format
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.warn('🔑 Auth middleware: Missing or invalid token format');
-      res.status(401).json({ 
-        error: 'Unauthorized: Missing or invalid token format',
-        message: 'Authentication token is missing or has an invalid format',
-        code: 'AUTH_TOKEN_MISSING'
-      });
-      return;
-    }
-    
-    // Extract token from header
-    const token = authHeader.split(' ')[1];
-    console.log('🔑 Auth middleware: Token extracted from header');
-    
-    if (!token || token.trim() === '') {
-      console.warn('🔑 Auth middleware: Empty token');
-      res.status(401).json({ 
-        error: 'Unauthorized: Empty token',
-        message: 'Authentication token cannot be empty',
-        code: 'AUTH_TOKEN_EMPTY'
-      });
-      return;
-    }
-    
-    // Verify token
-    try {
-      // Log token details (safely)
-      console.log('🔑 Auth middleware: Verifying token with Privy', {
-        tokenLength: token.length,
-        tokenPrefix: token.substring(0, 10) + '...',
-        hasPrivyPublicKey: !!privyPublicKey,
-        privyPublicKeyLength: privyPublicKey ? privyPublicKey.length : 0,
-        privyPublicKeyFormat: privyPublicKey ? (privyPublicKey.includes('BEGIN PUBLIC KEY') ? 'PEM format' : 'Raw format') : 'None',
-        environment: nodeEnv
-      });
+    // First try to get token from privy-token cookie
+    let token = cookies['privy-token'];
 
-      // Log the exact format of the public key being used
-      console.log('🔑 Auth middleware: Public key format check', {
-        startsWithHeader: privyPublicKey ? privyPublicKey.startsWith('-----BEGIN PUBLIC KEY-----') : false,
-        endsWithFooter: privyPublicKey ? privyPublicKey.endsWith('-----END PUBLIC KEY-----') : false,
-        containsNewlines: privyPublicKey ? privyPublicKey.includes('\n') : false,
-        // Log a safe version of the key for debugging
-        safeKeyPreview: privyPublicKey ? `${privyPublicKey.substring(0, 20)}...${privyPublicKey.substring(privyPublicKey.length - 20)}` : 'None'
-      });
-
-      // According to Privy docs, verifyAuthToken accepts a string as the second parameter, not an object
-      console.log('🔑 Auth middleware: Calling Privy verifyAuthToken method');
-      const verifiedClaims = await privyClient.verifyAuthToken(token, privyPublicKey || '');
-      
-      console.log('🔑 Auth middleware: Token verification result', {
-        success: !!verifiedClaims,
-        hasUserId: !!verifiedClaims?.userId,
-        claims: verifiedClaims ? {
-          userId: verifiedClaims.userId,
-          appId: verifiedClaims.appId,
-          // Add other non-sensitive claims as needed
-          hasAdditionalClaims: Object.keys(verifiedClaims).length > 2
-        } : null
-      });
-
-      if (!verifiedClaims || !verifiedClaims.userId) {
-        console.warn('🔑 Auth middleware: Invalid token claims');
-        res.status(401).json({ 
-          error: 'Unauthorized: Invalid token claims',
-          message: 'Token verification failed: missing user ID in claims',
-          code: 'AUTH_INVALID_CLAIMS'
-        });
+    // If no cookie token, try Authorization header as fallback
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        // Check for privy-session cookie - if present, user might need session refresh
+        if (cookies['privy-session']) {
+          console.log('🔑 Auth middleware: Found privy-session cookie, session needs refresh');
+          res.status(401).json({ 
+            error: 'Session expired', 
+            code: 'SESSION_EXPIRED',
+            message: 'Your session has expired. Please refresh your authentication.'
+          });
+          return;
+        }
+        
+        console.warn('🔑 Auth middleware: No valid authentication found');
+        res.status(401).json({ error: 'Unauthorized: Missing or invalid token format' });
         return;
       }
       
-      // Get user details from Privy to access wallet and email information
-      console.log('🔑 Auth middleware: Getting user details from Privy', {
-        userId: verifiedClaims.userId
-      });
+      token = authHeader.split(' ')[1];
+    }
+    
+    if (!token || token.trim() === '') {
+      console.warn('🔑 Auth middleware: Empty token');
+      res.status(401).json({ error: 'Unauthorized: Empty token' });
+      return;
+    }
+    
+    // Log token details (safely)
+    console.log('🔑 Auth middleware: Token details', { 
+      tokenLength: token.length,
+      tokenFirstChars: token.substring(0, 10) + '...'
+    });
 
-      const authService = new AuthService();
-      const userDetails = await authService.getUserDetails(verifiedClaims.userId);
+    // Verify token using Privy SDK
+    try {
+      console.log('🔑 Auth middleware: Verifying token with Privy');
       
-      console.log('🔑 Auth middleware: User details retrieved', {
-        hasWallet: !!userDetails?.wallet,
-        hasEmail: !!userDetails?.email,
-        userId: verifiedClaims.userId
+      // According to Privy docs, we can pass the verification key directly to avoid an API call
+      let verifiedClaims;
+      
+      if (privyPublicKey) {
+        // Decode and log token parts for debugging
+        const [headerB64, payloadB64, signatureB64] = token.split('.');
+        const header = JSON.parse(Buffer.from(headerB64, 'base64').toString());
+        const payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString());
+        
+        // Log verification attempt with all relevant details
+        console.log('🔑 Auth middleware: Token verification attempt', {
+          // Token info
+          tokenLength: token.length,
+          tokenParts: {
+            header: headerB64.length,
+            payload: payloadB64.length,
+            signature: signatureB64.length
+          },
+          // Header info
+          algorithm: header.alg,
+          keyId: header.kid,
+          tokenType: header.typ,
+          // Payload info (safe fields only)
+          issuer: payload.iss,
+          audience: payload.aud,
+          expiration: new Date(payload.exp * 1000).toISOString(),
+          issuedAt: new Date(payload.iat * 1000).toISOString(),
+          subject: payload.sub,
+          // Public key info
+          publicKeyLength: privyPublicKey.length,
+          publicKeyFirstChars: privyPublicKey.substring(0, 10) + '...',
+          // Environment info
+          environment: process.env.NODE_ENV,
+          appId: process.env.PRIVY_APP_ID
+        });
+        
+        try {
+          // Verify the token matches our app ID
+          if (payload.aud !== process.env.PRIVY_APP_ID) {
+            throw new Error(`Invalid audience: ${payload.aud}, expected: ${process.env.PRIVY_APP_ID}`);
+          }
+          
+          // Verify token hasn't expired
+          const now = Math.floor(Date.now() / 1000);
+          if (payload.exp && payload.exp < now) {
+            throw new Error(`Token expired at ${new Date(payload.exp * 1000).toISOString()}`);
+          }
+          
+          // Verify token with the public key
+          try {
+            // Ensure the key is properly formatted for ES256
+            let formattedKey = privyPublicKey.trim();
+            
+            // Log key format details (safely)
+            console.log('🔑 Auth middleware: Key format check', {
+              originalLength: privyPublicKey.length,
+              trimmedLength: formattedKey.length,
+              containsPEM: formattedKey.includes('BEGIN') || formattedKey.includes('END'),
+              containsNewlines: formattedKey.includes('\n'),
+              // Show first few chars safely
+              keyStart: formattedKey.substring(0, 10) + '...'
+            });
+            
+            verifiedClaims = await privyClient.verifyAuthToken(token, formattedKey);
+            console.log('🔑 Auth middleware: Token verification successful', {
+              userId: verifiedClaims.userId,
+              appId: verifiedClaims.appId,
+              verifiedAt: new Date().toISOString()
+            });
+          } catch (verifyError: any) {
+            // If verification fails, try with base64 decoding/encoding
+            try {
+              console.log('🔑 Auth middleware: First attempt failed, trying with re-encoded key');
+              // Decode and re-encode to ensure proper base64 format
+              const keyBuffer = Buffer.from(privyPublicKey, 'base64');
+              const reEncodedKey = keyBuffer.toString('base64');
+              verifiedClaims = await privyClient.verifyAuthToken(token, reEncodedKey);
+            } catch (retryError) {
+              throw verifyError; // If retry fails, throw original error
+            }
+          }
+        } catch (verifyError: any) {
+          // Create a detailed error response
+          const errorDetails = {
+            message: verifyError.message,
+            name: verifyError.name,
+            code: verifyError.code || 'VERIFICATION_FAILED',
+            tokenIssuer: payload.iss,
+            tokenAudience: payload.aud,
+            expectedAudience: process.env.PRIVY_APP_ID,
+            // Include key verification details
+            keyLength: privyPublicKey.length,
+            keyFormat: privyPublicKey.includes('BEGIN') ? 'PEM' : 'Raw',
+            // Include timing information
+            currentTime: new Date().toISOString(),
+            tokenExpiration: new Date(payload.exp * 1000).toISOString(),
+            tokenIssuedAt: new Date(payload.iat * 1000).toISOString()
+          };
+          
+          console.error('🔑 Auth middleware: Token verification failed', errorDetails);
+          
+          res.status(401).json({ 
+            error: 'Unauthorized: Token verification failed',
+            details: errorDetails
+          });
+          return;
+        }
+      } else {
+        console.log('🔑 Auth middleware: No public key provided, letting SDK fetch it');
+        verifiedClaims = await privyClient.verifyAuthToken(token);
+      }
+      
+      // Log the verified claims (without sensitive data)
+      console.log('🔑 Auth middleware: Token verification successful', {
+        hasUserId: !!verifiedClaims?.userId,
+        hasAppId: !!verifiedClaims?.appId,
+        claimsKeys: verifiedClaims ? Object.keys(verifiedClaims) : []
       });
+      
+      // Verify that we have a valid user ID
+      if (!verifiedClaims || !verifiedClaims.userId) {
+        console.warn('🔑 Auth middleware: Invalid token claims - missing user ID');
+        res.status(401).json({ error: 'Unauthorized: Invalid token claims' });
+        return;
+      }
+      
+      interface PrivyAccount {
+        type: string;
+        address?: string;
+      }
 
-      // Add user information to request object
+      // Create a simple user object with essential information
+      // Note: We need to cast verifiedClaims to access custom properties not in the standard AuthTokenClaims type
+      const claims = verifiedClaims as any;
+      
+      // Log token verification details
+      console.log('🔑 Auth middleware: Verified claims', {
+        userId: verifiedClaims.userId,
+        appId: verifiedClaims.appId,
+        hasLinkedAccounts: !!claims.linkedAccounts,
+        linkedAccountTypes: claims.linkedAccounts?.map((acc: any) => acc.type)
+      });
+      
+      // Extract user information safely
+      let walletAddress: string | undefined;
+      
+      // Attach the verified user to the request
       req.user = {
         id: verifiedClaims.userId,
-        // Add additional user details if available
-        walletAddress: userDetails?.wallet?.address,
-        email: userDetails?.email?.address,
-        // Store the full claims for potential use in other middleware/routes
+        claims: verifiedClaims
+      };
+      
+      // Log successful authentication
+      console.log('🔑 Auth middleware: User authenticated', {
+        userId: req.user.id,
+        hasUser: !!req.user,
+        requestPath: req.path
+      });
+      let email: string | undefined;
+      
+      // Try to extract wallet address and email from the claims
+      try {
+        if (claims.linkedAccounts && Array.isArray(claims.linkedAccounts)) {
+          const walletAccount = claims.linkedAccounts.find(
+            (account: PrivyAccount) => account.type === 'wallet'
+          );
+          const emailAccount = claims.linkedAccounts.find(
+            (account: PrivyAccount) => account.type === 'email'
+          );
+          
+          walletAddress = walletAccount?.address;
+          email = emailAccount?.address;
+        }
+      } catch (err) {
+        console.log('🔑 Auth middleware: Error extracting user details from claims', err);
+      }
+      
+      // Set the privy-token cookie if it wasn't present
+      const cookies = parseCookies(req.headers.cookie);
+      if (!cookies['privy-token']) {
+        res.setHeader('Set-Cookie', [
+          `privy-token=${token}; Path=/; HttpOnly; SameSite=Strict; Secure`,
+        ]);
+      }
+      
+      req.user = {
+        id: verifiedClaims.userId,
+        walletAddress,
+        email,
         claims: verifiedClaims
       };
       
@@ -174,56 +362,33 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
 
       next();
     } catch (error: unknown) {
-      console.error('🔑 Auth middleware: Token verification error:', error);
-      
-      // Provide more specific error messages based on the error type
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.log('🔑 Auth middleware: Token error details', { 
-        errorMessage,
+      console.error('🔑 Auth middleware: Token verification error:', errorMessage);
+      
+      // Log detailed error information for debugging
+      console.log('🔑 Auth middleware: Token verification error details', { 
         errorName: error instanceof Error ? error.name : 'Unknown',
+        errorMessage,
         errorStack: error instanceof Error ? error.stack : 'No stack trace',
-        environment: nodeEnv
-      });
-      
-      // Log additional debugging information
-      console.log('🔑 Auth middleware: Verification context', {
+        environment: nodeEnv,
         tokenLength: token.length,
-        tokenPrefix: token.substring(0, 10) + '...',
-        publicKeyFormat: privyPublicKey ? (privyPublicKey.includes('BEGIN PUBLIC KEY') ? 'PEM format' : 'Raw format') : 'None'
+        appId: privyAppId,
+        publicKeyAvailable: !!privyPublicKey,
+        publicKeyLength: privyPublicKey ? privyPublicKey.length : 0
       });
       
+      // Provide specific error messages based on the error type
       if (error instanceof Error && errorMessage.includes('expired')) {
-        console.warn('🔑 Auth middleware: Token expired');
-        res.status(401).json({ 
-          error: 'Unauthorized: Token expired',
-          message: 'Your authentication session has expired. Please log in again.',
-          code: 'AUTH_TOKEN_EXPIRED'
-        });
+        res.status(401).json({ error: 'Unauthorized: Token expired' });
       } else if (error instanceof Error && errorMessage.includes('signature')) {
-        console.warn('🔑 Auth middleware: Invalid token signature');
-        res.status(401).json({ 
-          error: 'Unauthorized: Invalid token signature',
-          message: 'Token has an invalid signature',
-          code: 'AUTH_INVALID_SIGNATURE'
-        });
+        res.status(401).json({ error: 'Unauthorized: Invalid token signature' });
       } else {
-        console.warn('🔑 Auth middleware: General token verification failure');
-        res.status(401).json({ 
-          error: 'Unauthorized: Invalid token',
-          message: 'Authentication failed due to an invalid token',
-          code: 'AUTH_INVALID_TOKEN'
-        });
+        res.status(401).json({ error: 'Unauthorized: Invalid token' });
       }
     }
   } catch (error: unknown) {
     console.error('🔑 Auth middleware: Authentication error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.log('🔑 Auth middleware: General auth error details', { errorMessage });
-    res.status(500).json({ 
-      error: 'Internal server error during authentication',
-      message: 'An unexpected error occurred during authentication',
-      code: 'AUTH_SERVER_ERROR'
-    });
+    res.status(500).json({ error: 'Internal server error during authentication' });
   }
 };
 
