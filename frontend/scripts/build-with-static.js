@@ -30,7 +30,9 @@ filesToRename.forEach(file => {
 });
 
 try {
-  // Run the Next.js build command
+  // Copy staging env and run build
+  console.log('Setting up staging environment...');
+  execSync('cp .env.staging .env', { stdio: 'inherit' });
   console.log('Building Next.js application...');
   execSync('next build', { stdio: 'inherit' });
   console.log('Build completed successfully!');

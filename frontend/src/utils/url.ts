@@ -12,34 +12,48 @@
 export function ensureAbsoluteUrl(url: string): string {
   // If the URL already starts with http:// or https://, it's already absolute
   if (url.startsWith('http://') || url.startsWith('https://')) {
+    console.log('URL is already absolute:', url);
     return url;
   }
   
   // Get the API URL from environment variables
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   
-  // Log the API URL for debugging
   console.log('API URL from environment:', apiUrl);
   
-  // If API URL is not set, use a default or throw an error
   if (!apiUrl) {
     console.error('NEXT_PUBLIC_API_URL environment variable is not set');
-    // Fallback to relative URL as a last resort
+    // Fallback to a relative URL as a last resort
     return url;
   }
   
-  // Remove trailing slash from API URL if it exists
-  const baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
-  
-  // If the URL starts with a slash, it's a relative URL - we need to prepend the API URL
-  if (url.startsWith('/')) {
-    const fullUrl = `${baseUrl}${url}`;
-    console.log('Constructed full URL:', fullUrl);
-    return fullUrl;
+  // Ensure the API URL has a protocol
+  let normalizedApiUrl = apiUrl;
+  if (!apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
+    normalizedApiUrl = `https://${apiUrl}`;
+    console.log('Added https:// protocol to API URL:', normalizedApiUrl);
   }
   
-  // If it doesn't start with a slash, assume it's a relative URL and add a slash
-  const fullUrl = `${baseUrl}/${url}`;
+  // Parse the API URL to ensure it's valid
+  let baseUrl: string;
+  try {
+    // Create a URL object to validate and normalize the API URL
+    const parsedUrl = new URL(normalizedApiUrl);
+    baseUrl = parsedUrl.origin;
+    console.log('Parsed API base URL:', baseUrl);
+  } catch (error) {
+    console.error('Invalid API URL format:', normalizedApiUrl, error);
+    // Fallback to using the raw API URL as a string
+    baseUrl = normalizedApiUrl.endsWith('/') ? normalizedApiUrl.slice(0, -1) : normalizedApiUrl;
+    console.log('Falling back to string manipulation for API URL:', baseUrl);
+  }
+  
+  // Ensure the path part of the URL starts with a slash
+  const path = url.startsWith('/') ? url : `/${url}`;
+  
+  // Construct the full URL
+  const fullUrl = `${baseUrl}${path}`;
   console.log('Constructed full URL:', fullUrl);
+  
   return fullUrl;
 }

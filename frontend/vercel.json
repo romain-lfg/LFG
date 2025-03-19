@@ -40,6 +40,7 @@
     "NEXT_PUBLIC_LOG_LEVEL": "debug",
     "NEXT_PUBLIC_ENABLE_NILLION": "true",
     "NEXT_PUBLIC_NETWORK": "sepolia",
-    "NEXT_PUBLIC_IPFS_GATEWAY": "https://ipfs.io/ipfs/"
+    "NEXT_PUBLIC_IPFS_GATEWAY": "https://ipfs.io/ipfs/",
+    "NEXT_PUBLIC_PRIVY_APP_ID": "cm7eswoga03ez13eq3mwawy9t"
   }
 }

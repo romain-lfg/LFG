@@ -37,7 +37,7 @@ Once you have the token, you can use it with the test script:
 
 ```bash
 # Run the test with the token as a command-line argument
-node scripts/test-auth-with-token.js "your-token-here"
+node scripts/test-auth-with-token.js "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkNlT1UxUElldEM3eEMzM1lHdnBSN1E5NUFoMWxpeWk2OEpnOUw0Ukc5aFEifQ.eyJzaWQiOiJjbTgwcWhxc2IwMzgwZzN5ejY0empiMWI4IiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NDE0NzAzNjYsImF1ZCI6ImNtN2Vzd29nYTAzZXoxM2VxM213YXd5OXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y203ejlpZm44MDJyMjU0YmdheTJmMHU0NyIsImV4cCI6MTc0MTQ3Mzk2Nn0.SDDT5W2AJYFLPhn9rH06gLy5K1POAHpS8wqRzL77SvNS2MltQe3_uMfwmoD5Q8lAg4zL-DhaQlp8WmSIuLc0yA"
 
 # Or set it as an environment variable
 export TEST_TOKEN="your-token-here"

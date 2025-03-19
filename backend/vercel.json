@@ -55,7 +55,9 @@
     "FRONTEND_URL": "https://lfg-frontend-staging.vercel.app",
     "CORS_ORIGIN": "https://lfg-frontend-staging.vercel.app",
     "SUPABASE_URL": "https://kkkwputcwjkuzniuuehq.supabase.co",
-    "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtra3dwdXRjd2prdXpuaXV1ZWhxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDM5NTQ0OSwiZXhwIjoyMDU1OTcxNDQ5fQ.xJFWmcNBCfVfxGdSX6GJ6T_FvU3ckg-JCTAjiw1EhgI"
+    "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtra3dwdXRjd2prdXpuaXV1ZWhxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDM5NTQ0OSwiZXhwIjoyMDU1OTcxNDQ5fQ.xJFWmcNBCfVfxGdSX6GJ6T_FvU3ckg-JCTAjiw1EhgI",
+    "PRIVY_APP_ID": "cm7eswoga03ez13eq3mwawy9t",
+    "PRIVY_APP_SECRET": "y5miw6ijtgC7xCvu92PLX4DqLSp15xmch461wd5peCv5VQdBj4T4iRKBk1xu8nWUfbqEuUtBPSxMeFSq2bS2z5898"
   },
   "git": {
     "deploymentEnabled": {

@@ -19,81 +19,78 @@ export class UserController {
         path: req.path,
         hasUser: !!req.user,
         userId: req.user?.id,
-        headers: Object.keys(req.headers),
-        hasAuthHeader: !!req.headers.authorization
+        body: req.body,
+        headers: req.headers
       });
 
+      // Handle OPTIONS request for CORS preflight
+      if (req.method === 'OPTIONS') {
+        console.log('📝 UserController.syncUser: Handling OPTIONS request');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        return res.status(200).end();
+      }
+
+      // Enhanced logging for debugging authentication issues
+      console.log('📝 UserController.syncUser: Checking authentication', {
+        hasUser: !!req.user,
+        userId: req.user?.id || req.user?.userId || req.user?.sub,
+        userObject: JSON.stringify(req.user),
+        authHeader: req.headers.authorization ? `${req.headers.authorization.substring(0, 15)}...` : 'None',
+        headers: Object.keys(req.headers)
+      });
+      
+      // Extract user ID from various possible formats
+      let userId = null;
+      
+      // With the improved auth middleware, the user ID should be consistently available at req.user.id
+      if (req.user) {
+        userId = req.user.id || req.user.userId;
+        console.log('📝 UserController.syncUser: User ID from request object', { userId });
+      }
+      
       // Ensure user is authenticated
       if (!req.user) {
         console.log('📝 UserController.syncUser: Unauthorized - no user object');
         return res.status(401).json({ error: 'Unauthorized: User not authenticated' });
       }
       
-      // Extract user ID from the request object
-      // The auth middleware should have set this consistently
-      const userId = req.user.id;
-      
       if (!userId) {
         console.log('📝 UserController.syncUser: Unauthorized - could not extract user ID', { user: req.user });
         return res.status(401).json({ error: 'Unauthorized: User ID missing' });
       }
+      
+      // Attach the extracted userId to req.user.id for consistency
+      req.user.id = userId;
 
-      // Extract data from request body
-      // If data is missing from the body, try to use data from the req.user object
-      // which was populated by the auth middleware from the token claims
-      const walletAddress = req.body.walletAddress || req.user.walletAddress;
-      const email = req.body.email || req.user.email;
-      const metadata = req.body.metadata || {};
+      const { walletAddress, email, metadata } = req.body;
       
       console.log('📝 UserController.syncUser: Processing user data', {
-        userId,
         walletAddress,
         hasEmail: !!email,
         hasMetadata: !!metadata
       });
       
-      // Validate required fields
-      if (!userId) {
-        console.log('📝 UserController.syncUser: Missing required user ID');
-        return res.status(400).json({ error: 'Bad Request: User ID is required' });
-      }
-      
       // Sync user data with database
       const userData = {
-        id: userId,
+        id: req.user.id,
         walletAddress,
         email,
         metadata
       };
       
-      console.log('📝 UserController.syncUser: Calling userService.syncUser', userData);
+      console.log('📝 UserController.syncUser: Calling userService.syncUser');
       const user = await userService.syncUser(userData);
-      
-      if (!user) {
-        console.error('📝 UserController.syncUser: Failed to sync user - no user returned');
-        return res.status(500).json({ error: 'Failed to sync user data' });
-      }
-      
       console.log('📝 UserController.syncUser: User synced successfully', {
-        userId: user.id,
-        hasWalletAddress: !!user.wallet_address,
-        hasEmail: !!user.email
+        userId: user?.id,
+        hasWalletAddress: !!user?.wallet_address
       });
       
       return res.status(200).json({ user });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('📝 UserController.syncUser: Error syncing user:', errorMessage);
-      
-      if (error instanceof Error) {
-        console.error('📝 UserController.syncUser: Error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        });
-      }
-      
-      return res.status(500).json({ error: 'Internal server error', message: errorMessage });
+      console.error('📝 UserController.syncUser: Error syncing user:', error);
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
   
