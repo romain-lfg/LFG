@@ -1,6 +1,7 @@
 import { PrivyClient } from '@privy-io/server-auth';
-import { UserService } from './user.service.js';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 import dotenv from 'dotenv';
+import { ExtendedAuthTokenClaims, PrivyUser, PrivyLinkedAccount } from '../types/auth.types.js';
 
 // Load environment variables
 dotenv.config();
@@ -8,22 +9,21 @@ dotenv.config();
 // Get environment variables
 const privyAppId = process.env.PRIVY_APP_ID;
 const privyAppSecret = process.env.PRIVY_APP_SECRET;
-const privyPublicKey = process.env.PRIVY_PUBLIC_KEY;
+// JWKS URL for token verification
+const JWKS_URL = `https://auth.privy.io/api/v1/apps/${privyAppId}/jwks.json`;
 const nodeEnv = process.env.NODE_ENV || 'development';
 
-// Log environment information
+// Log environment information with detailed key information
 console.log('🔐 AuthService: Environment configuration', {
   environment: nodeEnv,
   hasPrivyAppId: !!privyAppId,
   hasPrivyAppSecret: !!privyAppSecret,
-  hasPrivyPublicKey: !!privyPublicKey,
-  privyPublicKeyLength: privyPublicKey ? privyPublicKey.length : 0,
-  privyPublicKeyFormat: privyPublicKey ? (privyPublicKey.includes('BEGIN PUBLIC KEY') ? 'PEM format' : 'Raw format') : 'None'
+  jwksUrl: JWKS_URL
 });
 
 // Validate environment variables
-if (!privyAppId || !privyPublicKey) {
-  console.error('Missing Privy environment variables. Please check your .env file.');
+if (!privyAppId) {
+  console.error('Missing PRIVY_APP_ID environment variable. Please check your .env file.');
   process.exit(1);
 }
 
@@ -32,9 +32,6 @@ const privyClient = new PrivyClient(
   privyAppId,
   privyAppSecret || ''
 );
-
-// Create user service
-const userService = new UserService();
 
 /**
  * Authentication service for handling auth-related operations
@@ -45,266 +42,190 @@ export class AuthService {
    * @param token JWT token to verify
    * @returns Verified claims if token is valid, null otherwise
    */
-  async verifyToken(token: string) {
-    try {
-      console.log('🔐 AuthService: Starting token verification', {
-        tokenReceived: !!token,
-        tokenLength: token ? token.length : 0,
-        tokenPrefix: token ? token.substring(0, 10) + '...' : 'None',
-        environment: nodeEnv
-      });
-
-      // Log the original public key format
-      console.log('🔐 AuthService: Original public key format', {
-        originalKeyLength: privyPublicKey ? privyPublicKey.length : 0,
-        hasHeader: privyPublicKey ? privyPublicKey.includes('-----BEGIN PUBLIC KEY-----') : false,
-        hasFooter: privyPublicKey ? privyPublicKey.includes('-----END PUBLIC KEY-----') : false,
-        hasNewlines: privyPublicKey ? privyPublicKey.includes('\n') : false,
-        // Log a safe version of the key for debugging
-        safeKeyPreview: privyPublicKey ? `${privyPublicKey.substring(0, 20)}...${privyPublicKey.substring(privyPublicKey.length - 20)}` : 'None'
-      });
-      
-      // Format the public key correctly if it's not already in the right format
-      let formattedPublicKey = privyPublicKey || '';
-      
-      // Ensure the key has the correct header and footer
-      let keyModified = false;
-      if (!formattedPublicKey.includes('-----BEGIN PUBLIC KEY-----')) {
-        formattedPublicKey = '-----BEGIN PUBLIC KEY-----\n' + formattedPublicKey;
-        keyModified = true;
-        console.log('🔐 AuthService: Added missing header to public key');
-      }
-      if (!formattedPublicKey.includes('-----END PUBLIC KEY-----')) {
-        formattedPublicKey = formattedPublicKey + '\n-----END PUBLIC KEY-----';
-        keyModified = true;
-        console.log('🔐 AuthService: Added missing footer to public key');
-      }
-      
-      // Ensure there are newlines after the header and before the footer
-      if (!formattedPublicKey.includes('-----BEGIN PUBLIC KEY-----\n')) {
-        formattedPublicKey = formattedPublicKey.replace('-----BEGIN PUBLIC KEY-----', '-----BEGIN PUBLIC KEY-----\n');
-        keyModified = true;
-        console.log('🔐 AuthService: Added missing newline after header');
-      }
-      if (!formattedPublicKey.includes('\n-----END PUBLIC KEY-----')) {
-        formattedPublicKey = formattedPublicKey.replace('-----END PUBLIC KEY-----', '\n-----END PUBLIC KEY-----');
-        keyModified = true;
-        console.log('🔐 AuthService: Added missing newline before footer');
-      }
-      
-      // Add newlines every 64 characters in the base64 part if they're not already there
-      const headerIndex = formattedPublicKey.indexOf('-----BEGIN PUBLIC KEY-----\n');
-      const footerIndex = formattedPublicKey.indexOf('\n-----END PUBLIC KEY-----');
-      
-      if (headerIndex !== -1 && footerIndex !== -1) {
-        const base64Part = formattedPublicKey.substring(headerIndex + 28, footerIndex);
-        
-        // Log the base64 part format
-        console.log('🔐 AuthService: Base64 part format', {
-          length: base64Part.length,
-          hasNewlines: base64Part.includes('\n'),
-          samplePart: base64Part.length > 20 ? base64Part.substring(0, 20) + '...' : base64Part
-        });
-        
-        // If the base64 part doesn't have newlines, add them every 64 characters
-        if (!base64Part.includes('\n')) {
-          let formattedBase64 = '';
-          for (let i = 0; i < base64Part.length; i += 64) {
-            formattedBase64 += base64Part.substring(i, Math.min(i + 64, base64Part.length)) + '\n';
-          }
-          
-          formattedPublicKey = '-----BEGIN PUBLIC KEY-----\n' + formattedBase64 + '-----END PUBLIC KEY-----';
-          keyModified = true;
-          console.log('🔐 AuthService: Added newlines to base64 part every 64 characters');
-        }
-      }
-      
-      // Log the formatted public key
-      console.log('🔐 AuthService: Using formatted public key for verification', {
-        wasModified: keyModified,
-        formattedKeyLength: formattedPublicKey.length,
-        // Log a safe version of the key for debugging
-        safeKeyPreview: `${formattedPublicKey.substring(0, 20)}...${formattedPublicKey.substring(formattedPublicKey.length - 20)}`
-      });
-      
-      // Verify the token with the formatted public key
-      console.log('🔐 AuthService: Calling Privy verifyAuthToken method');
-      const verifiedClaims = await privyClient.verifyAuthToken(token, formattedPublicKey);
-      
-      // Log the verification result
-      console.log('🔐 AuthService: Token verification successful', {
-        success: !!verifiedClaims,
-        hasUserId: !!verifiedClaims?.userId,
-        claims: verifiedClaims ? {
-          userId: verifiedClaims.userId,
-          appId: verifiedClaims.appId,
-          // Add other non-sensitive claims as needed
-          hasAdditionalClaims: Object.keys(verifiedClaims).length > 2
-        } : null
-      });
-      
-      return verifiedClaims;
-    } catch (error) {
-      console.error('🔐 AuthService: Token verification error:', error);
-      
-      // Log detailed error information
-      if (error instanceof Error) {
-        console.error('🔐 AuthService: Error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-          environment: nodeEnv
-        });
-      }
-      
-      return null;
-    }
-  }
-
   /**
-   * Get user details from Privy
-   * @param userId The Privy user ID
-   * @returns User object or null if not found
+   * Verify a Privy authentication token using JWKS
+   * @param authHeader Authorization header containing the JWT token
+   * @returns Verified claims if token is valid, null otherwise
    */
-  async getUserDetails(userId: string) {
+  async verifyToken(authHeader: string): Promise<ExtendedAuthTokenClaims | null> {
     try {
-      console.log('🔐 AuthService: Fetching user details from Privy', {
-        userId,
-        environment: nodeEnv
-      });
-      
-      const user = await privyClient.getUser(userId);
-      
-      console.log('🔐 AuthService: User details retrieved', {
-        success: !!user,
-        hasWallet: !!user?.wallet,
-        hasEmail: !!user?.email,
-        userId: userId
-      });
-      
-      return user;
-    } catch (error) {
-      console.error('🔐 AuthService: Error fetching user details:', error);
-      
-      // Log detailed error information
-      if (error instanceof Error) {
-        console.error('🔐 AuthService: Error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-          environment: nodeEnv
-        });
-      }
-      
-      return null;
-    }
-  }
-
-  /**
-   * Get user information from a verified token
-   * @param userId Privy user ID
-   * @returns User information if found, null otherwise
-   */
-  async getUserFromToken(userId: string) {
-    try {
-      console.log('🔐 AuthService: Getting user from database', {
-        userId,
-        environment: nodeEnv
-      });
-      
-      // Get user from database
-      const user = await userService.getUserById(userId);
-      
-      console.log('🔐 AuthService: User retrieval result', {
-        success: !!user,
-        hasWalletAddress: user ? !!user.wallet_address : false,
-        hasEmail: user ? !!user.email : false,
-        userId: userId
-      });
-      
-      if (!user) {
-        console.log('🔐 AuthService: User not found in database', { userId });
+      if (!authHeader) {
+        console.error('🔐 AuthService: No authorization header provided');
         return null;
       }
       
-      return user;
-    } catch (error) {
-      console.error('🔐 AuthService: Error getting user from token:', error);
-      
-      // Log detailed error information
-      if (error instanceof Error) {
-        console.error('🔐 AuthService: Error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-          environment: nodeEnv
-        });
+      // Extract token from Bearer header (following Privy's docs)
+      const token = authHeader.replace(/^Bearer /, '');
+      if (!token) {
+        console.error('🔐 AuthService: No token found in authorization header');
+        return null;
       }
       
+      // Create JWKS client
+      const JWKS = createRemoteJWKSet(new URL(JWKS_URL));
+
+      // Verify token using JWKS
+      const { payload } = await jwtVerify(token, JWKS, {
+        issuer: 'privy.io',
+        audience: privyAppId
+      });
+
+      // Cast payload to our expected claims type
+      const verifiedClaims = payload as unknown as ExtendedAuthTokenClaims;
+      
+      // Extract user information from claims
+      if (!verifiedClaims.sub) {
+        console.error('🔐 AuthService: Missing sub field in verified claims');
+        return null;
+      }
+      
+      // Extract userId from the sub field (format: did:privy:<userId>)
+      const userId = verifiedClaims.sub.startsWith('did:privy:') 
+        ? verifiedClaims.sub.replace('did:privy:', '') 
+        : verifiedClaims.sub;
+      
+      // Set all the fields in the verified claims
+      verifiedClaims.userId = userId;
+      verifiedClaims.appId = verifiedClaims.aud;
+      
+      // Set backward compatibility fields
+      verifiedClaims.issuedAt = verifiedClaims.iat;
+      verifiedClaims.expiration = verifiedClaims.exp;
+      verifiedClaims.issuer = verifiedClaims.iss;
+      verifiedClaims.sessionId = verifiedClaims.sid;
+      
+      console.log('🔐 AuthService: Token verification successful', {
+        userId,
+        hasLinkedAccounts: !!(verifiedClaims.linkedAccounts && verifiedClaims.linkedAccounts.length > 0)
+      });
+
+      // Extract email and wallet from linked accounts if available
+      const linkedAccounts = verifiedClaims.linkedAccounts || [];
+      const emailAccount = linkedAccounts.find(account => account.type === 'email');
+      const walletAccount = linkedAccounts.find(account => account.type === 'wallet');
+
+      // Construct user object from claims
+      const user = {
+        id: verifiedClaims.userId,
+        email: emailAccount?.email,
+        walletAddress: walletAccount?.address,
+        appId: verifiedClaims.appId,
+        linkedAccounts: verifiedClaims.linkedAccounts
+      };
+      
+      // Log successful verification with more details
+      console.log('🔐 AuthService: Token verification successful', {
+        hasUserId: !!user.id,
+        userId: user.id,
+        hasEmail: !!user.email,
+        hasWalletAddress: !!user.walletAddress,
+        linkedAccounts: linkedAccounts.length,
+        issuer: verifiedClaims.iss,
+        subject: verifiedClaims.sub,
+        tokenExpiry: verifiedClaims.exp
+      });
+      
+      return { ...verifiedClaims, user };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('🔐 AuthService: Token verification error:', {
+        error: errorMessage,
+        errorType: error instanceof Error ? error.constructor.name : typeof error,
+        errorStack: error instanceof Error ? error.stack : undefined,
+        token: authHeader ? `${authHeader.substring(0, 10)}...` : 'none',
+        tokenLength: authHeader?.length,
+        jwksUrl: JWKS_URL,
+        environment: process.env.NODE_ENV
+      });
       return null;
     }
   }
 
   /**
-   * Validate a session
-   * @param token JWT token to validate
+   * Validate a session using an authorization header
+   * @param authHeader Authorization header containing the JWT token (Bearer format)
    * @returns Session information if valid, null otherwise
    */
-  async validateSession(token: string) {
+  async validateSession(authHeader: string): Promise<{ valid: boolean; user: PrivyUser | null; claims: ExtendedAuthTokenClaims | null }> {
     try {
-      console.log('🔐 AuthService: Validating session', {
-        hasToken: !!token,
-        tokenLength: token ? token.length : 0,
-        environment: nodeEnv
-      });
-      
-      // Verify token
-      const verifiedClaims = await this.verifyToken(token);
-      
-      if (!verifiedClaims || !verifiedClaims.userId) {
-        console.log('🔐 AuthService: Session validation failed - invalid token claims');
-        return null;
+      // Verify token from auth header
+      const claims = await this.verifyToken(authHeader);
+      if (!claims) {
+        return { valid: false, user: null, claims: null };
       }
       
-      console.log('🔐 AuthService: Token verified, fetching user from database', {
-        userId: verifiedClaims.userId
-      });
-      
-      // Get user from database
-      const user = await this.getUserFromToken(verifiedClaims.userId);
-      
-      if (!user) {
-        console.log('🔐 AuthService: Session validation failed - user not found in database', {
-          userId: verifiedClaims.userId
-        });
-        return null;
+      // If we have a user object in claims, use that directly
+      if (claims.user) {
+        
+        // Create a proper PrivyUser object from the claims.user data
+        const userFromClaims: PrivyUser = {
+          id: claims.userId, // Use the userId we extracted from sub
+          createdAt: new Date(claims.iat * 1000),
+          linkedAccounts: claims.linkedAccounts || [],
+          email: claims.user.email ? { address: claims.user.email } : undefined,
+          wallet: claims.user.walletAddress ? { address: claims.user.walletAddress } : undefined
+        };
+        
+        // Return the claims with the user object
+        return { valid: true, user: userFromClaims, claims };
       }
-      
-      console.log('🔐 AuthService: Session validation successful', {
-        userId: user.id,
-        hasWalletAddress: !!user.wallet_address,
-        hasEmail: !!user.email
-      });
-      
-      return {
-        authenticated: true,
-        user,
-        claims: verifiedClaims
+
+      // Otherwise, create user object from claims
+      const user: PrivyUser = {
+        id: claims.userId,
+        createdAt: new Date(claims.iat * 1000),
+        linkedAccounts: []
       };
-    } catch (error) {
-      console.error('🔐 AuthService: Error validating session:', error);
-      
-      // Log detailed error information
-      if (error instanceof Error) {
-        console.error('🔐 AuthService: Error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-          environment: nodeEnv
-        });
+
+      // Extract linked accounts if present
+      if (Array.isArray(claims.linkedAccounts)) {
+        for (const account of claims.linkedAccounts) {
+
+          const linkedAccount: PrivyLinkedAccount = {
+            type: account.type
+          };
+
+          if (account.address) linkedAccount.address = account.address;
+          if (account.username) linkedAccount.username = account.username;
+          if (account.email) linkedAccount.email = account.email;
+
+          // Set specific account fields based on type
+          switch (account.type) {
+            case 'wallet':
+              if (account.address) {
+                user.wallet = { address: account.address };
+
+              }
+              break;
+            case 'email':
+              if (account.email) {
+                user.email = { address: account.email };
+
+              }
+              break;
+            case 'discord':
+              if (account.username) {
+                user.discord = { username: account.username };
+
+              }
+              break;
+            case 'telegram':
+              if (account.username) {
+                user.telegram = { username: account.username };
+
+              }
+              break;
+          }
+
+          // Add to linked accounts array (only once)
+          user.linkedAccounts.push(linkedAccount);
+        }
       }
-      
-      return null;
+
+      return { valid: true, user, claims };
+    } catch (error: unknown) {
+      console.error('Error validating session:', error instanceof Error ? error.message : 'Unknown error');
+      return { valid: false, user: null, claims: null };
     }
   }
 }

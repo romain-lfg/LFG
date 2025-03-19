@@ -259,9 +259,84 @@ export default async function handler(req: any, res: any) {
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       
-      // Directly call the controller method
-      const userController = new UserController();
-      return userController.syncUser(req, res);
+      // Import and use the auth service to authenticate the user
+      const { AuthService } = await import('../src/services/auth.service.js');
+      const authService = new AuthService();
+      
+      try {
+        // Get authorization header
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          console.log('🔑 Handler: Missing authorization header');
+          return res.status(401).json({ error: 'Unauthorized: Missing authorization header' });
+        }
+        
+        // Validate session using auth service
+        const { valid, user, claims } = await authService.validateSession(authHeader);
+        
+        if (!valid || !claims) {
+          console.log('🔑 Handler: Invalid session', {
+            valid,
+            hasUser: !!user,
+            hasClaims: !!claims
+          });
+          return res.status(401).json({ error: 'Unauthorized: Invalid session' });
+        }
+        
+        // First try to use the user object from the validateSession method
+        if (user) {
+          req.user = user;
+          console.log('🔑 Handler: Using user from auth service', { userId: user.id });
+        } 
+        // Fallback: Create user from claims if user object is not available
+        else if (claims) {
+          // Extract userId from claims (should be in claims.userId after our verifyToken method)
+          const userId = claims.userId;
+            
+          if (!userId) {
+            console.error('🔑 Handler: No userId available in claims');
+            return res.status(401).json({ error: 'Unauthorized: No userId available in claims' });
+          }
+              
+          // Extract email and wallet from linked accounts if available
+          const linkedAccounts = claims.linkedAccounts || [];
+          const emailAccount = linkedAccounts.find(account => account.type === 'email');
+          const walletAccount = linkedAccounts.find(account => account.type === 'wallet');
+              
+          // Create user object from claims
+          const userFromClaims = {
+            id: userId,
+            createdAt: new Date((claims.iat || Date.now()/1000) * 1000),
+            linkedAccounts: linkedAccounts,
+            email: emailAccount?.email ? { address: emailAccount.email } : undefined,
+            wallet: walletAccount?.address ? { address: walletAccount.address } : undefined
+          };
+              
+          // Attach user to request
+          req.user = userFromClaims;
+          console.log('🔑 Handler: Created user from claims', { userId });
+        } 
+        // No valid user data available
+        else {
+          console.error('🔑 Handler: No claims data available');
+          return res.status(401).json({ error: 'Unauthorized: No claims data available' });
+        }
+        
+        // Log successful authentication
+        console.log('🔑 Handler: Authentication successful', {
+          userId: req.user.id,
+          hasWallet: !!req.user.wallet,
+          hasEmail: !!req.user.email,
+          linkedAccountCount: req.user.linkedAccounts.length
+        });
+        
+        // Directly call the controller method
+        const userController = new UserController();
+        return userController.syncUser(req, res);
+      } catch (error) {
+        console.error('🔑 Handler: Authentication error:', error instanceof Error ? error.message : 'Unknown error');
+        return res.status(500).json({ error: 'Internal server error during authentication' });
+      }
     }
     
     // Special handling for OPTIONS requests to enable CORS
