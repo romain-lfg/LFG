@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { LoginButton, LogoutButton, UserProfile, AuthStatus } from '@/components/auth';
 
 export default function Navbar() {
   return (
@@ -13,21 +16,36 @@ export default function Navbar() {
               LFG
             </Link>
             <div className="flex items-center space-x-8">
+              {/* Public links - always visible */}
               <Link
                 href="/bounties"
                 className="navbar-link"
               >
                 Bounties
               </Link>
-              <Link
-                href="/dashboard"
-                className="navbar-link"
-              >
-                Dashboard
-              </Link>
-              <button className="navbar-button">
-                Connect Wallet
-              </button>
+              
+              {/* Authenticated-only links with AuthStatus component */}
+              <AuthStatus 
+                authenticatedComponent={
+                  <Link href="/dashboard" className="navbar-link">
+                    Dashboard
+                  </Link>
+                }
+              />
+              
+              {/* User profile for authenticated users */}
+              <AuthStatus 
+                authenticatedComponent={<UserProfile showEmail={false} />}
+              />
+              
+              {/* Login/Logout buttons */}
+              <LoginButton>
+                Get Started
+              </LoginButton>
+              
+              <LogoutButton variant="secondary">
+                Disconnect
+              </LogoutButton>
             </div>
           </div>
         </div>

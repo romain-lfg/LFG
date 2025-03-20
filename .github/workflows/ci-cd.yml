@@ -1,0 +1,249 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, staging, production ]
+  pull_request:
+    branches: [ main, staging, production ]
+
+jobs:
+  lint-and-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies (Backend)
+        run: |
+          cd backend
+          npm ci
+      
+      - name: Lint (Backend)
+        run: |
+          cd backend
+          npm run lint
+      
+      - name: Test (Backend)
+        run: |
+          cd backend
+          npm test
+      
+      - name: Install dependencies (Frontend)
+        run: |
+          cd frontend
+          npm ci
+      
+      - name: Lint (Frontend)
+        run: |
+          cd frontend
+          npm run lint
+      
+      - name: Test (Frontend)
+        run: |
+          cd frontend
+          npm test
+
+  e2e-tests:
+    name: End-to-End Tests
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/staging'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          cd tests
+          npm ci
+      
+      - name: Install Playwright browsers
+        run: |
+          cd tests
+          npx playwright install --with-deps
+      
+      - name: Run E2E tests
+        run: |
+          cd tests
+          npm test
+        env:
+          TEST_BASE_URL: ${{ github.ref == 'refs/heads/staging' && 'https://staging.lfg.example.com' || 'http://localhost:3000' }}
+
+  deploy-backend-staging:
+    name: Deploy Backend to Staging
+    needs: [lint-and-test, e2e-tests]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/staging'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      
+      - name: Deploy to Vercel
+        run: |
+          cd backend
+          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_BACKEND_PROJECT_ID }}
+          # Backend environment variables
+          NODE_ENV: staging
+          LOG_LEVEL: debug
+          PORT: 8080
+          FRONTEND_URL: https://lfg-frontend-staging-3vhlp0568-lfg-5fd382da.vercel.app
+          CORS_ORIGIN: https://lfg-frontend-staging-3vhlp0568-lfg-5fd382da.vercel.app
+          SUPABASE_URL: https://kkkwputcwjkuzniuuehq.supabase.co
+          PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
+          PRIVY_APP_SECRET: ${{ secrets.PRIVY_APP_SECRET }}
+          PRIVY_PUBLIC_KEY: ${{ secrets.PRIVY_PUBLIC_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NILLION_API_KEY: ${{ secrets.NILLION_API_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+  deploy-frontend-staging:
+    name: Deploy Frontend to Staging
+    needs: [lint-and-test, e2e-tests]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/staging'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      
+      - name: Deploy to Vercel
+        run: |
+          cd frontend
+          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
+          # Frontend environment variables
+          NEXT_PUBLIC_ENVIRONMENT: staging
+          NEXT_PUBLIC_API_URL: https://lfg-backend-api-staging-dscimds2r-lfg-5fd382da.vercel.app
+          NEXT_PUBLIC_LOG_LEVEL: debug
+          NEXT_PUBLIC_ENABLE_NILLION: true
+          NEXT_PUBLIC_NETWORK: sepolia
+          NEXT_PUBLIC_IPFS_GATEWAY: https://ipfs.io/ipfs/
+          NEXT_PUBLIC_PRIVY_APP_ID: ${{ secrets.NEXT_PUBLIC_PRIVY_APP_ID }}
+          NEXT_PUBLIC_NILLION_SECRET_KEY: ${{ secrets.NEXT_PUBLIC_NILLION_SECRET_KEY }}
+          NEXT_PUBLIC_NILLION_ORG_DID: ${{ secrets.NEXT_PUBLIC_NILLION_ORG_DID }}
+
+  deploy-backend-production:
+    name: Deploy Backend to Production
+    needs: [lint-and-test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/production'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      
+      - name: Deploy to Vercel
+        run: |
+          cd backend
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_BACKEND_PROJECT_ID }}
+
+  deploy-frontend-production:
+    name: Deploy Frontend to Production
+    needs: [lint-and-test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/production'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      
+      - name: Deploy to Vercel
+        run: |
+          cd frontend
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
+
+  run-migrations:
+    name: Run Database Migrations
+    needs: [deploy-backend-staging, deploy-frontend-staging]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/staging'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install Supabase CLI
+        run: npm install -g supabase
+      
+      - name: Run migrations
+        run: |
+          supabase login --token ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+          supabase db push

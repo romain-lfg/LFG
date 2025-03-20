@@ -1,8 +1,8 @@
 {
   "framework": "nextjs",
-  "buildCommand": "pnpm build",
-  "devCommand": "pnpm dev",
-  "installCommand": "pnpm install",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
   "regions": ["fra1"],
   "headers": [
     {
@@ -22,5 +22,25 @@
         }
       ]
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": false,
+      "staging": true,
+      "production": false
+    }
+  },
+  "github": {
+    "enabled": true,
+    "silent": false
+  },
+  "env": {
+    "NEXT_PUBLIC_ENVIRONMENT": "staging",
+    "NEXT_PUBLIC_API_URL": "https://lfg-backend-api-staging.vercel.app",
+    "NEXT_PUBLIC_LOG_LEVEL": "debug",
+    "NEXT_PUBLIC_ENABLE_NILLION": "true",
+    "NEXT_PUBLIC_NETWORK": "sepolia",
+    "NEXT_PUBLIC_IPFS_GATEWAY": "https://ipfs.io/ipfs/",
+    "NEXT_PUBLIC_PRIVY_APP_ID": "cm7eswoga03ez13eq3mwawy9t"
+  }
 }

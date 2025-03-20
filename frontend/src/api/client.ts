@@ -21,6 +21,7 @@ export class APIClient {
       headers: {
         'Content-Type': 'application/json',
       },
+      withCredentials: true, // Ensure cookies are sent with cross-origin requests
     });
 
     // Add request interceptor for authentication

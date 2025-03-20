@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LFG Authentication Test</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 10px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 5px;
+      overflow: auto;
+      max-height: 400px;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .success {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .error {
+      color: #f44336;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>LFG Authentication Test</h1>
+  
+  <div class="section">
+    <h2>Test Authentication Flow</h2>
+    <p>This page tests the integration between the frontend and the authentication backend.</p>
+    <button id="runTestBtn">Run Authentication Test</button>
+    <div id="testStatus"></div>
+    <h3>Test Results:</h3>
+    <pre id="testResults">Results will appear here after running the test.</pre>
+  </div>
+  
+  <div class="section">
+    <h2>Manual Testing</h2>
+    
+    <div>
+      <h3>1. Login</h3>
+      <input type="email" id="email" placeholder="Email" value="manual-test@example.com">
+      <input type="text" id="walletAddress" placeholder="Wallet Address" value="0xmanualtest">
+      <button id="loginBtn">Login</button>
+      <pre id="loginResults">Login results will appear here.</pre>
+    </div>
+    
+    <div>
+      <h3>2. Get Profile</h3>
+      <button id="profileBtn" disabled>Get Profile</button>
+      <pre id="profileResults">Profile results will appear here.</pre>
+    </div>
+    
+    <div>
+      <h3>3. Update Profile</h3>
+      <textarea id="metadata" rows="5" cols="50" placeholder="Enter metadata as JSON">{"name": "Manual Test User", "bio": "Testing manually", "skills": ["JavaScript", "React"]}</textarea>
+      <button id="updateBtn" disabled>Update Profile</button>
+      <pre id="updateResults">Update results will appear here.</pre>
+    </div>
+    
+    <div>
+      <h3>4. Sync User</h3>
+      <input type="text" id="newWalletAddress" placeholder="New Wallet Address" value="0xnewmanualaddress">
+      <button id="syncBtn" disabled>Sync User</button>
+      <pre id="syncResults">Sync results will appear here.</pre>
+    </div>
+  </div>
+
+  <script>
+    // API URL for the test server
+    const API_URL = 'http://localhost:3004';
+    let authToken = null;
+    let userId = null;
+    
+    // Helper function to make API requests
+    const apiRequest = async (endpoint, method = 'GET', body = null, token = null) => {
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const options = {
+        method,
+        headers,
+        credentials: 'include',
+      };
+      
+      if (body) {
+        options.body = JSON.stringify(body);
+      }
+      
+      const response = await fetch(`${API_URL}${endpoint}`, options);
+      return await response.json();
+    };
+    
+    // Automated test function
+    const testAuthIntegration = async () => {
+      const testStatus = document.getElementById('testStatus');
+      const testResults = document.getElementById('testResults');
+      
+      testStatus.innerHTML = '<p>Running tests...</p>';
+      testResults.textContent = '';
+      
+      let log = '';
+      const logMessage = (msg) => {
+        log += msg + '\n';
+        testResults.textContent = log;
+      };
+      
+      try {
+        // Step 1: Test login
+        logMessage('Step 1: Testing login...');
+        const loginData = {
+          email: 'frontend-test@example.com',
+          walletAddress: '0xfrontendtest',
+        };
+        
+        const loginResponse = await apiRequest('/api/auth/login', 'POST', loginData);
+        logMessage(`Login response: ${JSON.stringify(loginResponse, null, 2)}`);
+        
+        if (!loginResponse.token) {
+          throw new Error('Login failed: No token received');
+        }
+        
+        const testToken = loginResponse.token;
+        const testUserId = loginResponse.user.id;
+        logMessage(`Login successful! Token: ${testToken}`);
+        
+        // Step 2: Test profile retrieval
+        logMessage('\nStep 2: Testing profile retrieval...');
+        const profileResponse = await apiRequest('/api/users/profile', 'GET', null, testToken);
+        logMessage(`Profile response: ${JSON.stringify(profileResponse, null, 2)}`);
+        
+        if (!profileResponse.user || profileResponse.user.id !== testUserId) {
+          throw new Error('Profile retrieval failed: User ID mismatch');
+        }
+        
+        logMessage('Profile retrieval successful!');
+        
+        // Step 3: Test profile update
+        logMessage('\nStep 3: Testing profile update...');
+        const updateData = {
+          metadata: {
+            name: 'Frontend Test User',
+            bio: 'Testing the frontend integration',
+            skills: ['React', 'TypeScript', 'Node.js'],
+          },
+        };
+        
+        const updateResponse = await apiRequest('/api/users/profile', 'PUT', updateData, testToken);
+        logMessage(`Update response: ${JSON.stringify(updateResponse, null, 2)}`);
+        
+        if (!updateResponse.user || !updateResponse.user.metadata || updateResponse.user.metadata.name !== 'Frontend Test User') {
+          throw new Error('Profile update failed: Metadata not updated correctly');
+        }
+        
+        logMessage('Profile update successful!');
+        
+        // Step 4: Test user sync
+        logMessage('\nStep 4: Testing user sync...');
+        const syncData = {
+          walletAddress: '0xnewfrontendaddress',
+          metadata: {
+            lastLogin: new Date().toISOString(),
+          },
+        };
+        
+        const syncResponse = await apiRequest('/api/users/sync', 'POST', syncData, testToken);
+        logMessage(`Sync response: ${JSON.stringify(syncResponse, null, 2)}`);
+        
+        if (!syncResponse.user || syncResponse.user.walletAddress !== '0xnewfrontendaddress') {
+          throw new Error('User sync failed: Wallet address not updated correctly');
+        }
+        
+        logMessage('User sync successful!');
+        
+        // Final check
+        logMessage('\nStep 5: Final profile check...');
+        const finalProfileResponse = await apiRequest('/api/users/profile', 'GET', null, testToken);
+        logMessage(`Final profile response: ${JSON.stringify(finalProfileResponse, null, 2)}`);
+        
+        logMessage('\nAll tests passed successfully!');
+        testStatus.innerHTML = '<p class="success">✅ All tests passed successfully!</p>';
+        
+        return {
+          success: true,
+          user: finalProfileResponse.user,
+          token: testToken,
+        };
+      } catch (error) {
+        logMessage(`\nTest failed: ${error.message}`);
+        testStatus.innerHTML = `<p class="error">❌ Test failed: ${error.message}</p>`;
+        return {
+          success: false,
+          error: error.message,
+        };
+      }
+    };
+    
+    // Event listeners for the automated test
+    document.getElementById('runTestBtn').addEventListener('click', () => {
+      testAuthIntegration();
+    });
+    
+    // Event listeners for manual testing
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const walletAddress = document.getElementById('walletAddress').value;
+      const loginResults = document.getElementById('loginResults');
+      
+      try {
+        const loginResponse = await apiRequest('/api/auth/login', 'POST', { email, walletAddress });
+        loginResults.textContent = JSON.stringify(loginResponse, null, 2);
+        
+        if (loginResponse.token) {
+          authToken = loginResponse.token;
+          userId = loginResponse.user.id;
+          
+          // Enable other buttons
+          document.getElementById('profileBtn').disabled = false;
+          document.getElementById('updateBtn').disabled = false;
+          document.getElementById('syncBtn').disabled = false;
+        }
+      } catch (error) {
+        loginResults.textContent = `Error: ${error.message}`;
+      }
+    });
+    
+    document.getElementById('profileBtn').addEventListener('click', async () => {
+      const profileResults = document.getElementById('profileResults');
+      
+      try {
+        const profileResponse = await apiRequest('/api/users/profile', 'GET', null, authToken);
+        profileResults.textContent = JSON.stringify(profileResponse, null, 2);
+      } catch (error) {
+        profileResults.textContent = `Error: ${error.message}`;
+      }
+    });
+    
+    document.getElementById('updateBtn').addEventListener('click', async () => {
+      const metadata = JSON.parse(document.getElementById('metadata').value);
+      const updateResults = document.getElementById('updateResults');
+      
+      try {
+        const updateResponse = await apiRequest('/api/users/profile', 'PUT', { metadata }, authToken);
+        updateResults.textContent = JSON.stringify(updateResponse, null, 2);
+      } catch (error) {
+        updateResults.textContent = `Error: ${error.message}`;
+      }
+    });
+    
+    document.getElementById('syncBtn').addEventListener('click', async () => {
+      const newWalletAddress = document.getElementById('newWalletAddress').value;
+      const syncResults = document.getElementById('syncResults');
+      
+      try {
+        const syncResponse = await apiRequest('/api/users/sync', 'POST', { walletAddress: newWalletAddress }, authToken);
+        syncResults.textContent = JSON.stringify(syncResponse, null, 2);
+      } catch (error) {
+        syncResults.textContent = `Error: ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
